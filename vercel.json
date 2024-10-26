@@ -1,0 +1,10 @@
+{
+  "rewrites": [
+    { "source": "/admin", "destination": "/index.html" },
+    { "source": "/admin/add-ground", "destination": "/index.html" },
+    { "source": "/admin/add-booking", "destination": "/index.html" },
+    { "source": "/admin/approval", "destination": "/index.html" },
+    { "source": "/admin/payments", "destination": "/index.html" },
+    { "source": "/admin/login", "destination": "/index.html" }
+  ]
+}

@@ -6,6 +6,13 @@ import ScreeningForm2 from "./Customer/newApplication";
 import ExistingApplications from "./Customer/existingApplications/page";
 import StudentIntakeForm from "./Customer/applicationSteps/studentForm/studentForm";
 import UploadDocuments from "./Customer/uploadDocuments/page";
+
+import Sidebar from "./RTO/components/siderbar";
+
+import CustomersInfo from "./Admin/customers/page";
+import ExistingApplicationsAdmin from "./Admin/applications/page";
+import PaymentApproval from "./Admin/payments/page";
+
 function App() {
   return (
     <Router>
@@ -19,6 +26,13 @@ function App() {
         />
         <Route path="/student-intake-form" element={<StudentIntakeForm />} />
         <Route path="/upload-documents" element={<UploadDocuments />} />
+        <Route path="/rto" element={<Sidebar />} />
+        <Route path="/admin/customers" element={<CustomersInfo />} />
+        <Route
+          path="/admin/existing-applications"
+          element={<ExistingApplicationsAdmin />}
+        />
+        <Route path="/admin/payments" element={<PaymentApproval />} />
       </Routes>
     </Router>
   );

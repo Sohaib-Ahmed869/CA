@@ -10,7 +10,7 @@ export default {
       {
         light: {
           primary: "#089C34", //sage green
-          secondary: "#181818", //bluish gray
+          secondary: "#142E1D", //bluish gray
           accent: "#142E1D", //dark purple
           "base-100": "#ffffff", //white
           info: "#9ce37d", //bright light green
