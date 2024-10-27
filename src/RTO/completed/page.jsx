@@ -242,8 +242,8 @@ const Completed = () => {
     currentPage > 1 && setCurrentPage(currentPage - 1);
 
   return (
-    <div className="flex">
-      <div className="p-10 w-full">
+    <div className="">
+      <div className="mt-10 lg:p-10 w-full">
         <h1 className="text-2xl mb-5 font-bold">Completed Applications</h1>
         <div className="flex gap-2 mb-5 justify-end text-sm">
           <select
@@ -264,8 +264,8 @@ const Completed = () => {
           <thead>
             <tr>
               <th>Id</th>
-              <th>Date Created</th>
-              <th>Payment Date</th>
+
+              <th>Completion Date</th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -274,13 +274,13 @@ const Completed = () => {
               application.certficateIssued ? null : (
                 <tr key={application.id}>
                   <td>{application.id}</td>
-                  <td>{application.status}</td>
+
                   <td>
                     {application.paymentDate
                       ? application.paymentDate.toLocaleDateString()
                       : "N/A"}
                   </td>
-                  <td className="flex gap-2">
+                  <td className="flex gap-2 max-sm:flex-col">
                     {application.status === "Sent to RTO" && (
                       <>
                         <button className="bg-blue-500 text-white px-2 py-1 rounded flex gap-1 items-center">

@@ -122,24 +122,24 @@ const ExistingApplications = () => {
     <div>
       {loading && <Loader />}
       <Navbar />
-      <div className="p-20">
-        <div className="flex items-center gap-5 mb-5">
+      <div className="p-3 lg:p-20 overflow-x-auto">
+        <div className="flex items-center gap-5 mb-5 text-center w-full">
           <BiEnvelopeOpen className="text-4xl text-black" />
           <h1 className="text-2xl font-bold text-black italic">
             Existing Applications
           </h1>
         </div>
-        <div className="table w-full">
-          <div className="table-row-group">
+        <div className="table mx-auto max-w-screen-sm sm:overflow-x-auto">
+          <div className="table-row-group mx-auto">
             <div className="table-row bg-gray-200">
-              <div className="table-cell font-semibold p-5">Application ID</div>
-              <div className="table-cell font-semibold">Date Created</div>
-              <div className="table-cell font-semibold text-center">Status</div>
-              <div className="table-cell font-semibold text-center">
+              <div className="table-cell font-semibold p-5 max-sm:min-w-40">Application ID</div>
+              <div className="table-cell font-semibold max-sm:min-w-40">Date Created</div>
+              <div className="table-cell font-semibold text-center max-sm:min-w-96">Status</div>
+              <div className="table-cell font-semibold text-center max-sm:min-w-40">
                 Payment Status
               </div>
-              <div className="table-cell font-semibold">Payment Date</div>
-              <div className="table-cell font-semibold">Actions</div>
+              <div className="table-cell font-semibold max-sm:min-w-40">Payment Date</div>
+              <div className="table-cell font-semibold max-sm:min-w-40 text-center">Actions</div>
             </div>
             {applications.map((application) => (
               <div key={application.id} className="table-row">
@@ -147,7 +147,7 @@ const ExistingApplications = () => {
                 <div className="table-cell">
                   {application.dateCreated.toDateString()}
                 </div>
-                <div className="w-full p-2 flex items-center justify-center">
+                <div className="w-full p-2 flex items-center justify-center sm:flex-col">
                   {application.status === "Sent to RTO" ? (
                     <div className="p-1 text rounded-full bg-blue-900 text-white flex items-center justify-center w-2/3 gap-2">
                       <BsArrowUpRight className="text-white" />
@@ -204,7 +204,7 @@ const ExistingApplications = () => {
                     ? application.paymentDate.toDateString()
                     : "N/A"}
                 </div>
-                <div className="table-cell">
+                <div className="flex w-full justify-center">
                   {application.status ===
                   "Sent to RTO" ? null : application.status ===
                     "Waiting for Payment" ? (
@@ -229,7 +229,10 @@ const ExistingApplications = () => {
                       Fill Form
                     </button>
                   ) : application.status === "Upload Documents" ? (
-                    <button className="btn btn-sm text-white btn-primary" onClick={onClickUpload}>
+                    <button
+                      className="btn btn-sm text-white btn-primary"
+                      onClick={onClickUpload}
+                    >
                       <BiUpload /> Upload
                     </button>
                   ) : application.status === "Certficated Generated" ? (
@@ -240,7 +243,7 @@ const ExistingApplications = () => {
                       <BiDownload /> Download
                     </button>
                   ) : application.status === "Dispatched" ? (
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 max-sm:flex-col">
                       <button className="btn btn-sm text-white btn-primary">
                         <CgTrack /> Track
                       </button>
@@ -250,7 +253,7 @@ const ExistingApplications = () => {
                     </div>
                   ) : (
                     application.status === "Completed" && (
-                      <div className="flex gap-2">
+                      <div className="flex gap-2 max-sm:flex-col">
                         <button className="btn btn-sm text-white btn-primary">
                           <BiDownload /> Download
                         </button>

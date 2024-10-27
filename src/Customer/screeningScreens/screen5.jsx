@@ -17,9 +17,9 @@ const FinalScreen = ({
   setToc,
 }) => {
   return (
-    <div className="flex flex-col p-10 w-full justify-between animate-fade">
-      <div className="flex items-center justify-between gap-4 mb-5">
-        <div className="flex flex-col w-1/2">
+    <div className="flex flex-col lg:p-10 p-4 w-full justify-between animate-fade">
+      <div className="flex items-center justify-between gap-4 mb-5 lg:flex-row flex-col">
+        <div className="flex flex-col lg:w-1/2 w-full">
           <label htmlFor="firstName">First Name</label>
           <input
             id="firstName"
@@ -29,7 +29,7 @@ const FinalScreen = ({
             onChange={(e) => setFirstName(e.target.value)}
           />
         </div>
-        <div className="flex flex-col w-1/2">
+        <div className="flex flex-col lg:w-1/2 w-full">
           <label htmlFor="lastName">Last Name</label>
           <input
             id="lastName"
@@ -40,8 +40,8 @@ const FinalScreen = ({
           />
         </div>
       </div>
-      <div className="flex items-center justify-between gap-4 mb-5">
-        <div className="flex flex-col w-1/2">
+      <div className="flex items-center justify-between gap-4 mb-5 lg:flex-row flex-col">
+        <div className="flex flex-col lg:w-1/2 w-full">
           <label htmlFor="phone">Phone</label>
           <input
             id="phone"
@@ -51,7 +51,7 @@ const FinalScreen = ({
             onChange={(e) => setPhone(e.target.value)}
           />
         </div>
-        <div className="flex flex-col w-1/2">
+        <div className="flex flex-col lg:w-1/2 w-full">
           <label htmlFor="email">Email</label>
           <input
             id="email"
@@ -62,8 +62,8 @@ const FinalScreen = ({
           />
         </div>
       </div>
-      <div className="flex items-center justify-between gap-4 mb-5">
-        <div className="flex flex-col w-1/2">
+      <div className="flex items-center justify-between gap-4 mb-5 lg:flex-row flex-col">
+        <div className="flex flex-col lg:w-1/2 w-full ">
           <label htmlFor="country">Country</label>
           <input
             id="country"
@@ -73,7 +73,7 @@ const FinalScreen = ({
             onChange={(e) => setCountry(e.target.value)}
           />
         </div>
-        <div className="flex flex-col w-1/2">
+        <div className="flex flex-col lg:w-1/2 w-full">
           <label htmlFor="questions">Questions</label>
           <input
             id="questions"
@@ -85,7 +85,7 @@ const FinalScreen = ({
         </div>
       </div>
 
-      <div className="flex items-center">
+      <div className="flex items-center lg:w-full">
         <input
           id="toc"
           type="checkbox"

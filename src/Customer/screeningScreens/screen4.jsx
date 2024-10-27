@@ -15,7 +15,7 @@ const FormalEducationScreen = ({
         <select
           id="formalEducation"
           value={formalEducation}
-          className="input w-96 mt-2 mb-2"
+          className="input lg:w-96 mt-2 mb-2"
           onChange={(e) => setFormalEducation(e.target.value)}
         >
           <option value="">Select an option</option>
@@ -30,7 +30,7 @@ const FormalEducationScreen = ({
           </label>
           <input
             id="formalEducationAnswer"
-            className="input w-96 mt-2 mb-2"
+            className="input lg:w-96 mt-2 mb-2"
             value={formalEducationAnswer}
             onChange={(e) => setFormalEducationAnswer(e.target.value)}
           />

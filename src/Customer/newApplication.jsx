@@ -12,7 +12,7 @@ import "./stepper.css";
 
 const Stepper = ({ steps, currentStep }) => {
   return (
-    <div className="w-full flex ml-28 mb-10">
+    <div className="w-full flex lg:ml-28 mb-10 sm:mx-auto">
       {steps.map((step, index) => (
         <div className="flex-1 flex items-center" key={index}>
           <div
@@ -88,7 +88,7 @@ const ScreeningForm2 = () => {
     <div className="min-h-screen">
       {loading && <Loader />}
       <Navbar />
-      <div className="flex flex-col items-center justify-center p-16 ">
+      <div className="flex flex-col items-center justify-center lg:p-16 p-4 ">
         <img
           src={certifiedAustralia}
           alt="Certified Australia"
@@ -102,7 +102,7 @@ const ScreeningForm2 = () => {
         <div className="w-2/3 flex items-center justify-between">
           <Stepper steps={steps} currentStep={step} />
         </div>
-        <div className="w-2/3 bg-gray-100 p-8 rounded-3xl shadow-lg mt-8">
+        <div className="md:w-2/3 lg:w-2/3 bg-gray-100 p-2 rounded-3xl shadow-lg mt-8 w-full">
           {step === 0 && (
             <Screen1
               industry={industry}

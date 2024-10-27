@@ -33,13 +33,13 @@ const Screen1 = ({
   ];
 
   return (
-    <div className="flex flex-col items-center animate-fade">
+    <div className="flex flex-col items-center animate-fade w-full">
       <div className="flex flex-col items-center">
         <div className="mb-4 flex flex-col gap-4 text-center mt-4">
           <label htmlFor="industry">What industry is your experience in?</label>
           <select
             id="industry"
-            className="input w-96"
+            className="input lg:w-96"
             value={industry}
             onChange={(e) => setIndustry(e.target.value)}
           >
@@ -59,7 +59,7 @@ const Screen1 = ({
           </label>
           <select
             id="qualification"
-            className="input w-96"
+            className="input ;g:w-96"
             value={qualification}
             onChange={(e) => setQualification(e.target.value)}
           >

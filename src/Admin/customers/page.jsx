@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { GoVerified } from "react-icons/go";
 import { IoEye } from "react-icons/io5";
+import { Table } from "flowbite-react";
 
 const customers = [
   {
@@ -188,20 +189,31 @@ const CustomersInfo = () => {
   const showAll = () => {
     setFilteredCustomers(customers);
   };
+
+  if (
+    document.getElementById("default-table") &&
+    typeof simpleDatatables.DataTable !== "undefined"
+  ) {
+    const dataTable = new simpleDatatables.DataTable("#default-table", {
+      searchable: false,
+      perPageSelect: false,
+    });
+  }
+
   return (
-    <div className="flex flex-col p-10 w-full justify-between animate-fade">
-      <div className="flex items-center justify-between gap-4 mb-5">
-        <div className="flex flex-col w-1/2">
+    <div className="flex flex-col p-5 w-full justify-between animate-fade">
+      <div className="flex flex-col lg:flex-row items-center justify-between gap-4 mb-5">
+        <div className="flex flex-col">
           <label htmlFor="search">Search</label>
           <input
             id="search"
             value={search}
-            className="input mt-2"
+            className="input mt-2 border-2 border-base-300"
             placeholder="Search by name"
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4 max-sm:flex-col">
           <button
             className="btn btn-primary btn-sm text-white"
             onClick={showVerifiedOnly}
@@ -219,54 +231,47 @@ const CustomersInfo = () => {
           </button>
         </div>
       </div>
-      <div className="flex flex-col w-full border border-base-300 rounded-lg overflow-hidden shadow-lg p-5">
-        <table className="table-auto w-full text-left">
-          <thead className="bg-gray-200 text-gray-600 text-sm p-3 font-semibold rounded-lg">
-            <tr className="bg-gray-200 text-gray-600 text-sm p-3 font-semibold rounded-lg">
-              <th className="text-left p-3">Customer ID</th>
-              <th></th>
-              <th className="text-left">Name</th>
-              <th className="text-left">Industry</th>
-              <th className="text-left">Email</th>
-              <th className="text-left">Phone</th>
-              <th className="text-left">Country</th>
-              <th className="text-left">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
+      <div className="flex flex-col border border-base-300 rounded-lg shadow-lg p-2 lg:p-5 overflow-x-auto">
+        <Table>
+          <Table.Head>
+            <Table.HeadCell>Customer ID</Table.HeadCell>
+            <Table.HeadCell className="max-sm:hidden"></Table.HeadCell>
+            <Table.HeadCell>Name</Table.HeadCell>
+            <Table.HeadCell className="max-sm:hidden">Industry</Table.HeadCell>
+            <Table.HeadCell className="max-sm:hidden">Email</Table.HeadCell>
+            <Table.HeadCell className="max-sm:hidden">Phone</Table.HeadCell>
+            <Table.HeadCell className="max-sm:hidden">Country</Table.HeadCell>
+            <Table.HeadCell>Actions</Table.HeadCell>
+          </Table.Head>
+          <Table.Body>
             {filteredCustomers.map((customer, index) => (
-              <tr
-                key={index}
-                className="border-b border-base-300 hover:bg-gray-400 hover:bg-opacity-15"
-              >
-                <td>{index + 1}</td>
-                <td>
+              <Table.Row key={index} className="hover:bg-gray-100">
+                <Table.Cell className="p-2">{index + 1}</Table.Cell>
+                <Table.Cell className="max-sm:hidden">
                   {customer.verified && (
                     <GoVerified className="text-primary mr-2" />
                   )}
-                </td>
-                <td className="flex items-center">
+                </Table.Cell>
+                <Table.Cell>
                   {customer.firstName} {customer.lastName}
-                </td>
-
-                <td>{customer.industry}</td>
-                <td>{customer.email}</td>
-                <td>{customer.phone}</td>
-                <td>{customer.country}</td>
-                <td>
+                </Table.Cell>
+                <Table.Cell className="max-sm:hidden">{customer.industry}</Table.Cell>
+                <Table.Cell className="max-sm:hidden">{customer.email}</Table.Cell>
+                <Table.Cell className="max-sm:hidden">{customer.phone}</Table.Cell>
+                <Table.Cell className="max-sm:hidden">{customer.country}</Table.Cell>
+                <Table.Cell>
                   <button
                     className="btn-sm flex items-center gap-2"
                     onClick={() => showDetails(customer)}
                   >
                     <IoEye className="text-lg" />
-                    View Details
+                    <span className="max-sm:hidden">View Details</span>
                   </button>
-                </td>
-                <td></td>
-              </tr>
+                </Table.Cell>
+              </Table.Row>
             ))}
-          </tbody>
-        </table>
+          </Table.Body>
+        </Table>
       </div>
       {showModel && (
         <dialog className="modal modal-open">

@@ -9,6 +9,7 @@ import UploadDocuments from "./Customer/uploadDocuments/page";
 
 import Sidebar from "./RTO/components/siderbar";
 import AdminSidebar from "./Admin/Sidebar/page";
+import Dashboard from "./Admin/dashboard/page";
 
 
 
@@ -28,6 +29,7 @@ function App() {
         <Route path="/rto" element={<Sidebar />} />
 
         <Route path="/admin" element={<AdminSidebar />} />
+        <Route path="/admin-dashboard" element={<Dashboard />} />   
 
         
       </Routes>

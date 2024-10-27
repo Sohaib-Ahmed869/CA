@@ -111,7 +111,7 @@ const PaymentApproval = () => {
   };
 
   return (
-    <div className="flex flex-col p-10 w-full justify-between animate-fade">
+    <div className="flex flex-col p-5 w-full justify-between animate-fade">
       <h2 className="text-xl font-bold mb-5">Payment Approval</h2>
       <div className="flex flex-col w-full">
         <table className="w-full table">

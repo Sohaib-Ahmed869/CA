@@ -44,7 +44,7 @@ const Timeline = ({ timeline }) => {
   );
 };
 
-const Application = () => {
+const Application = ({ setSelectedApplication }) => {
   const [application, setApplication] = useState({
     applicationId: 12351,
     firstName: "Sara",
@@ -278,6 +278,9 @@ const Application = () => {
 
   return (
     <div className="min-h-screen">
+      <button onClick={() => setSelectedApplication(null)} className="btn-sm">
+        Back
+      </button>
       <div className="flex flex-col items-center justify-center p-16">
         <div className="col-span-4 text-center">
           <h1 className="text-2xl font-bold text-gray-800">

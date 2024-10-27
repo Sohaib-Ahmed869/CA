@@ -4,7 +4,13 @@ export default {
   theme: {
     extend: {},
   },
-  plugins: [require("daisyui"), require("tailwindcss-animated")],
+  plugins: [
+    require("daisyui"),
+    require("tailwindcss-animated"),
+    require("flowbite/plugin")({
+      datatables: true,
+    }),
+  ],
   daisyui: {
     themes: [
       {

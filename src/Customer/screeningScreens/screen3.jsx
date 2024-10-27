@@ -15,7 +15,7 @@ const StateScreen = ({ state, setState }) => {
     <div className="flex flex-col items-center animate-fade">
       <div className="flex flex-col items-center">
         <label htmlFor="state">Which State do you live in?</label>
-        <div className="grid grid-cols-4 gap-5 m-5">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4  gap-5 m-5">
           {stateOptions.map((option, index) => (
             <div
               key={index}

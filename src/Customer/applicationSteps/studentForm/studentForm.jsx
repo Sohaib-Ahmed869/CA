@@ -82,7 +82,7 @@ const StudentIntakeForm = () => {
   return (
     <div>
       <Navbar />
-      <div className="p-20">
+      <div className="p-5 lg:p-20">
         <form onSubmit={handleSubmit}>
           <PersonalInfo
             personalInfo={personalInfo}
