@@ -100,7 +100,7 @@ const CustomerDashboard = () => {
   React.useEffect(() => {
     setTimeout(() => {
       setLoading(false);
-    }, 0);
+    }, 1000);
   }, []);
 
   const navigateToScreening = () => {
