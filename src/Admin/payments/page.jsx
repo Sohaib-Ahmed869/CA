@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { GoVerified } from "react-icons/go";
+import paymentsimg from "../../assets/payments.png";
 const PaymentApproval = () => {
   const [applications, setApplications] = useState([
     {
@@ -112,7 +113,16 @@ const PaymentApproval = () => {
 
   return (
     <div className="flex flex-col p-5 w-full justify-between animate-fade">
-      <h2 className="text-xl font-bold mb-5">Payment Approval</h2>
+      <div className="flex items-center gap-4 mb-5 lg:flex-row flex-col">
+        <img src={paymentsimg} alt="Payments" className="h-36" />
+        <div className="flex flex-col lg:w-1/2 w-full">
+          <h1 className="text-3xl font-bold">Payment Approval</h1>
+          <p className="text-sm mt-2">
+            Here you can approve payments for the applications that are pending
+            for payment.
+          </p>
+        </div>
+      </div>
       <div className="flex flex-col w-full">
         <table className="w-full table">
           <thead>

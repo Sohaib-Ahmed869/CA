@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import certifiedAustralia from "../../assets/certifiedAustralia.png";
 import Approval from "../approval/page";
 import Completed from "../completed/page";
+import Dashboard from "../dashboard/page";
 import { GiHamburgerMenu } from "react-icons/gi";
 
 import { MdDashboard } from "react-icons/md";
@@ -155,7 +156,7 @@ const Sidebar = () => {
       <div className="flex-1 p-4">
         {
           {
-            Dashboard: <h1>Dashboard</h1>,
+            Dashboard: <Dashboard />,
             Approvals: <Approval />,
             "Completed Applications": <Completed />,
           }[active]

@@ -21,6 +21,7 @@ import { MdPayment } from "react-icons/md";
 import Loader from "../components/loader";
 
 import certificate from "../../assets/certificate.pdf";
+import applicationsimg from "../../assets/applications.png";
 
 import { useNavigate } from "react-router-dom";
 
@@ -123,23 +124,36 @@ const ExistingApplications = () => {
       {loading && <Loader />}
       <Navbar />
       <div className="p-3 lg:p-20 overflow-x-auto">
-        <div className="flex items-center gap-5 mb-5 text-center w-full">
-          <BiEnvelopeOpen className="text-4xl text-black" />
-          <h1 className="text-2xl font-bold text-black italic">
-            Existing Applications
-          </h1>
-        </div>
-        <div className="table mx-auto max-w-screen-sm sm:overflow-x-auto">
+        <div className="flex items-center gap-4 mb-5 lg:flex-row flex-col">
+            <img src={applicationsimg} alt="Applications" className="h-36" />
+            <div className="flex flex-col lg:w-1/2 w-full">
+              <h1 className="text-3xl font-bold max-sm:text-xl">Applications</h1>
+              <p className="text-sm mt-2">
+                Here you can view all the applications and their statuses.
+              </p>
+            </div>
+          </div>  
+        <div className="table mx-auto max-sm:max-w-screen-sm sm:overflow-x-auto">
           <div className="table-row-group mx-auto">
             <div className="table-row bg-gray-200">
-              <div className="table-cell font-semibold p-5 max-sm:min-w-40">Application ID</div>
-              <div className="table-cell font-semibold max-sm:min-w-40">Date Created</div>
-              <div className="table-cell font-semibold text-center max-sm:min-w-96">Status</div>
+              <div className="table-cell font-semibold p-5 max-sm:min-w-40">
+                Application ID
+              </div>
+              <div className="table-cell font-semibold max-sm:min-w-40">
+                Date Created
+              </div>
+              <div className="table-cell font-semibold text-center max-sm:min-w-96">
+                Status
+              </div>
               <div className="table-cell font-semibold text-center max-sm:min-w-40">
                 Payment Status
               </div>
-              <div className="table-cell font-semibold max-sm:min-w-40">Payment Date</div>
-              <div className="table-cell font-semibold max-sm:min-w-40 text-center">Actions</div>
+              <div className="table-cell font-semibold max-sm:min-w-40">
+                Payment Date
+              </div>
+              <div className="table-cell font-semibold max-sm:min-w-40 text-center">
+                Actions
+              </div>
             </div>
             {applications.map((application) => (
               <div key={application.id} className="table-row">

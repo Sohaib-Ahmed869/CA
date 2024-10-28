@@ -6,6 +6,7 @@ import { FaTimes } from "react-icons/fa";
 import { BiUpload } from "react-icons/bi";
 import Sidebar from "../components/siderbar";
 import certificate from "../../assets/certificate.pdf";
+import pending from "../../assets/completed.png";
 
 const applications = [
   {
@@ -243,8 +244,17 @@ const Completed = () => {
 
   return (
     <div className="">
-      <div className="mt-10 lg:p-10 w-full">
-        <h1 className="text-2xl mb-5 font-bold">Completed Applications</h1>
+      <div className="mt-10 lg:p-10 w-full animate-fade">
+        <div className="flex items-center gap-4 mb-5 lg:flex-row flex-col">
+          <img src={pending} alt="Dashboard" className="h-36" />
+          <div className="flex flex-col lg:w-1/2 w-full">
+            <h1 className="text-3xl font-bold">Completed Applications</h1>
+            <p className="text-sm mt-2">
+              Here you can view all the applications that have been completed and
+              are ready to be dispatched to the customers.
+            </p>
+          </div>
+        </div>
         <div className="flex gap-2 mb-5 justify-end text-sm">
           <select
             name="dateFilter"

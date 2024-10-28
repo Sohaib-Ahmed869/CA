@@ -21,7 +21,7 @@ export default {
           "base-100": "#ffffff", //white
           info: "#9ce37d", //bright light green
           warning: "#ff5722", //default (not part of nstp color pallette)
-          fontFamily: "Lato, sans-serif",
+
         },
       },
     ],

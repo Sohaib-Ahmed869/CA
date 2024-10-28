@@ -1,3 +1,10 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+
+.anton-regular {
+  font-family: "Anton", serif;
+  font-weight: 100;
+  font-style: light;
+}

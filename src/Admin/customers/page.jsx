@@ -3,6 +3,8 @@ import { GoVerified } from "react-icons/go";
 import { IoEye } from "react-icons/io5";
 import { Table } from "flowbite-react";
 
+import customerspic from "../../assets/customers.png";
+
 const customers = [
   {
     industry: "Technology",
@@ -202,6 +204,16 @@ const CustomersInfo = () => {
 
   return (
     <div className="flex flex-col p-5 w-full justify-between animate-fade">
+      <div className="flex items-center gap-4 mb-5 lg:flex-row flex-col">
+        <img src={customerspic} alt="Dashboard" className="h-36" />
+        <div className="flex flex-col lg:w-1/2 w-full">
+          <h1 className="text-3xl font-bold">Customers</h1>
+          <p className="text-sm mt-2">
+            Welcome to the customers page. Here you can view all the customers
+            and their details.
+          </p>
+        </div>
+      </div>
       <div className="flex flex-col lg:flex-row items-center justify-between gap-4 mb-5">
         <div className="flex flex-col">
           <label htmlFor="search">Search</label>
@@ -255,10 +267,18 @@ const CustomersInfo = () => {
                 <Table.Cell>
                   {customer.firstName} {customer.lastName}
                 </Table.Cell>
-                <Table.Cell className="max-sm:hidden">{customer.industry}</Table.Cell>
-                <Table.Cell className="max-sm:hidden">{customer.email}</Table.Cell>
-                <Table.Cell className="max-sm:hidden">{customer.phone}</Table.Cell>
-                <Table.Cell className="max-sm:hidden">{customer.country}</Table.Cell>
+                <Table.Cell className="max-sm:hidden">
+                  {customer.industry}
+                </Table.Cell>
+                <Table.Cell className="max-sm:hidden">
+                  {customer.email}
+                </Table.Cell>
+                <Table.Cell className="max-sm:hidden">
+                  {customer.phone}
+                </Table.Cell>
+                <Table.Cell className="max-sm:hidden">
+                  {customer.country}
+                </Table.Cell>
                 <Table.Cell>
                   <button
                     className="btn-sm flex items-center gap-2"

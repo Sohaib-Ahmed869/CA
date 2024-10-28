@@ -17,6 +17,8 @@ import { GrFormAdd } from "react-icons/gr";
 import { IoCall } from "react-icons/io5";
 import { MdPayment } from "react-icons/md";
 
+import applicationsimg from "../../assets/applications.png";
+
 import Application from "./application";
 
 import Loader from "../../Customer/components/loader";
@@ -147,10 +149,14 @@ const ExistingApplicationsAdmin = () => {
 
       {!selectedApplication && (
         <div className="p-5">
-          <div className="flex items-center gap-5 justify-center mb-10">
-            <h1 className="text-2xl font-bold text-black text-center">
-              Existing Applications
-            </h1>
+          <div className="flex items-center gap-4 mb-5 lg:flex-row flex-col">
+            <img src={applicationsimg} alt="Applications" className="h-36" />
+            <div className="flex flex-col lg:w-1/2 w-full">
+              <h1 className="text-3xl font-bold">Applications</h1>
+              <p className="text-sm mt-2">
+                Here you can view all the applications and their statuses.
+              </p>
+            </div>
           </div>
           <div className="flex items-center gap-5 mb-14">
             <div className="flex items-center gap-2">

@@ -12,7 +12,7 @@ import { FaCheckSquare } from "react-icons/fa";
 import { BsClock } from "react-icons/bs";
 import { BiLogOut } from "react-icons/bi";
 import { GiHamburgerMenu } from "react-icons/gi";
-
+import { FaMoneyBill1Wave } from "react-icons/fa6";
 const AdminSidebar = () => {
   const navigate = useNavigate();
 
@@ -92,7 +92,7 @@ const AdminSidebar = () => {
                   setIsOpen(false);
                 }}
               >
-                <BsClock className="text-xl" />
+                <FaMoneyBill1Wave className="text-xl" />
                 <button className="font-medium">Payments</button>
               </li>
               <li
@@ -177,7 +177,7 @@ const AdminSidebar = () => {
               setIsOpen(false);
             }}
           >
-            <BsClock className="text-xl" />
+            <FaMoneyBill1Wave className="text-xl" />
             <button className="font-medium">Payments</button>
           </li>
         </ul>

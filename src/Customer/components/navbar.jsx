@@ -11,7 +11,7 @@ const Navbar = () => {
         <img
           src={certifiedAustralia}
           alt="Certified Australia Logo"
-          className="h-20 ml-4"
+          className="h-20 ml-4 cursor-pointer"
           onClick={() => navigate("/")}
         />
       </div>
