@@ -53,9 +53,16 @@ const UploadDocuments = () => {
   return (
     <div>
       <Navbar />
-      <div className="mb-10 p-4 lg:p-20">
-        <h2 className="file-2xl font-semibold mb-5">Upload Documents</h2>
-        <div className="grid grid-cols-1 gap-5 md:grid-cols-1">
+      <div className="p-5 lg:p-60 lg:pt-20 lg:pb-20">
+        <div className="flex flex-col items-center text-left w-full">
+          <h1 className="text-2xl lg:text-3xl font-bold">
+            Upload Documents
+          </h1>
+          <p className="text-md text-gray-600 mb-3 lg:mb-8 mt-2">
+            Please upload the following documents to complete your application.
+          </p>
+        </div>
+        <div className="grid grid-cols-1 gap-5 md:grid-cols-1 bg-white p-5 rounded-lg shadow-lg"> 
           <div>
             <h3 className="file-lg font-semibold mb-3">100 Points of ID</h3>
             <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
@@ -70,7 +77,7 @@ const UploadDocuments = () => {
                   value={hundredPointsOfID.driversLicense}
                   onChange={handleChange}
                   placeholder="Driver's License"
-                  className="border border-gray-300 p-2 max-sm:p-0 w-full"
+                  className="border border-gray-300 max-sm:p-0 w-full"
                 />
               </div>
               <div className="gap-1 flex flex-col">
@@ -82,7 +89,7 @@ const UploadDocuments = () => {
                   value={hundredPointsOfID.passport}
                   onChange={handleChange}
                   placeholder="Passport"
-                  className="border border-gray-300 p-2 max-sm:p-0 w-full"
+                  className="border border-gray-300 max-sm:p-0 w-full"
                 />
               </div>
               <div className="gap-1 flex flex-col">
@@ -96,7 +103,7 @@ const UploadDocuments = () => {
                   value={hundredPointsOfID.birthCertificate}
                   onChange={handleChange}
                   placeholder="Birth Certificate"
-                  className="border border-gray-300 p-2 max-sm:p-0 w-full"
+                  className="border border-gray-300 max-sm:p-0 w-full"
                 />
               </div>
               <div className="gap-1 flex flex-col">
@@ -108,7 +115,7 @@ const UploadDocuments = () => {
                   value={hundredPointsOfID.medicareCard}
                   onChange={handleChange}
                   placeholder="Medicare Card"
-                  className="border border-gray-300 p-2 max-sm:p-0 w-full"
+                  className="border border-gray-300 max-sm:p-0 w-full"
                 />
               </div>
               <div className="gap-1 flex flex-col">
@@ -120,7 +127,7 @@ const UploadDocuments = () => {
                   value={hundredPointsOfID.creditCard}
                   onChange={handleChange}
                   placeholder="Credit Card"
-                  className="border border-gray-300 p-2 max-sm:p-0 w-full"
+                  className="border border-gray-300 max-sm:p-0 w-full"
                 />
               </div>
             </div>
@@ -134,7 +141,7 @@ const UploadDocuments = () => {
                 value={resume}
                 onChange={handleResume}
                 placeholder="Resume"
-                className="border border-gray-300 p-2 max-sm:p-0 w-full"
+                className="border border-gray-300 max-sm:p-0 w-full"
               />
             </div>
             <div className="gap-1 flex flex-col mt-4">
@@ -146,7 +153,7 @@ const UploadDocuments = () => {
                 value={previousQualifications}
                 onChange={handlePreviousQualifications}
                 placeholder="Previous Qualifications"
-                className="border border-gray-300 p-2 max-sm:p-0 w-full"
+                className="border border-gray-300 max-sm:p-0 w-full"
               />
             </div>
           </div>
@@ -161,7 +168,7 @@ const UploadDocuments = () => {
                 value={twoReferences.referenceOne}
                 onChange={handleTwoReferences}
                 placeholder="Reference One"
-                className="border border-gray-300 p-2 max-sm:p-0 w-full"
+                className="border border-gray-300 max-sm:p-0 w-full"
               />
             </div>
             <div className="gap-1 flex flex-col">
@@ -173,7 +180,7 @@ const UploadDocuments = () => {
                 value={twoReferences.referenceTwo}
                 onChange={handleTwoReferences}
                 placeholder="Reference Two"
-                className="border border-gray-300 p-2 max-sm:p-0 w-full"
+                className="border border-gray-300 max-sm:p-0 w-full"
               />
             </div>
           </div>
@@ -186,7 +193,7 @@ const UploadDocuments = () => {
               value={employmentLetter}
               onChange={handleEmploymentLetter}
               placeholder="Employment Letter"
-              className="border border-gray-300 p-2 max-sm:p-0 w-full"
+              className="border border-gray-300 max-sm:p-0 w-full"
             />
           </div>
           <div className="gap-1 flex flex-col">
@@ -196,7 +203,7 @@ const UploadDocuments = () => {
               value={payslip}
               onChange={handlePayslip}
               placeholder="Payslip"
-              className="border border-gray-300 p-2 max-sm:p-0 w-full"
+              className="border border-gray-300 max-sm:p-0 w-full"
             />
           </div>
         </div>

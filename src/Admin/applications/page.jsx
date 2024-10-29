@@ -36,27 +36,35 @@ const ExistingApplicationsAdmin = () => {
       status: "Sent to RTO",
       paymentStatus: true,
       paymentDate: new Date(),
+      customerName: "John Doe",
+      certificate: "BSB30120 Certificate III in Business",
     },
     {
       id: 2,
       dateCreated: new Date(),
-      status: "Waiting for Verification",
+      status: "Verification",
       paymentStatus: false,
       paymentDate: null,
+      customerName: "John Doe",
+      certificate: "BSB30120 Certificate III in Business",
     },
     {
       id: 22,
       dateCreated: new Date(),
-      status: "Waiting for Payment",
+      status: "Payment",
       paymentStatus: false,
       paymentDate: null,
+      customerName: "John Doe",
+      certificate: "BSB30120 Certificate III in Business",
     },
     {
       id: 3,
       dateCreated: new Date(),
-      status: "Student Intake Form pending",
+      status: "Student Intake Form ",
       paymentStatus: true,
       paymentDate: new Date(),
+      customerName: "John Doe",
+      certificate: "BSB30120 Certificate III in Business",
     },
     {
       id: 4,
@@ -64,13 +72,17 @@ const ExistingApplicationsAdmin = () => {
       status: "Upload Documents",
       paymentStatus: true,
       paymentDate: new Date(),
+      customerName: "John Doe",
+      certificate: "BSB30120 Certificate III in Business",
     },
     {
       id: 5,
       dateCreated: new Date(),
-      status: "Certficated Generated",
+      status: "Certificate Generated",
       paymentStatus: true,
       paymentDate: new Date(),
+      customerName: "John Doe",
+      certificate: "BSB30120 Certificate III in Business",
     },
     {
       id: 23,
@@ -78,6 +90,8 @@ const ExistingApplicationsAdmin = () => {
       status: "Dispatched",
       paymentStatus: true,
       paymentDate: new Date(),
+      customerName: "John Doe",
+      certificate: "BSB30120 Certificate III in Business",
     },
     {
       id: 24,
@@ -85,15 +99,15 @@ const ExistingApplicationsAdmin = () => {
       status: "Completed",
       paymentStatus: true,
       paymentDate: new Date(),
+      customerName: "John Doe",
+      certificate: "BSB30120 Certificate III in Business",
     },
   ]);
   const statuses = [
-    "Waiting for Verification",
-    "Waiting for Payment",
-    "Student Intake Form pending",
+    "Student Intake Form ",
     "Upload Documents",
     "Sent to RTO",
-    "Certficated Generated",
+    "Certificate Generated",
     "Dispatched",
     "Completed",
   ];
@@ -158,8 +172,8 @@ const ExistingApplicationsAdmin = () => {
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-5 mb-14">
-            <div className="flex items-center gap-2">
+          <div className="flex items-center gap-5 mb-14 justify-between">
+            <div className="flex items-center gap-2 ">
               <button
                 className={`px-8 py-2 w-full btn rounded-xl font-normal focus:bg-blue-900 focus:text-white hover:bg-blue-900 hover:text-white ${
                   activeStatus === "All"
@@ -187,87 +201,81 @@ const ExistingApplicationsAdmin = () => {
             ))}
           </div>
 
-          <div className="table w-full">
-            <div className="table-row-group">
-              <div className="table-row bg-gray-200">
-                <div className="table-cell font-semibold p-5">
-                  Application ID
-                </div>
-                <div className="table-cell font-semibold">Date Created</div>
-                <div className="table-cell font-semibold text-center">
-                  Status
-                </div>
-                <div className="table-cell font-semibold text-center">
-                  Payment Status
-                </div>
-                <div className="table-cell font-semibold">Payment Date</div>
-                <div className="table-cell font-semibold">Actions</div>
-              </div>
+          <table className="table w-full">
+            <thead>
+              <tr className="bg-gray-200">
+                <th className="font-semibold p-5">ID</th>
+                <th className="font-semibold">Date Created</th>
+                <th className="font-semibold">Customer</th>
+                <th className="font-semibold text-center">Certificate</th>
+                <th className="font-semibold text-center">Status</th>
+                <th className="font-semibold text-center">Paid</th>
+                <th className="font-semibold">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
               {filteredApplications.map((application) => (
-                <div key={application.id} className="table-row animate-fade-up">
-                  <div className="table-cell p-5">{application.id}</div>
-                  <div className="table-cell">
-                    {application.dateCreated.toDateString()}
-                  </div>
-                  <div className="w-full p-2 flex items-center justify-center">
+                <tr key={application.id} className="animate-fade-up items-center">
+                  <td className="p-5">{application.id}</td>
+                  <td>{application.dateCreated.toDateString()}</td>
+                  <td>{application.customerName}</td>
+                  <td className="text-center w-40">
+                    {application.certificate}
+                  </td>
+                  <td className="p-2 flex items-center justify-center">
                     {application.status === "Sent to RTO" ? (
-                      <div className="p-1 text rounded-full bg-blue-900 text-white flex items-center justify-center w-2/3 gap-2">
+                      <div className="p-1 rounded-full bg-red-600 text-white flex items-center justify-center gap-2 w-3/4 max-sm:w-full max-sm:text-center">
                         <BsArrowUpRight className="text-white" />
                         {application.status}
                       </div>
-                    ) : application.status === "Waiting for Verification" ? (
-                      <div className="p-1 rounded-full bg-blue-900 text-white flex items-center justify-center w-2/3 gap-2">
+                    ) : application.status === "Verification" ? (
+                      <div className="p-1 rounded-full bg-yellow-300 text-black flex items-center justify-center gap-2  w-3/4 max-sm:w-full max-sm:text-center">
+                        <BsClock className="text-black" />
+                        {application.status}
+                      </div>
+                    ) : application.status === "Payment" ? (
+                      <div className="p-1 rounded-full bg-green-400 text-white flex items-center justify-center gap-2  w-3/4 max-sm:w-full max-sm:text-center">
                         <BsClock className="text-white" />
                         {application.status}
                       </div>
-                    ) : application.status === "Waiting for Payment" ? (
-                      <div className="p-1 rounded-full bg-blue-900 text-white flex items-center justify-center w-2/3 gap-2">
-                        <BsClock className="text-white" />
-                        {application.status}
-                      </div>
-                    ) : application.status === "Student Intake Form pending" ? (
-                      <div className="p-1 rounded-full bg-blue-900 text-white flex items-center justify-center w-2/3 gap-2">
+                    ) : application.status === "Student Intake Form " ? (
+                      <div className="p-1 rounded-full bg-blue-900 text-white flex items-center justify-center gap-2  w-3/4 max-sm:w-full max-sm:text-center">
                         <BiUser className="text-white" />
                         {application.status}
                       </div>
                     ) : application.status === "Upload Documents" ? (
-                      <div className="p-1 rounded-full bg-blue-900 text-white flex items-center justify-center w-2/3 gap-2">
+                      <div className="p-1 rounded-full bg-red-900 text-white flex items-center justify-center gap-2  w-3/4">
                         <BiUpload className="text-white" />
                         {application.status}
                       </div>
-                    ) : application.status === "Certficated Generated" ? (
-                      <div className="p-1 rounded-full bg-blue-900 text-white flex items-center justify-center w-2/3 gap-2">
+                    ) : application.status === "Certificate Generated" ? (
+                      <div className="p-1 rounded-full bg-primary text-white flex items-center justify-center gap-2  w-3/4">
                         <FaCertificate className="text-white" />
                         {application.status}
                       </div>
                     ) : application.status === "Dispatched" ? (
-                      <div className="p-1 rounded-full bg-blue-900 text-white flex items-center justify-center w-2/3 gap-2">
+                      <div className="p-1 rounded-full bg-black text-white flex items-center justify-center gap-2  w-3/4">
                         <BsTruck className="text-white" />
                         {application.status}
                       </div>
                     ) : (
                       application.status === "Completed" && (
-                        <div className="p-1 rounded-full bg-green-500 text-white flex items-center justify-center w-2/3 gap-2">
+                        <div className="p-1 rounded-full bg-green-500 text-white flex items-center justify-center gap-2  w-3/4">
                           <BiCheck className="text-white" />
                           {application.status}
                         </div>
                       )
                     )}
-                  </div>
-                  <div className="table-cell p-2">
+                  </td>
+                  <td className="p-2 text-center">
                     {application.paymentStatus ? (
-                      <BiCheckCircle className="text-green-500 text-xl text-center w-full" />
+                      <BiCheckCircle className="text-green-500 text-xl" />
                     ) : (
-                      <FaTimesCircle className="text-red-500 text-xl text-center w-full" />
+                      <FaTimesCircle className="text-red-500 text-xl" />
                     )}
-                  </div>
-                  <div className="table-cell p-2">
-                    {application.paymentDate
-                      ? application.paymentDate.toDateString()
-                      : "N/A"}
-                  </div>
-                  <div className="table-cell">
-                    {application.status === "Completed" ? (
+                  </td>
+                  <td>
+                    {application.status === "Completed" || application.status === "Dispatched" || application.status === "Certificate Generated" ? (
                       <div className="flex items-center gap-2">
                         <button
                           className="btn bg-green-500 hover:bg-green-600 text-white btn-sm"
@@ -278,10 +286,7 @@ const ExistingApplicationsAdmin = () => {
                         </button>
                         <button
                           className="btn bg-green-500 hover:bg-green-600 text-white btn-sm"
-                          onClick={setSelectedApplication.bind(
-                            this,
-                            application
-                          )}
+                          onClick={() => setSelectedApplication(application)}
                         >
                           <BsEye className="text-white" />
                           View
@@ -293,11 +298,11 @@ const ExistingApplicationsAdmin = () => {
                         Reject
                       </button>
                     )}
-                  </div>
-                </div>
+                  </td>
+                </tr>
               ))}
-            </div>
-          </div>
+            </tbody>
+          </table>
         </div>
       )}
 

@@ -47,7 +47,7 @@ const Dashboard = () => {
           />
         </div>
         <div className="flex flex-col w-full shadow-md p-5 rounded-xl relative">
-          <label className="text-sm">Customers</label>
+          <label className="text-sm">Leads</label>
           <h1 className="text-xl font-bold mt-2">{totalCustomers}</h1>
           <BiUser
             alt="Customers"
@@ -55,7 +55,7 @@ const Dashboard = () => {
           />
         </div>
         <div className="flex flex-col w-full shadow-md p-5 rounded-xl relative">
-          <label className="text-sm">Verified Customers</label>
+          <label className="text-sm">Verified Leads</label>
           <h1 className="text-xl font-bold mt-2">{totalVerifiedCustomers}</h1>
           <GoVerified
             alt="Verified Customers"
@@ -64,7 +64,7 @@ const Dashboard = () => {
         </div>
         <div className="flex flex-col w-full shadow-md p-5 rounded-xl relative">
           <label className="text-sm">Payments</label>
-          <h1 className="text-xl font-bold mt-2">{totalPayments}</h1>
+          <h1 className="text-xl font-bold mt-2">AUD {totalPayments}</h1>
           <FaMoneyBillWave
             alt="Payments"
             className="text-4xl absolute right-5 bottom-5"

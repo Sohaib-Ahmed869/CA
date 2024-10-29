@@ -10,14 +10,20 @@ const CreditsTransfer = ({ creditsTransfer, setCreditsTransfer }) => {
     <div className="mb-10">
       <h2 className="text-2xl font-semibold mb-5">Credits Transfer</h2>
       <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-        <FloatingLabelInput
+        <label htmlFor="creditsTransfer" className="text-sm">
+          Do you have credits to transfer?
+        </label>
+        <select
           name="creditsTransfer"
-          type="text"
           id="creditsTransfer"
-          label="Credits Transfer"
+          className=" text-sm input input-sm border-none rounded-md"
           value={creditsTransfer.creditsTransfer}
           onChange={handleChange}
-        />
+        >
+          <option value="Yes">Yes</option>
+          <option value="No">No</option>
+        </select>
+
         <FloatingLabelInput
           name="nameOfQualification"
           type="text"

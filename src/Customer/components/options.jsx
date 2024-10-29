@@ -79,10 +79,6 @@ const CustomerDashboard = () => {
       date: "20/01/2024",
     },
     {
-      status: "Sent to RTO",
-      date: "25/01/2024",
-    },
-    {
       status: "Certification Generated",
       date: null,
     },

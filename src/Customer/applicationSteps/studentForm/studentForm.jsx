@@ -82,7 +82,15 @@ const StudentIntakeForm = () => {
   return (
     <div>
       <Navbar />
-      <div className="p-5 lg:p-20">
+      <div className="p-5 lg:p-60 lg:pt-20 lg:pb-20">
+        <div className="flex flex-col items-center text-left w-full">
+          <h1 className="text-2xl lg:text-3xl font-bold">
+            Student Intake Form
+          </h1>
+          <p className="text-md text-gray-600 mb-3 lg:mb-8">
+            Please fill in the form below to complete your enrolment.
+          </p>
+        </div>
         <form onSubmit={handleSubmit}>
           <PersonalInfo
             personalInfo={personalInfo}

@@ -180,6 +180,15 @@ const AdminSidebar = () => {
             <FaMoneyBill1Wave className="text-xl" />
             <button className="font-medium">Payments</button>
           </li>
+          <li
+            className="border-b border-base-300 cursor-pointer p-3 flex items-center gap-2"
+            onClick={() => {
+              navigate("/");
+            }}
+          >
+            <BiLogOut className="text-xl" />
+            <button className="font-medium">Logout</button>
+          </li>
         </ul>
       </div>
 

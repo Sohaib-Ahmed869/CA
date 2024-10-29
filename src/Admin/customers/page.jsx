@@ -20,6 +20,7 @@ const customers = [
     email: "alice.smith@example.com",
     country: "United States",
     verified: true,
+    certification: "BSB30120 Certificate III in Business",
   },
   {
     industry: "Finance",
@@ -35,6 +36,7 @@ const customers = [
     email: "bob.johnson@example.com",
     country: "United States",
     verified: false,
+    certification: "BSB30120 Certificate III in Business",
   },
   {
     industry: "Healthcare",
@@ -50,6 +52,7 @@ const customers = [
     email: "charlie.brown@example.com",
     country: "United States",
     verified: true,
+    certification: "BSB30120 Certificate III in Business",
   },
   {
     industry: "Engineering",
@@ -65,6 +68,7 @@ const customers = [
     email: "david.miller@example.com",
     country: "United States",
     verified: false,
+    certification: "BSB30120 Certificate III in Business",
   },
   {
     industry: "Education",
@@ -80,6 +84,7 @@ const customers = [
     email: "emma.wilson@example.com",
     country: "United States",
     verified: true,
+    certification: "BSB30120 Certificate III in Business",
   },
   {
     industry: "Hospitality",
@@ -95,6 +100,7 @@ const customers = [
     email: "frank.anderson@example.com",
     country: "United States",
     verified: true,
+    certification: "BSB30120 Certificate III in Business",
   },
   {
     industry: "Law",
@@ -110,6 +116,7 @@ const customers = [
     email: "grace.taylor@example.com",
     country: "United States",
     verified: false,
+    certification: "BSB30120 Certificate III in Business",
   },
   {
     industry: "Retail",
@@ -125,6 +132,7 @@ const customers = [
     email: "henry.thomas@example.com",
     country: "United States",
     verified: true,
+    certification: "BSB30120 Certificate III in Business",
   },
   {
     industry: "Real Estate",
@@ -140,6 +148,7 @@ const customers = [
     email: "isabella.lee@example.com",
     country: "United States",
     verified: true,
+    certification: "BSB30120 Certificate III in Business",
   },
   {
     industry: "Media",
@@ -155,6 +164,7 @@ const customers = [
     email: "jack.martinez@example.com",
     country: "United States",
     verified: false,
+    certification: "BSB30120 Certificate III in Business",
   },
 ];
 
@@ -180,17 +190,23 @@ const CustomersInfo = () => {
     setShowModel(true);
   };
 
-  const showVerifiedOnly = () => {
-    setFilteredCustomers(customers.filter((customer) => customer.verified));
+  const [filter, setFilter] = useState("unverified");
+
+  const filterFunction = () => {
+    if (filter === "verified") {
+      setFilteredCustomers(customers.filter((customer) => customer.verified));
+    }
+    if (filter === "unverified") {
+      setFilteredCustomers(customers.filter((customer) => !customer.verified));
+    }
+    if (filter === "all") {
+      setFilteredCustomers(customers);
+    }
   };
 
-  const showUnverifiedOnly = () => {
-    setFilteredCustomers(customers.filter((customer) => !customer.verified));
-  };
-
-  const showAll = () => {
-    setFilteredCustomers(customers);
-  };
+  useEffect(() => {
+    filterFunction();
+  }, [filter]);
 
   if (
     document.getElementById("default-table") &&
@@ -215,44 +231,51 @@ const CustomersInfo = () => {
         </div>
       </div>
       <div className="flex flex-col lg:flex-row items-center justify-between gap-4 mb-5">
-        <div className="flex flex-col">
-          <label htmlFor="search">Search</label>
-          <input
-            id="search"
-            value={search}
-            className="input mt-2 border-2 border-base-300"
-            placeholder="Search by name"
-            onChange={(e) => setSearch(e.target.value)}
-          />
-        </div>
-        <div className="flex items-center gap-4 max-sm:flex-col">
+        <div className="grid grid-cols-3 max-sm:grid-cols-1 gap-4 w-full">
           <button
-            className="btn btn-primary btn-sm text-white"
-            onClick={showVerifiedOnly}
+            className={`{ btn bg-gray-300 btn-sm rounded-xl text-black ${
+              filter === "verified" && "btn-primary bg-primary text-white"
+            }`}
+            onClick={() => setFilter("verified")}
           >
             Show Verified Only
           </button>
           <button
-            className="btn bg-red-600 text-white btn-sm"
-            onClick={showUnverifiedOnly}
+            className={`{ btn bg-gray-300 btn-sm text-black ${
+              filter === "unverified" && "btn-primary bg-primary text-white"
+            }`}
+            onClick={() => setFilter("unverified")}
           >
             Show Unverified Only
           </button>
-          <button className="btn btn-sm" onClick={showAll}>
+          <button
+            className={`{ btn bg-gray-300 btn-sm text-black ${
+              filter === "all" && "btn-primary bg-primary text-white"
+            }`}
+            onClick={() => setFilter("all")}
+          >
             Show All
           </button>
         </div>
       </div>
       <div className="flex flex-col border border-base-300 rounded-lg shadow-lg p-2 lg:p-5 overflow-x-auto">
+        <div className="flex flex-col">
+          <input
+            id="search"
+            value={search}
+            className="input mt-2 border border-gray-200 shadow-sm mb-5 input-sm"
+            placeholder="Search by name"
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
         <Table>
           <Table.Head>
-            <Table.HeadCell>Customer ID</Table.HeadCell>
+            <Table.HeadCell>ID</Table.HeadCell>
             <Table.HeadCell className="max-sm:hidden"></Table.HeadCell>
             <Table.HeadCell>Name</Table.HeadCell>
-            <Table.HeadCell className="max-sm:hidden">Industry</Table.HeadCell>
+            <Table.HeadCell className="">Certification</Table.HeadCell>
             <Table.HeadCell className="max-sm:hidden">Email</Table.HeadCell>
             <Table.HeadCell className="max-sm:hidden">Phone</Table.HeadCell>
-            <Table.HeadCell className="max-sm:hidden">Country</Table.HeadCell>
             <Table.HeadCell>Actions</Table.HeadCell>
           </Table.Head>
           <Table.Body>
@@ -264,20 +287,17 @@ const CustomersInfo = () => {
                     <GoVerified className="text-primary mr-2" />
                   )}
                 </Table.Cell>
-                <Table.Cell>
+                <Table.Cell className="max-sm:p-4">
                   {customer.firstName} {customer.lastName}
                 </Table.Cell>
-                <Table.Cell className="max-sm:hidden">
-                  {customer.industry}
+                <Table.Cell className="max-sm:text-sm">
+                  {customer.certification}
                 </Table.Cell>
                 <Table.Cell className="max-sm:hidden">
                   {customer.email}
                 </Table.Cell>
                 <Table.Cell className="max-sm:hidden">
                   {customer.phone}
-                </Table.Cell>
-                <Table.Cell className="max-sm:hidden">
-                  {customer.country}
                 </Table.Cell>
                 <Table.Cell>
                   <button

@@ -163,17 +163,17 @@ const ExistingApplications = () => {
                 </div>
                 <div className="w-full p-2 flex items-center justify-center sm:flex-col">
                   {application.status === "Sent to RTO" ? (
-                    <div className="p-1 text rounded-full bg-blue-900 text-white flex items-center justify-center w-2/3 gap-2">
+                    <div className="p-1 text rounded-full bg-red-600 text-white flex items-center justify-center w-2/3 gap-2">
                       <BsArrowUpRight className="text-white" />
                       {application.status}
                     </div>
                   ) : application.status === "Waiting for Verification" ? (
-                    <div className="p-1 rounded-full bg-blue-900 text-white flex items-center justify-center w-2/3 gap-2">
-                      <BsClock className="text-white" />
+                    <div className="p-1 rounded-full bg-yellow-300 text-black flex items-center justify-center w-2/3 gap-2">
+                      <BsClock className="text-black" />
                       {application.status}
                     </div>
                   ) : application.status === "Waiting for Payment" ? (
-                    <div className="p-1 rounded-full bg-blue-900 text-white flex items-center justify-center w-2/3 gap-2">
+                    <div className="p-1 rounded-full bg-green-400 text-white flex items-center justify-center w-2/3 gap-2">
                       <BsClock className="text-white" />
                       {application.status}
                     </div>
@@ -183,17 +183,17 @@ const ExistingApplications = () => {
                       {application.status}
                     </div>
                   ) : application.status === "Upload Documents" ? (
-                    <div className="p-1 rounded-full bg-blue-900 text-white flex items-center justify-center w-2/3 gap-2">
+                    <div className="p-1 rounded-full bg-red-900 text-white flex items-center justify-center w-2/3 gap-2">
                       <BiUpload className="text-white" />
                       {application.status}
                     </div>
                   ) : application.status === "Certficated Generated" ? (
-                    <div className="p-1 rounded-full bg-blue-900 text-white flex items-center justify-center w-2/3 gap-2">
+                    <div className="p-1 rounded-full bg-primary text-white flex items-center justify-center w-2/3 gap-2">
                       <FaCertificate className="text-white" />
                       {application.status}
                     </div>
                   ) : application.status === "Dispatched" ? (
-                    <div className="p-1 rounded-full bg-blue-900 text-white flex items-center justify-center w-2/3 gap-2">
+                    <div className="p-1 rounded-full bg-black text-white flex items-center justify-center w-2/3 gap-2">
                       <BsTruck className="text-white" />
                       {application.status}
                     </div>
