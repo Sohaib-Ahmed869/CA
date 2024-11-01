@@ -5,6 +5,8 @@ const FinalScreen = ({
   setFirstName,
   lastName,
   setLastName,
+  password,
+  setPassword,
   phone,
   setPhone,
   email,
@@ -40,6 +42,19 @@ const FinalScreen = ({
           />
         </div>
       </div>
+      <div className="flex items-center justify-between gap-4 mb-5 lg:flex-row flex-col">
+        <div className="flex flex-col w-full">
+          <label htmlFor="password">Password</label>
+          <input
+            id="password"
+            value={password}
+            className="input mt-2"
+            placeholder="Password"
+            onChange={(e) => setPassword(e.target.value)}
+          />
+        </div>
+      </div>
+
       <div className="flex items-center justify-between gap-4 mb-5 lg:flex-row flex-col">
         <div className="flex flex-col lg:w-1/2 w-full">
           <label htmlFor="phone">Phone</label>

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   FaFileAlt,
   FaUpload,
@@ -7,6 +7,8 @@ import {
   FaPlusCircle,
 } from "react-icons/fa";
 import { BiCheck } from "react-icons/bi";
+import { onAuthStateChanged } from "firebase/auth";
+import { auth } from "../../firebase";
 import { BsClock } from "react-icons/bs";
 import { FaArrowRightLong } from "react-icons/fa6";
 import { FaTimes } from "react-icons/fa";
@@ -57,6 +59,8 @@ const Timeline = ({ timeline }) => {
 };
 
 const CustomerDashboard = () => {
+  const [userToken, setUserToken] = useState(null);
+
   const [timeline, setTimeline] = useState([
     {
       status: "Submitted",
@@ -98,7 +102,28 @@ const CustomerDashboard = () => {
       setLoading(false);
     }, 1000);
   }, []);
+  // Authentication check
+  // Authentication check
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        // User is logged in, get the ID token
+        const token = await user.getIdToken();
+        console.log("User token:", token);
+        //get user token
+        setUserToken(token);
+        //get user Id from token
+       
+        setLoading(false);
+      } else {
+        // User is not logged in, redirect to login page
+        navigate("/login");
+      }
+    });
 
+    // Cleanup the subscription on unmount
+    return () => unsubscribe();
+  }, [navigate]);
   const navigateToScreening = () => {
     navigate("/screening");
   };
@@ -116,11 +141,11 @@ const CustomerDashboard = () => {
       {loading && <Loader />}
       <Navbar />
       <div className="flex flex-col-reverse lg:flex-row p-5">
-        <div className="bg-white rounded-lg shadow-lg lg:w-1/4 w-full">
+        <div className="bg-white rounded-lg shadow-lg lg:w-1/4 w-full mt-20">
           <Timeline timeline={timeline} />
         </div>
 
-        <div className="flex flex-col items-center p-4 lg:p-10 lg:w-3/4 w-full">
+        <div className="flex flex-col items-center p-4 lg:p-10 lg:w-3/4 w-full mt-20">
           <div className="flex flex-col items-center text-left w-full">
             <img src={customer} alt="Customer" className="h-36" />
             <div className="text-center">

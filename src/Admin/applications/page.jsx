@@ -27,82 +27,14 @@ import certificate from "../../assets/certificate.pdf";
 
 import { useNavigate } from "react-router-dom";
 
+import {
+  getApplications,
+  verifyApplication,
+} from "../../Customer/Services/adminServices";
+
 const ExistingApplicationsAdmin = () => {
   const navigate = useNavigate();
-  const [applications, setApplications] = useState([
-    {
-      id: 1,
-      dateCreated: new Date(),
-      status: "Sent to RTO",
-      paymentStatus: true,
-      paymentDate: new Date(),
-      customerName: "John Doe",
-      certificate: "BSB30120 Certificate III in Business",
-    },
-    {
-      id: 2,
-      dateCreated: new Date(),
-      status: "Verification",
-      paymentStatus: false,
-      paymentDate: null,
-      customerName: "John Doe",
-      certificate: "BSB30120 Certificate III in Business",
-    },
-    {
-      id: 22,
-      dateCreated: new Date(),
-      status: "Payment",
-      paymentStatus: false,
-      paymentDate: null,
-      customerName: "John Doe",
-      certificate: "BSB30120 Certificate III in Business",
-    },
-    {
-      id: 3,
-      dateCreated: new Date(),
-      status: "Student Intake Form ",
-      paymentStatus: true,
-      paymentDate: new Date(),
-      customerName: "John Doe",
-      certificate: "BSB30120 Certificate III in Business",
-    },
-    {
-      id: 4,
-      dateCreated: new Date(),
-      status: "Upload Documents",
-      paymentStatus: true,
-      paymentDate: new Date(),
-      customerName: "John Doe",
-      certificate: "BSB30120 Certificate III in Business",
-    },
-    {
-      id: 5,
-      dateCreated: new Date(),
-      status: "Certificate Generated",
-      paymentStatus: true,
-      paymentDate: new Date(),
-      customerName: "John Doe",
-      certificate: "BSB30120 Certificate III in Business",
-    },
-    {
-      id: 23,
-      dateCreated: new Date(),
-      status: "Dispatched",
-      paymentStatus: true,
-      paymentDate: new Date(),
-      customerName: "John Doe",
-      certificate: "BSB30120 Certificate III in Business",
-    },
-    {
-      id: 24,
-      dateCreated: new Date(),
-      status: "Completed",
-      paymentStatus: true,
-      paymentDate: new Date(),
-      customerName: "John Doe",
-      certificate: "BSB30120 Certificate III in Business",
-    },
-  ]);
+  const [applications, setApplications] = useState([]);
   const statuses = [
     "Student Intake Form ",
     "Upload Documents",
@@ -135,23 +67,34 @@ const ExistingApplicationsAdmin = () => {
     navigate("/upload-documents");
   };
 
-  const [filteredApplications, setFilteredApplications] =
-    useState(applications);
+  const [filteredApplications, setFilteredApplications] = useState([]);
 
   const [activeStatus, setActiveStatus] = useState("All");
 
-  const filterApplications = (status) => {
-    setActiveStatus(status);
-    if (status === "All") {
-      setFilteredApplications(applications);
-    } else {
-      setFilteredApplications(
-        applications.filter((application) => application.status === status)
-      );
+  const [selectedApplication, setSelectedApplication] = useState(null);
+
+  const getApplicationsData = async () => {
+    try {
+      const applicationsData = await getApplications();
+      setApplications(applicationsData);
+      setFilteredApplications(applicationsData);
+    } catch (error) {
+      console.error("Failed to fetch applications:", error);
     }
   };
 
-  const [selectedApplication, setSelectedApplication] = useState(null);
+  const onVerifyApplication = async (applicationId) => {
+    try {
+      await verifyApplication(applicationId);
+      getApplicationsData();
+    } catch (error) {
+      console.error("Failed to verify application:", error);
+    }
+  };
+
+  useEffect(() => {
+    getApplicationsData();
+  }, []);
 
   useEffect(() => {
     console.log(selectedApplication);
@@ -215,67 +158,78 @@ const ExistingApplicationsAdmin = () => {
             </thead>
             <tbody>
               {filteredApplications.map((application) => (
-                <tr key={application.id} className="animate-fade-up items-center">
+                <tr
+                  key={application.id}
+                  className="animate-fade-up items-center"
+                >
                   <td className="p-5">{application.id}</td>
-                  <td>{application.dateCreated.toDateString()}</td>
-                  <td>{application.customerName}</td>
+                  <td>{application.status[0].time.split("T")[0]}</td>
+                  <td>
+                    {application.user.firstName +
+                      " " +
+                      application.user.lastName}
+                  </td>
                   <td className="text-center w-40">
-                    {application.certificate}
+                    {application.isf.lookingForWhatQualification}
                   </td>
                   <td className="p-2 flex items-center justify-center">
-                    {application.status === "Sent to RTO" ? (
+                    {application.currentStatus === "Sent to RTO" ? (
                       <div className="p-1 rounded-full bg-red-600 text-white flex items-center justify-center gap-2 w-3/4 max-sm:w-full max-sm:text-center">
                         <BsArrowUpRight className="text-white" />
-                        {application.status}
+                        {application.currentStatus}
                       </div>
-                    ) : application.status === "Verification" ? (
+                    ) : application.currentStatus ===
+                      "Waiting for Verification" ? (
                       <div className="p-1 rounded-full bg-yellow-300 text-black flex items-center justify-center gap-2  w-3/4 max-sm:w-full max-sm:text-center">
                         <BsClock className="text-black" />
-                        {application.status}
+                        {application.currentStatus}
                       </div>
-                    ) : application.status === "Payment" ? (
+                    ) : application.currentStatus === "Waiting for Payment" ? (
                       <div className="p-1 rounded-full bg-green-400 text-white flex items-center justify-center gap-2  w-3/4 max-sm:w-full max-sm:text-center">
                         <BsClock className="text-white" />
-                        {application.status}
+                        {application.currentStatus}
                       </div>
-                    ) : application.status === "Student Intake Form " ? (
+                    ) : application.currentStatus === "Student Intake Form" ? (
                       <div className="p-1 rounded-full bg-blue-900 text-white flex items-center justify-center gap-2  w-3/4 max-sm:w-full max-sm:text-center">
                         <BiUser className="text-white" />
-                        {application.status}
+                        {application.currentStatus}
                       </div>
-                    ) : application.status === "Upload Documents" ? (
+                    ) : application.currentStatus === "Upload Documents" ? (
                       <div className="p-1 rounded-full bg-red-900 text-white flex items-center justify-center gap-2  w-3/4">
                         <BiUpload className="text-white" />
-                        {application.status}
+                        {application.currentStatus}
                       </div>
-                    ) : application.status === "Certificate Generated" ? (
+                    ) : application.currentStatus ===
+                      "Certificate Generated" ? (
                       <div className="p-1 rounded-full bg-primary text-white flex items-center justify-center gap-2  w-3/4">
                         <FaCertificate className="text-white" />
-                        {application.status}
+                        {application.currentStatus}
                       </div>
-                    ) : application.status === "Dispatched" ? (
+                    ) : application.currentStatus === "Dispatched" ? (
                       <div className="p-1 rounded-full bg-black text-white flex items-center justify-center gap-2  w-3/4">
                         <BsTruck className="text-white" />
-                        {application.status}
+                        {application.currentStatus}
                       </div>
                     ) : (
-                      application.status === "Completed" && (
+                      application.currentStatus === "Completed" && (
                         <div className="p-1 rounded-full bg-green-500 text-white flex items-center justify-center gap-2  w-3/4">
                           <BiCheck className="text-white" />
-                          {application.status}
+                          {application.currentStatus}
                         </div>
                       )
                     )}
                   </td>
                   <td className="p-2 text-center">
-                    {application.paymentStatus ? (
+                    {application.paid ? (
                       <BiCheckCircle className="text-green-500 text-xl" />
                     ) : (
                       <FaTimesCircle className="text-red-500 text-xl" />
                     )}
                   </td>
                   <td>
-                    {application.status === "Completed" || application.status === "Dispatched" || application.status === "Certificate Generated" ? (
+                    {application.currentStatus === "Completed" ||
+                    application.currentStatus === "Dispatched" ||
+                    application.currentStatus === "Certificate Generated" ? (
                       <div className="flex items-center gap-2">
                         <button
                           className="btn bg-green-500 hover:bg-green-600 text-white btn-sm"
@@ -293,10 +247,25 @@ const ExistingApplicationsAdmin = () => {
                         </button>
                       </div>
                     ) : (
-                      <button className="btn bg-red-500 hover:bg-red-600 text-white btn-sm">
-                        <FaTimesCircle className="text-white" />
-                        Reject
-                      </button>
+                      <div className="flex items-center gap-2">
+                        {application.verified ? null : (
+                          <div className="flex items-center gap-2">
+                            <button
+                              className="btn bg-green-500 hover:bg-green-600 text-white btn-sm"
+                              onClick={() =>
+                                onVerifyApplication(application.id)
+                              }
+                            >
+                              <BiCheck className="text-white" />
+                              Verify
+                            </button>
+                            <button className="btn bg-red-500 hover:bg-red-600 text-white btn-sm">
+                              <FaTimesCircle className="text-white" />
+                              Reject
+                            </button>
+                          </div>
+                        )}
+                      </div>
                     )}
                   </td>
                 </tr>

@@ -26,7 +26,7 @@ const Screen2 = ({
           {options.map((option, index) => (
             <div
               key={index}
-              className={`flex items-center bg-white p-3 rounded-md cursor-pointer ${
+              className={`flex items-center  p-3 rounded-md cursor-pointer ${
                 yearsOfExperience === option
                   ? "bg-green-500 text-white"
                   : "bg-white"
@@ -44,7 +44,7 @@ const Screen2 = ({
           {locationOptions.map((option, index) => (
             <div
               key={index}
-              className={`flex items-center bg-white p-3 rounded-md cursor-pointer ${
+              className={`flex items-center p-3 rounded-md cursor-pointer ${
                 locationOfExperience === option
                   ? "bg-green-500 text-white"
                   : "bg-white"

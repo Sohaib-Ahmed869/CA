@@ -6,192 +6,16 @@ import { FaTimes } from "react-icons/fa";
 import { BiUpload } from "react-icons/bi";
 import Sidebar from "../components/siderbar";
 import pending from "../../assets/pending.png";
+import { getApplications } from "../../Customer/Services/rtoservices";
+import { uploadCertificate } from "../../Customer/Services/adminServices";
 
 const Approval = () => {
-  const [applications, setApplications] = useState([
-    {
-      id: 1,
-      customerRegisteredName: "John Doe",
-      dateCreated: new Date(),
-      status: "Sent to RTO",
-      paymentStatus: true,
-      paymentDate: new Date(),
-      certficateIssued: false,
-    },
-    {
-      id: 3,
-      customerRegisteredName: "Jane Doe",
-      dateCreated: new Date(),
-      status: "Sent to RTO",
-      paymentStatus: true,
-      certficateIssued: false,
-      paymentDate: new Date(),
-    },
-    {
-      id: 4,
-      customerRegisteredName: "John Doe",
-      dateCreated: new Date(),
-      status: "Sent to RTO",
-      paymentStatus: true,
-      certficateIssued: false,
-      paymentDate: new Date(),
-    },
-    {
-      id: 5,
-      customerRegisteredName: "Jane Doe",
-      dateCreated: new Date(),
-      status: "Sent to RTO",
-      paymentStatus: true,
-      certficateIssued: false,
-      paymentDate: new Date(),
-    },
-    {
-      id: 23,
-      customerRegisteredName: "John Doe",
-      dateCreated: new Date(),
-      status: "Sent to RTO",
-      paymentStatus: true,
-      paymentDate: new Date(),
-      certficateIssued: false,
-    },
-    {
-      id: 24,
-      customerRegisteredName: "Jane Doe",
-      dateCreated: new Date(),
-      status: "Sent to RTO",
-      paymentStatus: true,
-      paymentDate: new Date(),
-      certficateIssued: true,
-    },
-    {
-      id: 1432,
-      customerRegisteredName: "John Doe",
-      dateCreated: new Date(),
-      status: "Sent to RTO",
-      paymentStatus: true,
-      paymentDate: new Date(),
-      certficateIssued: false,
-    },
-    {
-      id: 3634,
-      customerRegisteredName: "Jane Doe",
-      dateCreated: new Date(),
-      status: "Sent to RTO",
-      paymentStatus: true,
-      certficateIssued: false,
-      paymentDate: new Date(),
-    },
-    {
-      id: 4234,
-      customerRegisteredName: "John Doe",
-      dateCreated: new Date(),
-      status: "Sent to RTO",
-      paymentStatus: true,
-      certficateIssued: false,
-      paymentDate: new Date(),
-    },
-    {
-      id: 543,
-      customerRegisteredName: "Jane Doe",
-      dateCreated: new Date(),
-      status: "Sent to RTO",
-      paymentStatus: true,
-      certficateIssued: false,
-      paymentDate: new Date(),
-    },
-    {
-      id: 2364,
-      customerRegisteredName: "John Doe",
-      dateCreated: new Date(),
-      status: "Sent to RTO",
-      paymentStatus: true,
-      paymentDate: new Date(),
-      certficateIssued: false,
-    },
-    {
-      id: 2421,
-      customerRegisteredName: "Jane Doe",
-      dateCreated: new Date(),
-      status: "Sent to RTO",
-      paymentStatus: true,
-      paymentDate: new Date(),
-      certficateIssued: true,
-    },
-    {
-      id: 1232,
-      customerRegisteredName: "John Doe",
-      dateCreated: new Date(),
-      status: "Sent to RTO",
-      paymentStatus: true,
-      paymentDate: new Date(),
-      certficateIssued: false,
-    },
-    {
-      id: 35,
-      customerRegisteredName: "Jane Doe",
-      dateCreated: new Date(),
-      status: "Sent to RTO",
-      paymentStatus: true,
-      certficateIssued: false,
-      paymentDate: new Date(),
-    },
-    {
-      id: 43,
-      customerRegisteredName: "John Doe",
-      dateCreated: new Date(),
-      status: "Sent to RTO",
-      paymentStatus: true,
-      certficateIssued: false,
-      paymentDate: new Date(),
-    },
-    {
-      id: 25,
-      customerRegisteredName: "Jane Doe",
-      dateCreated: new Date(),
-      status: "Sent to RTO",
-      paymentStatus: true,
-      certficateIssued: false,
-      paymentDate: new Date(),
-    },
-    {
-      id: 232,
-      customerRegisteredName: "John Doe",
-      dateCreated: new Date(),
-      status: "Sent to RTO",
-      paymentStatus: true,
-      paymentDate: new Date(),
-      certficateIssued: false,
-    },
-    {
-      id: 224,
-      customerRegisteredName: "Jane Doe",
-      dateCreated: new Date(),
-      status: "Sent to RTO",
-      paymentStatus: true,
-      paymentDate: new Date(),
-      certficateIssued: true,
-    },
-  ]);
-
+  const [applications, setApplications] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
 
   const applicationsPerPage = 10;
   const [selectedApplicationId, setSelectedApplicationId] = useState(null);
   const [certificateFile, setCertificateFile] = useState(null);
-
-  const handleApprove = (id) => {
-    const newApplications = applications.map((application) => {
-      if (application.id === id) {
-        return {
-          ...application,
-          status: "Approved",
-        };
-      }
-      return application;
-    });
-    setApplications(newApplications);
-    closeModal();
-  };
 
   const handleReject = (id) => {
     const newApplications = applications.map((application) => {
@@ -216,53 +40,116 @@ const Approval = () => {
   };
 
   const handleFileChange = (event) => {
-    setCertificateFile(event.target.files[0]);
+    const file = event.target.files[0];
+    if (file) {
+      setCertificateFile(file);
+      console.log("File selected:", file);
+    } else {
+      console.log("No file selected");
+    }
   };
 
-  const handleUpload = () => {
-    if (certificateFile) {
-      handleApprove(selectedApplicationId);
-      setCertificateFile(null);
-    } else {
-      alert("Please select a certificate to upload.");
-    }
+  const onClickViewDocuments = async (application) => {
+    console.log(
+      "Viewing documents for application with ID:",
+      application.document
+    );
+
+    // List of document keys to check in application.document
+    const documentKeys = [
+      "license",
+      "passport",
+      "birth_certificate",
+      "medicare",
+      "creditcard",
+      "resume",
+      "previous_qualifications",
+      "reference1",
+      "reference2",
+      "employmentLetter",
+      "payslip",
+    ];
+
+    // Loop through each document key, open the link if it's not null
+    documentKeys.forEach((docKey) => {
+      const docUrl = application.document[docKey];
+      if (docUrl) {
+        // Open the document in a new tab as a PDF
+        window.open(docUrl, "_blank");
+      }
+    });
   };
 
   // Separate displayed applications from full applications list
   const [displayedApplications, setDisplayedApplications] = useState([]);
   const [dateFilter, setDateFilter] = useState("All");
 
-  // Filter and paginate applications when `applications`, `dateFilter`, or `currentPage` changes
   useEffect(() => {
-    const today = new Date();
-    const filteredApplications = applications.filter((app) => {
-      if (dateFilter === "All") return true;
-      const daysDifference = Math.ceil(
-        Math.abs(today - app.dateCreated) / (1000 * 60 * 60 * 24)
-      );
-      return daysDifference <= parseInt(dateFilter);
-    });
+    const fetchApplications = async () => {
+      const applicationsData = await getApplications();
+      setApplications(applicationsData);
+      setDisplayedApplications(applicationsData);
+    };
+    fetchApplications();
+  }, []);
+  // Filter and paginate applications when `applications`, `dateFilter`, or `currentPage` changes
+  // useEffect(() => {
+  //   const today = new Date();
+  //   const filteredApplications = applications.filter((app) => {
+  //     if (dateFilter === "All") return true;
+  //     const daysDifference = Math.ceil(
+  //       Math.abs(today - app.dateCreated) / (1000 * 60 * 60 * 24)
+  //     );
+  //     return daysDifference <= parseInt(dateFilter);
+  //   });
 
-    const startIndex = (currentPage - 1) * applicationsPerPage;
-    setDisplayedApplications(
-      filteredApplications.slice(startIndex, startIndex + applicationsPerPage)
-    );
-  }, [applications, currentPage, dateFilter]);
+  //   const startIndex = (currentPage - 1) * applicationsPerPage;
+  //   setDisplayedApplications(
+  //     filteredApplications.slice(startIndex, startIndex + applicationsPerPage)
+  //   );
+  // }, [applications, currentPage, dateFilter]);
 
-  // Pagination Controls
-  const totalPages = Math.ceil(
-    applications.filter((app) => {
-      const daysDiff = Math.ceil(
-        Math.abs(new Date() - app.dateCreated) / (1000 * 60 * 60 * 24)
-      );
-      return dateFilter === "All" || daysDiff <= parseInt(dateFilter);
-    }).length / applicationsPerPage
-  );
+  // // Pagination Controls
+  // const totalPages = Math.ceil(
+  //   applications.filter((app) => {
+  //     const daysDiff = Math.ceil(
+  //       Math.abs(new Date() - app.dateCreated) / (1000 * 60 * 60 * 24)
+  //     );
+  //     return dateFilter === "All" || daysDiff <= parseInt(dateFilter);
+  //   }).length / applicationsPerPage
+  // );
 
   const handleNextPage = () =>
     currentPage < totalPages && setCurrentPage(currentPage + 1);
   const handlePreviousPage = () =>
     currentPage > 1 && setCurrentPage(currentPage - 1);
+
+  const uploadCertificate2 = async (id) => {
+    try {
+      if (!certificateFile) {
+        console.error("No certificate file selected.");
+        return;
+      }
+
+      // Check the selected file
+      console.log("Selected file:", certificateFile);
+
+      // Create a FormData object and append the file
+      const formData = new FormData();
+      formData.append("certificate", certificateFile);
+
+      console.log(
+        "FormData after appending file:",
+        formData.get("certificate")
+      ); // Check if file is appended
+
+      const response = await uploadCertificate(id, formData); // Pass FormData directly
+      console.log("Upload response:", response);
+      closeModal();
+    } catch (err) {
+      console.error("Error uploading certificate:", err);
+    }
+  };
 
   return (
     <div className="flex overflow-x-auto">
@@ -305,16 +192,21 @@ const Approval = () => {
               application.certficateIssued ? null : (
                 <tr key={application.id}>
                   <td>{application.id}</td>
-                  <td>{application.customerRegisteredName}</td>
+                  <td>
+                    {application.user.firstName} {application.user.lastName}
+                  </td>
                   <td>
                     {application.paymentDate
                       ? application.paymentDate.toLocaleDateString()
                       : "N/A"}
                   </td>
                   <td className="flex gap-2">
-                    {application.status === "Sent to RTO" && (
+                    {application.currentStatus === "Sent to RTO" && (
                       <>
-                        <button className="bg-blue-500 text-white px-2 py-1 rounded flex gap-1 items-center">
+                        <button
+                          className="bg-blue-500 text-white px-2 py-1 rounded flex gap-1 items-center"
+                          onClick={() => onClickViewDocuments(application)}
+                        >
                           <BsEye />
                           View Documents
                         </button>
@@ -378,7 +270,9 @@ const Approval = () => {
           </div>
           <div className="modal-action">
             <button
-              onClick={handleUpload}
+              onClick={() =>
+                uploadCertificate2(selectedApplicationId, certificateFile)
+              }
               className="btn btn-primary text-white btn-sm"
             >
               Upload

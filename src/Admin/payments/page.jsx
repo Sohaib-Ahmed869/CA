@@ -1,93 +1,27 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { GoVerified } from "react-icons/go";
 import paymentsimg from "../../assets/payments.png";
+import {
+  getApplications,
+  markApplicationAsPaid,
+} from "../../Customer/Services/adminServices";
+import toast from "react-hot-toast";
+import { Toaster } from "react-hot-toast";
 const PaymentApproval = () => {
-  const [applications, setApplications] = useState([
-    {
-      id: 1,
-      customerId: 1,
-      customerName: "Alice Smith",
-      dateCreated: new Date(),
-      status: "Sent to RTO",
-      paymentStatus: true,
-      paymentDate: new Date(),
-      verified: true,
-    },
-    {
-      id: 2,
-      customerId: 2,
-      customerName: "Bob Johnson",
-      dateCreated: new Date(),
-      status: "Waiting for Payment",
-      paymentStatus: false,
-      paymentDate: null,
-      verified: false,
-    },
-    {
-      id: 22,
-      customerId: 2,
-      customerName: "Bob Johnson",
-      dateCreated: new Date(),
-      status: "Waiting for Payment",
-      paymentStatus: false,
-      paymentDate: null,
-      verified: true,
-    },
-    {
-      id: 3,
-      customerId: 3,
-      customerName: "Charlie Brown",
-      dateCreated: new Date(),
-      status: "Student Intake Form pending",
-      paymentStatus: true,
-      paymentDate: new Date(),
-      verified: true,
-    },
-    {
-      id: 4,
-      customerId: 4,
-      customerName: "David Miller",
-      dateCreated: new Date(),
-      status: "Upload Documents",
-      paymentStatus: true,
-      paymentDate: new Date(),
-      verified: true,
-    },
-    {
-      id: 5,
-      customerId: 5,
-      customerName: "Eve Wilson",
-      dateCreated: new Date(),
-      status: "Certficated Generated",
-      paymentStatus: true,
-      paymentDate: new Date(),
-      verified: true,
-    },
-    {
-      id: 23,
-      customerId: 5,
-      customerName: "Eve Wilson",
-      dateCreated: new Date(),
-      status: "Dispatched",
-      paymentStatus: true,
-      paymentDate: new Date(),
-      verified: true,
-    },
-    {
-      id: 24,
-      customerId: 5,
-      customerName: "Eve Wilson",
-      dateCreated: new Date(),
-      status: "Completed",
-      paymentStatus: true,
-      paymentDate: new Date(),
-      verified: true,
-    },
-  ]);
-
-  const [unpaidApplications, setUnpaidApplications] = useState(
-    applications.filter((application) => !application.paymentStatus)
-  );
+  const paymentSuccess = () => toast.success("Payment approved successfully");
+  const paymentError = () => toast.error("Failed to approve payment");
+  const [applications, setApplications] = useState([]);
+  const [unpaidApplications, setUnpaidApplications] = useState([]);
+  const fetchApplications = async () => {
+    const applicationsData = await getApplications();
+    setApplications(applicationsData);
+    setUnpaidApplications(
+      applicationsData.filter((application) => !application.paid)
+    );
+  };
+  useEffect(() => {
+    fetchApplications();
+  }, []);
 
   const [application, setApplication] = useState({});
   const [showModal, setShowModal] = useState(false);
@@ -97,22 +31,17 @@ const PaymentApproval = () => {
     setShowModal(true);
   };
 
-  const approvePayment = (id) => {
-    setApplications(
-      applications.map((application) =>
-        application.id === id
-          ? { ...application, paymentStatus: true, paymentDate: new Date() }
-          : application
-      )
-    );
-    setUnpaidApplications(
-      unpaidApplications.filter((application) => application.id !== id)
-    );
-    setShowModal(false);
+  const approvePayment = async (id) => {
+    const response = await markApplicationAsPaid(id);
+    if (response) {
+      paymentSuccess();
+      fetchApplications();
+      setShowModal(false);
+    }
   };
-
   return (
     <div className="flex flex-col p-5 w-full justify-between animate-fade">
+      <Toaster position="bottom-right" reverseOrder={false} />
       <div className="flex items-center gap-4 mb-5 lg:flex-row flex-col">
         <img src={paymentsimg} alt="Payments" className="h-36" />
         <div className="flex flex-col lg:w-1/2 w-full">
@@ -128,7 +57,6 @@ const PaymentApproval = () => {
           <thead>
             <tr>
               <th className="">ID</th>
-              <th className="">Customer ID</th>
               <th className="">Customer Name</th>
               <th className="">Date Created</th>
               <th className="">Status</th>
@@ -140,19 +68,13 @@ const PaymentApproval = () => {
             {unpaidApplications.map((application) => (
               <tr key={application.id}>
                 <td className="">{application.id}</td>
-                <td className="flex items-center gap-2">
-                  {application.customerId}{" "}
-                </td>
-                <td className="">{application.customerName}</td>
+
                 <td className="">
-                  {application.dateCreated.toLocaleDateString()}
+                  {application.user.firstName + " " + application.user.lastName}
                 </td>
-                <td className="">{application.status}</td>
-                <td className="">
-                  {application.paymentDate
-                    ? application.paymentDate.toLocaleDateString()
-                    : "N/A"}
-                </td>
+                <td className="">{application.status[0].time.split("T")[0]}</td>
+                <td className="">{application.currentStatus}</td>
+                <td className="">{application.paid ? "paid" : "N/A"}</td>
                 <td className="">
                   <button
                     onClick={() => onClick(application)}

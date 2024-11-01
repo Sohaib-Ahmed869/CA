@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Navbar from "./components/navbar";
 import { useNavigate } from "react-router-dom";
 import Loader from "./components/loader";
@@ -8,6 +8,7 @@ import StateScreen from "./screeningScreens/screen3";
 import FormalEducationScreen from "./screeningScreens/screen4";
 import FinalScreen from "./screeningScreens/screen5";
 import certifiedAustralia from "../assets/certifiedAustralia.png";
+import { register } from "./Services/authService";
 import "./stepper.css";
 
 const Stepper = ({ steps, currentStep }) => {
@@ -45,6 +46,7 @@ const Stepper = ({ steps, currentStep }) => {
 
 const ScreeningForm = () => {
   const [industry, setIndustry] = useState("");
+  const [password, setPassword] = useState("");
   const [qualification, setQualification] = useState("");
   const [yearsOfExperience, setYearsOfExperience] = useState("");
   const [locationOfExperience, setLocationOfExperience] = useState("");
@@ -59,8 +61,46 @@ const ScreeningForm = () => {
   const [questions, setQuestions] = useState("");
   const [toc, setToc] = useState(false);
 
+  useEffect(() => {
+    //send data to server
+    console.log(
+      industry,
+      qualification,
+      yearsOfExperience,
+      locationOfExperience,
+      state,
+      formalEducation,
+      formalEducationAnswer,
+      firstName,
+      lastName,
+      phone,
+      email,
+      country,
+      questions,
+      toc,
+      password
+    );
+  }, [
+    industry,
+    qualification,
+    yearsOfExperience,
+    locationOfExperience,
+    state,
+    formalEducation,
+    formalEducationAnswer,
+    firstName,
+    lastName,
+    phone,
+    email,
+    country,
+    questions,
+    toc,
+    password,
+  ]);
+
   const [step, setStep] = useState(0);
 
+  const navigate = useNavigate();
   const handleNext = () => {
     setStep((prevStep) => Math.min(prevStep + 1, 4));
   };
@@ -69,8 +109,39 @@ const ScreeningForm = () => {
     setStep((prevStep) => Math.max(prevStep - 1, 0));
   };
 
+  const onClickSubmit = async (e) => {
+    e.preventDefault();
+    //send data to server
+
+    try {
+      const response = await register(
+        industry,
+        qualification,
+        yearsOfExperience,
+        locationOfExperience,
+        state,
+        formalEducation,
+        formalEducationAnswer,
+        firstName,
+        lastName,
+        phone,
+        email,
+        country,
+        questions,
+        toc,
+        password
+      );
+      console.log(response);
+      //if successful redirect to dashboard
+      navigate("/");
+    } catch (err) {
+      alert("Error submitting application");
+      console.error(err);
+    }
+  };
+
   const [loading, setLoading] = React.useState(true);
-  const navigate = useNavigate();
+
   React.useEffect(() => {
     setTimeout(() => {
       setLoading(false);
@@ -89,7 +160,7 @@ const ScreeningForm = () => {
     <div className="min-h-screen">
       {loading && <Loader />}
       <Navbar />
-      <div className="flex flex-col items-center justify-center lg:p-16 p-4 ">
+      <div className="flex flex-col items-center justify-center lg:p-16 p-4 mt-20">
         <img
           src={certifiedAustralia}
           alt="Certified Australia"
@@ -145,6 +216,8 @@ const ScreeningForm = () => {
               setQuestions={setQuestions}
               toc={toc}
               setToc={setToc}
+              password={password}
+              setPassword={setPassword}
             />
           )}
 
@@ -157,13 +230,22 @@ const ScreeningForm = () => {
             >
               Back
             </button>
-            <button
-              onClick={handleNext}
-              disabled={step === 4}
-              className="btn btn-primary text-white px-4 py-2 m-2 rounded"
-            >
-              Next
-            </button>
+            {step === 4 ? (
+              <button
+                onClick={onClickSubmit}
+                className="btn btn-primary text-white px-4 py-2 m-2 rounded"
+              >
+                Submit
+              </button>
+            ) : (
+              <button
+                onClick={handleNext}
+                disabled={step === 4}
+                className="btn btn-primary text-white px-4 py-2 m-2 rounded"
+              >
+                Next
+              </button>
+            )}
           </div>
         </div>
       </div>

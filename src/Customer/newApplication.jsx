@@ -138,13 +138,21 @@ const ScreeningForm2 = () => {
             >
               Back
             </button>
-            <button
-              onClick={handleNext}
-              disabled={step === 3}
-              className="btn btn-primary text-white px-4 py-2 m-2 rounded"
-            >
-              Next
-            </button>
+            {step < 3 ? (
+              <button
+                onClick={handleNext}
+                className="btn bg-primary px-4 py-2 m-2 rounded"
+              >
+                Next
+              </button>
+            ) : (
+              <button
+                onClick={() => navigate("/")}
+                className="btn bg-primary px-4 py-2 m-2 rounded"
+              >
+                Submit
+              </button>
+            )}
           </div>
         </div>
       </div>

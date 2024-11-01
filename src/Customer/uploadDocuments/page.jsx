@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import Navbar from "../components/navbar";
+import { useNavigate } from "react-router-dom";
+import { documentsUpload } from "../Services/customerApplication";
 const UploadDocuments = () => {
   const [hundredPointsOfID, setHundredPointsOfID] = useState({
     driversLicense: "",
@@ -50,19 +52,46 @@ const UploadDocuments = () => {
     setPayslip(e.target.value);
   };
 
+  const navigate = useNavigate();
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const formData = new FormData();
+    formData.append("license", hundredPointsOfID.driversLicense);
+    formData.append("passport", hundredPointsOfID.passport);
+    formData.append("birth_certificate", hundredPointsOfID.birthCertificate);
+    formData.append("medicare", hundredPointsOfID.medicareCard);
+    formData.append("creditcard", hundredPointsOfID.creditCard);
+    formData.append("resume", resume);
+    formData.append("previous_qualifications", previousQualifications);
+    formData.append("reference1", twoReferences.referenceOne);
+    formData.append("reference2", twoReferences.referenceTwo);
+    formData.append("employmentLetter", employmentLetter);
+    formData.append("payslip", payslip);
+
+    try {
+      const id = window.location.pathname.split("/")[2];
+      const applicationId = id;
+      const response = await documentsUpload(formData, applicationId);
+
+      alert("Documents uploaded successfully");
+      navigate("/");
+    } catch (err) {
+      alert("Error uploading documents");
+    }
+  };
+
   return (
     <div>
       <Navbar />
       <div className="p-5 lg:p-60 lg:pt-20 lg:pb-20">
         <div className="flex flex-col items-center text-left w-full">
-          <h1 className="text-2xl lg:text-3xl font-bold">
-            Upload Documents
-          </h1>
+          <h1 className="text-2xl lg:text-3xl font-bold">Upload Documents</h1>
           <p className="text-md text-gray-600 mb-3 lg:mb-8 mt-2">
             Please upload the following documents to complete your application.
           </p>
         </div>
-        <div className="grid grid-cols-1 gap-5 md:grid-cols-1 bg-white p-5 rounded-lg shadow-lg"> 
+        <div className="grid grid-cols-1 gap-5 md:grid-cols-1 bg-white p-5 rounded-lg shadow-lg">
           <div>
             <h3 className="file-lg font-semibold mb-3">100 Points of ID</h3>
             <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
@@ -207,7 +236,10 @@ const UploadDocuments = () => {
             />
           </div>
         </div>
-        <button className="btn btn-primary text-white p-2 max-sm:p-0 rounded mt-5 w-full">
+        <button
+          className="btn btn-primary text-white p-2 max-sm:p-0 rounded mt-5 w-full"
+          onClick={handleSubmit}
+        >
           Submit
         </button>
       </div>

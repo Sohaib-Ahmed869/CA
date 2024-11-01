@@ -42,6 +42,55 @@ const PersonalInfo = ({ personalInfo, setPersonalInfo }) => {
           value={personalInfo.USI}
           onChange={handleChange}
         />
+        <FloatingLabelInput
+          name="gender"
+          type="text"
+          id="gender"
+          label="Gender"
+          value={personalInfo.gender}
+          onChange={handleChange}
+        />
+
+        <FloatingLabelInput
+          name="dob"
+          type="date"
+          id="dob"
+          label="Date of Birth"
+          value={personalInfo.dob}
+          onChange={handleChange}
+        />
+        <FloatingLabelInput
+          name="homeAddress"
+          type="text"
+          id="homeAddress"
+          label="Home Address"
+          value={personalInfo.homeAddress}
+          onChange={handleChange}
+        />
+        <FloatingLabelInput
+          name="suburb"
+          type="text"
+          id="suburb"
+          label="Suburb"
+          value={personalInfo.suburb}
+          onChange={handleChange}
+        />
+        <FloatingLabelInput
+          name="postcode"
+          type="text"
+          id="postcode"
+          label="Postcode"
+          value={personalInfo.postcode}
+          onChange={handleChange}
+        />
+        <FloatingLabelInput
+          name="state"
+          type="text"
+          id="state"
+          label="State"
+          value={personalInfo.state}
+          onChange={handleChange}
+        />
       </div>
     </div>
   );

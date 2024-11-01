@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { BiCheckCircle } from "react-icons/bi";
 import { FaTimesCircle } from "react-icons/fa";
 import Navbar from "../components/navbar";
@@ -17,6 +17,9 @@ import { CgTrack } from "react-icons/cg";
 import { GrFormAdd } from "react-icons/gr";
 import { IoCall } from "react-icons/io5";
 import { MdPayment } from "react-icons/md";
+import { auth } from "../../firebase";
+import { onAuthStateChanged } from "firebase/auth";
+import { getApplications } from "../Services/customerApplication";
 
 import Loader from "../components/loader";
 
@@ -26,69 +29,13 @@ import applicationsimg from "../../assets/applications.png";
 import { useNavigate } from "react-router-dom";
 
 const ExistingApplications = () => {
+  const [userId, setUserId] = useState("");
   const navigate = useNavigate();
-  const [applications, setApplications] = useState([
-    {
-      id: 1,
-      dateCreated: new Date(),
-      status: "Sent to RTO",
-      paymentStatus: true,
-      paymentDate: new Date(),
-    },
-    {
-      id: 2,
-      dateCreated: new Date(),
-      status: "Waiting for Verification",
-      paymentStatus: false,
-      paymentDate: null,
-    },
-    {
-      id: 22,
-      dateCreated: new Date(),
-      status: "Waiting for Payment",
-      paymentStatus: false,
-      paymentDate: null,
-    },
-    {
-      id: 3,
-      dateCreated: new Date(),
-      status: "Student Intake Form pending",
-      paymentStatus: true,
-      paymentDate: new Date(),
-    },
-    {
-      id: 4,
-      dateCreated: new Date(),
-      status: "Upload Documents",
-      paymentStatus: true,
-      paymentDate: new Date(),
-    },
-    {
-      id: 5,
-      dateCreated: new Date(),
-      status: "Certficated Generated",
-      paymentStatus: true,
-      paymentDate: new Date(),
-    },
-    {
-      id: 23,
-      dateCreated: new Date(),
-      status: "Dispatched",
-      paymentStatus: true,
-      paymentDate: new Date(),
-    },
-    {
-      id: 24,
-      dateCreated: new Date(),
-      status: "Completed",
-      paymentStatus: true,
-      paymentDate: new Date(),
-    },
-  ]);
+  const [applications, setApplications] = useState([]);
   const statuses = [
     "Waiting for Verification",
     "Waiting for Payment",
-    "Student Intake Form pending",
+    "Student Intake Form",
     "Upload Documents",
     "Sent to RTO",
     "Certficated Generated",
@@ -111,13 +58,40 @@ const ExistingApplications = () => {
     window.open(certificate);
   };
 
-  const onClickStudentForm = () => {
-    navigate("/student-intake-form");
+  const onClickStudentForm = (id) => {
+    navigate("/student-intake-form/" + id);
   };
 
-  const onClickUpload = () => {
-    navigate("/upload-documents");
+  const onClickUpload = (id) => {
+    navigate("/upload-documents/" + id);
   };
+
+  useEffect(() => {
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        setUserId(user.uid);
+        console.log("User ID:", user.uid);
+      } else {
+        navigate("/login");
+      }
+    });
+  }, []);
+
+  const getUserApplications = async (userId) => {
+    try {
+      const response = await getApplications(userId);
+      console.log(response);
+      setApplications(response);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  useEffect(() => {
+    if (userId) {
+      getUserApplications(userId);
+    }
+  }, [userId]);
 
   return (
     <div>
@@ -125,14 +99,14 @@ const ExistingApplications = () => {
       <Navbar />
       <div className="p-3 lg:p-20 overflow-x-auto">
         <div className="flex items-center gap-4 mb-5 lg:flex-row flex-col">
-            <img src={applicationsimg} alt="Applications" className="h-36" />
-            <div className="flex flex-col lg:w-1/2 w-full">
-              <h1 className="text-3xl font-bold max-sm:text-xl">Applications</h1>
-              <p className="text-sm mt-2">
-                Here you can view all the applications and their statuses.
-              </p>
-            </div>
-          </div>  
+          <img src={applicationsimg} alt="Applications" className="h-36" />
+          <div className="flex flex-col lg:w-1/2 w-full">
+            <h1 className="text-3xl font-bold max-sm:text-xl">Applications</h1>
+            <p className="text-sm mt-2">
+              Here you can view all the applications and their statuses.
+            </p>
+          </div>
+        </div>
         <div className="table mx-auto max-sm:max-w-screen-sm sm:overflow-x-auto">
           <div className="table-row-group mx-auto">
             <div className="table-row bg-gray-200">
@@ -159,55 +133,60 @@ const ExistingApplications = () => {
               <div key={application.id} className="table-row">
                 <div className="table-cell p-5">{application.id}</div>
                 <div className="table-cell">
-                  {application.dateCreated.toDateString()}
+                  {application.status[0].time ? (
+                    application.status[0].time.split("T")[0]
+                  ) : (
+                    <span className="text-sm">N/A</span>
+                  )}
                 </div>
                 <div className="w-full p-2 flex items-center justify-center sm:flex-col">
-                  {application.status === "Sent to RTO" ? (
+                  {application.currentStatus === "Sent to RTO" ? (
                     <div className="p-1 text rounded-full bg-red-600 text-white flex items-center justify-center w-2/3 gap-2">
                       <BsArrowUpRight className="text-white" />
-                      {application.status}
+                      Waiting Approval
                     </div>
-                  ) : application.status === "Waiting for Verification" ? (
+                  ) : application.currentStatus ===
+                    "Waiting for Verification" ? (
                     <div className="p-1 rounded-full bg-yellow-300 text-black flex items-center justify-center w-2/3 gap-2">
                       <BsClock className="text-black" />
-                      {application.status}
+                      {application.currentStatus}
                     </div>
-                  ) : application.status === "Waiting for Payment" ? (
+                  ) : application.currentStatus === "Waiting for Payment" ? (
                     <div className="p-1 rounded-full bg-green-400 text-white flex items-center justify-center w-2/3 gap-2">
                       <BsClock className="text-white" />
-                      {application.status}
+                      {application.currentStatus}
                     </div>
-                  ) : application.status === "Student Intake Form pending" ? (
+                  ) : application.currentStatus === "Student Intake Form" ? (
                     <div className="p-1 rounded-full bg-blue-900 text-white flex items-center justify-center w-2/3 gap-2">
                       <BiUser className="text-white" />
-                      {application.status}
+                      {application.currentStatus}
                     </div>
-                  ) : application.status === "Upload Documents" ? (
+                  ) : application.currentStatus === "Upload Documents" ? (
                     <div className="p-1 rounded-full bg-red-900 text-white flex items-center justify-center w-2/3 gap-2">
                       <BiUpload className="text-white" />
-                      {application.status}
+                      {application.currentStatus}
                     </div>
-                  ) : application.status === "Certficated Generated" ? (
+                  ) : application.currentStatus === "Certficated Generated" ? (
                     <div className="p-1 rounded-full bg-primary text-white flex items-center justify-center w-2/3 gap-2">
                       <FaCertificate className="text-white" />
-                      {application.status}
+                      {application.currentStatus}
                     </div>
-                  ) : application.status === "Dispatched" ? (
+                  ) : application.currentStatus === "Dispatched" ? (
                     <div className="p-1 rounded-full bg-black text-white flex items-center justify-center w-2/3 gap-2">
                       <BsTruck className="text-white" />
-                      {application.status}
+                      {application.currentStatus}
                     </div>
                   ) : (
-                    application.status === "Completed" && (
+                    application.currentStatus === "Completed" && (
                       <div className="p-1 rounded-full bg-green-500 text-white flex items-center justify-center w-2/3 gap-2">
                         <BiCheck className="text-white" />
-                        {application.status}
+                        {application.currentStatus}
                       </div>
                     )
                   )}
                 </div>
                 <div className="table-cell p-2">
-                  {application.paymentStatus ? (
+                  {application.paid ? (
                     <BiCheckCircle className="text-green-500 text-xl text-center w-full" />
                   ) : (
                     <FaTimesCircle className="text-red-500 text-xl text-center w-full" />
@@ -219,8 +198,8 @@ const ExistingApplications = () => {
                     : "N/A"}
                 </div>
                 <div className="flex w-full justify-center">
-                  {application.status ===
-                  "Sent to RTO" ? null : application.status ===
+                  {application.currentStatus ===
+                  "Sent to RTO" ? null : application.currentStatus ===
                     "Waiting for Payment" ? (
                     <button
                       className="btn btn-sm text-white btn-primary"
@@ -229,34 +208,35 @@ const ExistingApplications = () => {
                       <MdPayment />
                       Pay Now
                     </button>
-                  ) : application.status === "Waiting for Verification" ? (
+                  ) : application.currentStatus ===
+                    "Waiting for Verification" ? (
                     <button className="btn btn-sm text-white btn-primary">
                       <IoCall />
                       Verify Now
                     </button>
-                  ) : application.status === "Student Intake Form pending" ? (
+                  ) : application.currentStatus === "Student Intake Form" ? (
                     <button
                       className="btn btn-sm text-white btn-primary"
-                      onClick={onClickStudentForm}
+                      onClick={() => onClickStudentForm(application.id)}
                     >
                       <GrFormAdd />
                       Fill Form
                     </button>
-                  ) : application.status === "Upload Documents" ? (
+                  ) : application.currentStatus === "Upload Documents" ? (
                     <button
                       className="btn btn-sm text-white btn-primary"
-                      onClick={onClickUpload}
+                      onClick={() => onClickUpload(application.id)}
                     >
                       <BiUpload /> Upload
                     </button>
-                  ) : application.status === "Certficated Generated" ? (
+                  ) : application.currentStatus === "Certficated Generated" ? (
                     <button
                       className="btn btn-sm text-white btn-primary"
                       onClick={onClickDownload}
                     >
                       <BiDownload /> Download
                     </button>
-                  ) : application.status === "Dispatched" ? (
+                  ) : application.currentStatus === "Dispatched" ? (
                     <div className="flex gap-2 max-sm:flex-col">
                       <button className="btn btn-sm text-white btn-primary">
                         <CgTrack /> Track
@@ -266,7 +246,7 @@ const ExistingApplications = () => {
                       </button>
                     </div>
                   ) : (
-                    application.status === "Completed" && (
+                    application.currentStatus === "Completed" && (
                       <div className="flex gap-2 max-sm:flex-col">
                         <button className="btn btn-sm text-white btn-primary">
                           <BiDownload /> Download

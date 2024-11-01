@@ -19,7 +19,7 @@ const StateScreen = ({ state, setState }) => {
           {stateOptions.map((option, index) => (
             <div
               key={index}
-              className={`flex items-center bg-white p-3 rounded-md cursor-pointer text-center ${
+              className={`flex items-center p-3 rounded-md cursor-pointer text-center ${
                 state === option ? "bg-green-500 text-white" : "bg-white"
               }`}
               onClick={() => setState(option)}

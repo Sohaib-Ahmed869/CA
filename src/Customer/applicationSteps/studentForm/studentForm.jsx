@@ -6,8 +6,13 @@ import ContactInfo from "./ContactInfo";
 import EmploymentDetails from "./employeeDetails";
 import CreditsTransfer from "./creditsTransfer";
 import StudentAgreement from "./studentAgreement";
+import { studentIntakeForm } from "../../Services/customerApplication";
+import toast, { Toaster } from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
 
 const StudentIntakeForm = () => {
+  const navigate = useNavigate();
+  const onSuccess = () => toast.success("Form submitted successfully");
   const [personalInfo, setPersonalInfo] = useState({
     firstName: "",
     middleName: "",
@@ -30,7 +35,7 @@ const StudentIntakeForm = () => {
     englishLevel: "",
     disability: false,
     educationLevel: "",
-    previousQualifications: [],
+    previousQualifications: "",
     employmentStatus: "",
   });
 
@@ -74,14 +79,115 @@ const StudentIntakeForm = () => {
 
   const [formSubmitted, setFormSubmitted] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setFormSubmitted(true);
+    if (!studentAgreement.agree) {
+      alert("Please agree to the terms and conditions");
+      return;
+    }
+    if (
+      !personalInfo.firstName ||
+      !personalInfo.surname ||
+      !contactInfo.contactNumber ||
+      !contactInfo.email ||
+      !personalInfo.dob ||
+      !personalInfo.USI ||
+      !personalInfo.homeAddress ||
+      !personalInfo.suburb ||
+      !personalInfo.postcode ||
+      !personalInfo.state ||
+      !contactInfo.countryOfBirth
+    ) {
+      if (!personalInfo.firstName) {
+        alert("Please enter your first name");
+      }
+      if (!personalInfo.surname) {
+        alert("Please enter your surname");
+      }
+      if (!contactInfo.contactNumber) {
+        alert("Please enter your contact number");
+      }
+      if (!contactInfo.email) {
+        alert("Please enter your email");
+      }
+      if (!personalInfo.dob) {
+        alert("Please enter your date of birth");
+      }
+      if (!personalInfo.USI) {
+        alert("Please enter your USI");
+      }
+      if (!personalInfo.homeAddress) {
+        alert("Please enter your home address");
+      }
+      if (!personalInfo.suburb) {
+        alert("Please enter your suburb");
+      }
+      if (!personalInfo.postcode) {
+        alert("Please enter your postcode");
+      }
+      if (!personalInfo.state) {
+        alert("Please enter your state");
+      }
+      if (!contactInfo.countryOfBirth) {
+        alert("Please enter your country of birth");
+      }
+
+      return;
+    }
+    console.log("previousQualifications", contactInfo.previousQualifications);
+    const data = {
+      firstName: personalInfo.firstName,
+      middleName: personalInfo.middleName,
+      lastName: personalInfo.surname,
+      USI: personalInfo.USI,
+      gender: personalInfo.gender,
+      dob: personalInfo.dob,
+      homeAddress: personalInfo.homeAddress,
+      suburb: personalInfo.suburb,
+      postcode: personalInfo.postcode,
+      state: personalInfo.state,
+      contactNumber: contactInfo.contactNumber,
+      email: contactInfo.email,
+      countryOfBirth: contactInfo.countryOfBirth,
+      australianCitizen: contactInfo.australianCitizen,
+      aboriginalOrTorresStraitIslander:
+        contactInfo.aboriginalOrTorresStraitIslander,
+      englishLevel: contactInfo.englishLevel,
+      disability: contactInfo.disability,
+      educationLevel: contactInfo.educationLevel,
+      previousQualifications: contactInfo.previousQualifications,
+      employmentStatus: contactInfo.employmentStatus,
+      businessName: employmentDetails.businessName,
+      position: employmentDetails.position,
+      employersLegalName: employmentDetails.employersLegalName,
+      employersAddress: employmentDetails.employersAddress,
+      employersContactNumber: employmentDetails.employersContactNumber,
+      creditsTransfer: creditsTransfer.creditsTransfer,
+      nameOfQualification: creditsTransfer.nameOfQualification,
+      YearCompleted: creditsTransfer.YearCompleted,
+      agree: studentAgreement.agree,
+      date: studentAgreement.date,
+    };
+
+    try {
+      //get application id from params of the url
+
+      const id = window.location.pathname.split("/")[2];
+      const applicationId = id;
+      const response = await studentIntakeForm(data, applicationId);
+      console.log(response);
+      onSuccess();
+      setFormSubmitted(true);
+      navigate("/");
+    } catch (error) {
+      console.error("Error submitting form:", error);
+    }
   };
 
   return (
     <div>
       <Navbar />
+      <Toaster />
       <div className="p-5 lg:p-60 lg:pt-20 lg:pb-20">
         <div className="flex flex-col items-center text-left w-full">
           <h1 className="text-2xl lg:text-3xl font-bold">

@@ -2,221 +2,68 @@ import React, { useState, useEffect } from "react";
 import { GoVerified } from "react-icons/go";
 import { IoEye } from "react-icons/io5";
 import { Table } from "flowbite-react";
-
+import { getCustomers as fetchCustomers } from "../../Customer/Services/adminServices"; // Avoids naming conflict
 import customerspic from "../../assets/customers.png";
-
-const customers = [
-  {
-    industry: "Technology",
-    qualification: "Bachelor's in Computer Science",
-    yearsOfExperience: 5,
-    locationOfExperience: "Silicon Valley",
-    state: "California",
-    formalEducation: true,
-    formalEducationAnswer: "Yes, attended Stanford University",
-    firstName: "Alice",
-    lastName: "Smith",
-    phone: "+1-123-456-7890",
-    email: "alice.smith@example.com",
-    country: "United States",
-    verified: true,
-    certification: "BSB30120 Certificate III in Business",
-  },
-  {
-    industry: "Finance",
-    qualification: "Master's in Finance",
-    yearsOfExperience: 7,
-    locationOfExperience: "New York City",
-    state: "New York",
-    formalEducation: true,
-    formalEducationAnswer: "Yes, graduated from NYU",
-    firstName: "Bob",
-    lastName: "Johnson",
-    phone: "+1-234-567-8901",
-    email: "bob.johnson@example.com",
-    country: "United States",
-    verified: false,
-    certification: "BSB30120 Certificate III in Business",
-  },
-  {
-    industry: "Healthcare",
-    qualification: "Doctorate in Medicine",
-    yearsOfExperience: 10,
-    locationOfExperience: "Houston",
-    state: "Texas",
-    formalEducation: true,
-    formalEducationAnswer: "Yes, graduated from Baylor College of Medicine",
-    firstName: "Charlie",
-    lastName: "Brown",
-    phone: "+1-345-678-9012",
-    email: "charlie.brown@example.com",
-    country: "United States",
-    verified: true,
-    certification: "BSB30120 Certificate III in Business",
-  },
-  {
-    industry: "Engineering",
-    qualification: "Bachelor's in Mechanical Engineering",
-    yearsOfExperience: 3,
-    locationOfExperience: "Detroit",
-    state: "Michigan",
-    formalEducation: true,
-    formalEducationAnswer: "Yes, attended University of Michigan",
-    firstName: "David",
-    lastName: "Miller",
-    phone: "+1-456-789-0123",
-    email: "david.miller@example.com",
-    country: "United States",
-    verified: false,
-    certification: "BSB30120 Certificate III in Business",
-  },
-  {
-    industry: "Education",
-    qualification: "Master's in Education",
-    yearsOfExperience: 8,
-    locationOfExperience: "Boston",
-    state: "Massachusetts",
-    formalEducation: true,
-    formalEducationAnswer: "Yes, graduated from Harvard University",
-    firstName: "Emma",
-    lastName: "Wilson",
-    phone: "+1-567-890-1234",
-    email: "emma.wilson@example.com",
-    country: "United States",
-    verified: true,
-    certification: "BSB30120 Certificate III in Business",
-  },
-  {
-    industry: "Hospitality",
-    qualification: "Diploma in Hospitality Management",
-    yearsOfExperience: 6,
-    locationOfExperience: "Orlando",
-    state: "Florida",
-    formalEducation: false,
-    formalEducationAnswer: "No, completed training on the job",
-    firstName: "Frank",
-    lastName: "Anderson",
-    phone: "+1-678-901-2345",
-    email: "frank.anderson@example.com",
-    country: "United States",
-    verified: true,
-    certification: "BSB30120 Certificate III in Business",
-  },
-  {
-    industry: "Law",
-    qualification: "Juris Doctor",
-    yearsOfExperience: 12,
-    locationOfExperience: "Los Angeles",
-    state: "California",
-    formalEducation: true,
-    formalEducationAnswer: "Yes, graduated from UCLA",
-    firstName: "Grace",
-    lastName: "Taylor",
-    phone: "+1-789-012-3456",
-    email: "grace.taylor@example.com",
-    country: "United States",
-    verified: false,
-    certification: "BSB30120 Certificate III in Business",
-  },
-  {
-    industry: "Retail",
-    qualification: "Bachelor's in Business Administration",
-    yearsOfExperience: 4,
-    locationOfExperience: "Chicago",
-    state: "Illinois",
-    formalEducation: true,
-    formalEducationAnswer: "Yes, attended University of Illinois",
-    firstName: "Henry",
-    lastName: "Thomas",
-    phone: "+1-890-123-4567",
-    email: "henry.thomas@example.com",
-    country: "United States",
-    verified: true,
-    certification: "BSB30120 Certificate III in Business",
-  },
-  {
-    industry: "Real Estate",
-    qualification: "Real Estate License",
-    yearsOfExperience: 15,
-    locationOfExperience: "Miami",
-    state: "Florida",
-    formalEducation: false,
-    formalEducationAnswer: "No, completed certification courses",
-    firstName: "Isabella",
-    lastName: "Lee",
-    phone: "+1-901-234-5678",
-    email: "isabella.lee@example.com",
-    country: "United States",
-    verified: true,
-    certification: "BSB30120 Certificate III in Business",
-  },
-  {
-    industry: "Media",
-    qualification: "Bachelor's in Journalism",
-    yearsOfExperience: 9,
-    locationOfExperience: "Washington D.C.",
-    state: "District of Columbia",
-    formalEducation: true,
-    formalEducationAnswer: "Yes, graduated from Georgetown University",
-    firstName: "Jack",
-    lastName: "Martinez",
-    phone: "+1-012-345-6789",
-    email: "jack.martinez@example.com",
-    country: "United States",
-    verified: false,
-    certification: "BSB30120 Certificate III in Business",
-  },
-];
+import { verifyCustomer } from "../../Customer/Services/adminServices";
 
 const CustomersInfo = () => {
   const [search, setSearch] = useState("");
-  const [filteredCustomers, setFilteredCustomers] = useState(customers);
+  const [filteredCustomers, setFilteredCustomers] = useState([]);
+  const [customers, setCustomers] = useState([]);
   const [customer, setCustomer] = useState({});
-
-  useEffect(() => {
-    setFilteredCustomers(
-      customers.filter(
-        (customer) =>
-          customer.firstName.toLowerCase().includes(search.toLowerCase()) ||
-          customer.lastName.toLowerCase().includes(search.toLowerCase())
-      )
-    );
-  }, [search]);
-
   const [showModel, setShowModel] = useState(false);
+  const [filter, setFilter] = useState("unverified");
 
+  // Fetch customers on component mount
+  useEffect(() => {
+    const getCustomers = async () => {
+      try {
+        const customersData = await fetchCustomers();
+        setFilteredCustomers(customersData); // Set initial customer data
+        setCustomers(customersData); // Set initial customer data
+      } catch (error) {
+        console.error("Failed to fetch customers:", error);
+      }
+    };
+    getCustomers();
+  }, []);
+
+  // Update customers based on search
+  useEffect(() => {
+    if (search) {
+      const filtered = customers.filter((customer) =>
+        customer.firstName.toLowerCase().includes(search.toLowerCase())
+      );
+      setFilteredCustomers(filtered);
+    } else {
+      setFilteredCustomers(customers);
+    }
+  }, [search, customers]);
+
+  // Show customer details modal
   const showDetails = (customer) => {
     setCustomer(customer);
     setShowModel(true);
   };
 
-  const [filter, setFilter] = useState("unverified");
+  const verify = async (customerId) => {
+    try {
+      await verifyCustomer(customerId);
 
-  const filterFunction = () => {
-    if (filter === "verified") {
-      setFilteredCustomers(customers.filter((customer) => customer.verified));
-    }
-    if (filter === "unverified") {
-      setFilteredCustomers(customers.filter((customer) => !customer.verified));
-    }
-    if (filter === "all") {
-      setFilteredCustomers(customers);
+      // Update the customer list after verification
+      const updatedCustomers = customers.map((customer) => {
+        if (customer.id === customerId) {
+          return { ...customer, verified: true };
+        }
+        return customer;
+      });
+
+      setCustomers(updatedCustomers);
+      setFilteredCustomers(updatedCustomers);
+    } catch (error) {
+      console.error("Failed to verify customer:", error);
     }
   };
-
-  useEffect(() => {
-    filterFunction();
-  }, [filter]);
-
-  if (
-    document.getElementById("default-table") &&
-    typeof simpleDatatables.DataTable !== "undefined"
-  ) {
-    const dataTable = new simpleDatatables.DataTable("#default-table", {
-      searchable: false,
-      perPageSelect: false,
-    });
-  }
 
   return (
     <div className="flex flex-col p-5 w-full justify-between animate-fade">
@@ -233,24 +80,24 @@ const CustomersInfo = () => {
       <div className="flex flex-col lg:flex-row items-center justify-between gap-4 mb-5">
         <div className="grid grid-cols-3 max-sm:grid-cols-1 gap-4 w-full">
           <button
-            className={`{ btn bg-gray-300 btn-sm rounded-xl text-black ${
-              filter === "verified" && "btn-primary bg-primary text-white"
+            className={`btn bg-gray-300 btn-sm rounded-xl text-black ${
+              filter === "verified" ? "btn-primary bg-primary text-white" : ""
             }`}
             onClick={() => setFilter("verified")}
           >
             Show Verified Only
           </button>
           <button
-            className={`{ btn bg-gray-300 btn-sm text-black ${
-              filter === "unverified" && "btn-primary bg-primary text-white"
+            className={`btn bg-gray-300 btn-sm text-black ${
+              filter === "unverified" ? "btn-primary bg-primary text-white" : ""
             }`}
             onClick={() => setFilter("unverified")}
           >
             Show Unverified Only
           </button>
           <button
-            className={`{ btn bg-gray-300 btn-sm text-black ${
-              filter === "all" && "btn-primary bg-primary text-white"
+            className={`btn bg-gray-300 btn-sm text-black ${
+              filter === "all" ? "btn-primary bg-primary text-white" : ""
             }`}
             onClick={() => setFilter("all")}
           >
@@ -273,33 +120,25 @@ const CustomersInfo = () => {
             <Table.HeadCell>ID</Table.HeadCell>
             <Table.HeadCell className="max-sm:hidden"></Table.HeadCell>
             <Table.HeadCell>Name</Table.HeadCell>
-            <Table.HeadCell className="">Certification</Table.HeadCell>
-            <Table.HeadCell className="max-sm:hidden">Email</Table.HeadCell>
-            <Table.HeadCell className="max-sm:hidden">Phone</Table.HeadCell>
+            <Table.HeadCell>Applications</Table.HeadCell>
+
+    
             <Table.HeadCell>Actions</Table.HeadCell>
           </Table.Head>
           <Table.Body>
             {filteredCustomers.map((customer, index) => (
               <Table.Row key={index} className="hover:bg-gray-100">
-                <Table.Cell className="p-2">{index + 1}</Table.Cell>
+                <Table.Cell className="p-5">{index + 1}</Table.Cell>
                 <Table.Cell className="max-sm:hidden">
                   {customer.verified && (
                     <GoVerified className="text-primary mr-2" />
                   )}
                 </Table.Cell>
-                <Table.Cell className="max-sm:p-4">
-                  {customer.firstName} {customer.lastName}
-                </Table.Cell>
-                <Table.Cell className="max-sm:text-sm">
-                  {customer.certification}
-                </Table.Cell>
-                <Table.Cell className="max-sm:hidden">
-                  {customer.email}
-                </Table.Cell>
-                <Table.Cell className="max-sm:hidden">
-                  {customer.phone}
-                </Table.Cell>
-                <Table.Cell>
+                <Table.Cell>{`${customer.firstName} ${customer.lastName}`}</Table.Cell>
+                <Table.Cell>{customer.totalApplications}</Table.Cell>
+
+      
+                <Table.Cell className="flex items-center p-5">
                   <button
                     className="btn-sm flex items-center gap-2"
                     onClick={() => showDetails(customer)}
@@ -307,6 +146,17 @@ const CustomersInfo = () => {
                     <IoEye className="text-lg" />
                     <span className="max-sm:hidden">View Details</span>
                   </button>
+                  {customer.verified && (
+                    <GoVerified className="text-primary ml-2" />
+                  )}
+                  {!customer.verified && (
+                    <button
+                      className="btn-sm bg-primary text-white rounded-xl ml-2"
+                      onClick={() => verify(customer.id)}
+                    >
+                      Verify
+                    </button>
+                  )}
                 </Table.Cell>
               </Table.Row>
             ))}
@@ -317,14 +167,11 @@ const CustomersInfo = () => {
         <dialog className="modal modal-open">
           <div className="modal-box">
             <h2 className="font-bold text-lg">Customer Details</h2>
-            <p>
-              Name: {customer.firstName} {customer.lastName}
-            </p>
-            <p>Industry: {customer.industry}</p>
+            <p>Name: {`${customer.firstName} ${customer.lastName}`}</p>
             <p>Email: {customer.email}</p>
             <p>Phone: {customer.phone}</p>
             <p>Country: {customer.country}</p>
-            <p>Qualification: {customer.qualification}</p>
+
             <button
               className="btn btn-secondary mt-4"
               onClick={() => setShowModel(false)}

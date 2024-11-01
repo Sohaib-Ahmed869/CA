@@ -42,6 +42,76 @@ const ContactInfo = ({ contactInfo, setContactInfo }) => {
           value={contactInfo.englishLevel}
           onChange={handleChange}
         />
+        <div className="flex flex-col">
+          <label htmlFor="questions">Are you an Australian citizen?</label>
+          <select
+            id="questions"
+            value={contactInfo.australianCitizen}
+            className="input mt-2"
+            onChange={(e) =>
+              setContactInfo({
+                ...contactInfo,
+                australianCitizen: e.target.value,
+              })
+            }
+          >
+            <option value="">Select an option</option>
+            <option value="Yes">Yes</option>
+            <option value="No">No</option>
+          </select>
+        </div>
+        <div className="flex flex-col">
+          <label htmlFor="questions">Are you an Aboriginal or Torres Strait Islander?</label>
+          <select
+            id="questions"
+            value={contactInfo.aboriginalOrTorresStraitIslander}
+            className="input mt-2"
+            onChange={(e) =>
+              setContactInfo({
+                ...contactInfo,
+                aboriginalOrTorresStraitIslander: e.target.value,
+              })
+            }
+          >
+            <option value="">Select an option</option>
+            <option value="Yes">Yes</option>
+            <option value="No">No</option>
+          </select>
+        </div>
+        <div className="flex flex-col">
+          <label htmlFor="questions">Do you have a disability?</label>
+          <select
+            id="questions"
+            value={contactInfo.disability}
+            className="input mt-2"
+            onChange={(e) =>
+              setContactInfo({
+                ...contactInfo,
+                disability: e.target.value,
+              })
+            }
+          >
+            <option value="">Select an option</option>
+            <option value="Yes">Yes</option>
+            <option value="No">No</option>
+          </select>
+        </div>
+        <FloatingLabelInput
+          name="previousQualifications"
+          type="text"
+          id="previousQualifications"
+          label="Previous Qualifications"
+          value={contactInfo.previousQualifications}
+          onChange={handleChange}
+        />
+        <FloatingLabelInput
+          name="employmentStatus"
+          type="text"
+          id="employmentStatus"
+          label="Employment Status"
+          value={contactInfo.employmentStatus}
+          onChange={handleChange}
+        />
       </div>
     </div>
   );
