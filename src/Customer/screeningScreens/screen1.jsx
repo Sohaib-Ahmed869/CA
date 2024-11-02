@@ -1,36 +1,43 @@
 import React, { useState } from "react";
+import certificates from "../../certificate";
 
 const Screen1 = ({
   industry,
   setIndustry,
   qualification,
   setQualification,
+  type,
+  setType,
 }) => {
   const industryOptions = [
     "Community Services",
-    "Construction",
-    "Education",
-    "Engineering",
-    "Finance",
-    "Healthcare",
+    "Finance & Accounting",
+    "Building & Construction",
+    "Business",
+    "Automotive",
+    "Real Estate",
+    "Information & Communications Technology",
+    "Beauty Therapy & Hairdressing",
+    "Training & Education",
     "Hospitality",
-    "Information Technology",
-    "Manufacturing",
-    "Mining",
-    "Retail",
-    "Transportation",
-    "Other",
+    "Security Management",
+    "Fitness & Allied Health",
+    "Electrical",
+    "Travel and Tourism",
   ];
 
-  const qualificationOptions = [
-    "Certificate",
-    "Diploma",
-    "Advanced Diploma",
-    "Bachelor Degree",
-    "Masters Degree",
-    "Doctorate",
-    "Other",
-  ];
+  const [qualificationOptions, setQualificationOptions] =
+    useState(certificates);
+
+  const onChangeCertificate = (e) => {
+    setQualification(e.target.value);
+    //find the selected certificate
+    const selectedCertificate = qualificationOptions.find(
+      (certificate) => certificate.qualification === e.target.value
+    );
+    //set the type of the certificate
+    setType(selectedCertificate.type);
+  };
 
   return (
     <div className="flex flex-col items-center animate-fade w-full">
@@ -61,14 +68,17 @@ const Screen1 = ({
             id="qualification"
             className="input ;g:w-96"
             value={qualification}
-            onChange={(e) => setQualification(e.target.value)}
+            onChange={onChangeCertificate}
           >
-            <option value="">Select an option</option>
-            {qualificationOptions.map((option) => (
-              <option key={option} value={option}>
-                {option}
-              </option>
-            ))}
+            <option value="">Select an option</option>[
+            {qualificationOptions
+              .filter((option) => option.industry === industry)
+              .map((option) => (
+                <option key={option.qualification} value={option.qualification}>
+                  {option.qualification}
+                </option>
+              ))}
+            ]
           </select>
         </div>
       </div>

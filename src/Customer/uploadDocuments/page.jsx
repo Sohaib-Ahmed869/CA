@@ -2,7 +2,9 @@ import React, { useState } from "react";
 import Navbar from "../components/navbar";
 import { useNavigate } from "react-router-dom";
 import { documentsUpload } from "../Services/customerApplication";
+import SpinnerLoader from "../components/spinnerLoader";
 const UploadDocuments = () => {
+  const [submissionLoading, setSubmissionLoading] = useState(false);
   const [hundredPointsOfID, setHundredPointsOfID] = useState({
     driversLicense: "",
     passport: "",
@@ -56,6 +58,7 @@ const UploadDocuments = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setSubmissionLoading(true);
     const formData = new FormData();
     formData.append("license", hundredPointsOfID.driversLicense);
     formData.append("passport", hundredPointsOfID.passport);
@@ -73,7 +76,7 @@ const UploadDocuments = () => {
       const id = window.location.pathname.split("/")[2];
       const applicationId = id;
       const response = await documentsUpload(formData, applicationId);
-
+      console.log(response);
       alert("Documents uploaded successfully");
       navigate("/");
     } catch (err) {
@@ -84,6 +87,7 @@ const UploadDocuments = () => {
   return (
     <div>
       <Navbar />
+      {submissionLoading && <SpinnerLoader />}
       <div className="p-5 lg:p-60 lg:pt-20 lg:pb-20">
         <div className="flex flex-col items-center text-left w-full">
           <h1 className="text-2xl lg:text-3xl font-bold">Upload Documents</h1>

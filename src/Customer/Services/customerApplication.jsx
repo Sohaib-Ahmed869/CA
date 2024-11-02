@@ -35,3 +35,15 @@ export const documentsUpload = async (data, applicationId) => {
   }
 };
 
+export const createNewApplication = async (data, userId) => {
+  try {
+    console.log(data, userId);
+    const response = await axios.post(
+      `${URL}/api/applications/new/${userId}`,
+      data
+    );
+    return response.data;
+  } catch (error) {
+    return error.response.data;
+  }
+};

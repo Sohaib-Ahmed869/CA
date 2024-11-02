@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Navbar from "./components/navbar";
 import { useNavigate } from "react-router-dom";
 import Loader from "./components/loader";
@@ -8,6 +8,10 @@ import StateScreen from "./screeningScreens/screen3";
 import FormalEducationScreen from "./screeningScreens/screen4";
 import FinalScreen from "./screeningScreens/screen5";
 import certifiedAustralia from "../assets/certifiedAustralia.png";
+import { auth } from "../firebase";
+import { onAuthStateChanged } from "firebase/auth";
+import { createNewApplication } from "./Services/customerApplication";
+import SpinnerLoader from "./components/spinnerLoader";
 import "./stepper.css";
 
 const Stepper = ({ steps, currentStep }) => {
@@ -51,13 +55,9 @@ const ScreeningForm2 = () => {
   const [state, setState] = useState("");
   const [formalEducation, setFormalEducation] = useState(true);
   const [formalEducationAnswer, setFormalEducationAnswer] = useState("");
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [phone, setPhone] = useState("");
-  const [email, setEmail] = useState("");
-  const [country, setCountry] = useState("");
-  const [questions, setQuestions] = useState("");
-  const [toc, setToc] = useState(false);
+  const [userId, setUserId] = useState("");
+  const [submissionLoading, setSubmissionLoading] = useState(false);
+  const [type, setType] = useState("");
 
   const [step, setStep] = useState(0);
 
@@ -84,9 +84,69 @@ const ScreeningForm2 = () => {
     "Formal Education",
   ];
 
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        // User is logged in, get the ID
+        const id = user.uid;
+        setUserId(id);
+        console.log("User ID: ", id);
+
+        setLoading(false);
+      } else {
+        // User is not logged in, redirect to login page
+        navigate("/login");
+      }
+    });
+
+    // Cleanup the subscription on unmount
+    return () => unsubscribe();
+  }, [navigate]);
+  useEffect(() => {
+    console.log("Industry: ", industry);
+    console.log("Qualification: ", qualification);
+    console.log("Years of Experience: ", yearsOfExperience);
+    console.log("Location of Experience: ", locationOfExperience);
+    console.log("State: ", state);
+    console.log("Formal Education: ", formalEducation);
+    console.log("Formal Education Answer: ", formalEducationAnswer);
+  }),
+    [
+      industry,
+      qualification,
+      yearsOfExperience,
+      locationOfExperience,
+      state,
+      formalEducation,
+      formalEducationAnswer,
+    ];
+
+  const onClickSubmit = async () => {
+    setSubmissionLoading(true);
+    try {
+      const data = {
+        industry,
+        lookingForWhatQualification: qualification,
+        yearsOfExperience,
+        locationOfExperience,
+        state,
+        formal_education: formalEducation,
+        qualification: formalEducationAnswer,
+      };
+      console.log("Data: ", data);
+      const response = await createNewApplication(data, userId);
+      console.log("Response: ", response);
+      setSubmissionLoading(false);
+      navigate("/existing-applications");
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   return (
     <div className="min-h-screen">
       {loading && <Loader />}
+      {submissionLoading && <SpinnerLoader />}
       <Navbar />
       <div className="flex flex-col items-center justify-center lg:p-16 p-4 ">
         <img
@@ -109,6 +169,8 @@ const ScreeningForm2 = () => {
               setIndustry={setIndustry}
               qualification={qualification}
               setQualification={setQualification}
+              type={type}
+              setType={setType}
             />
           )}
           {step === 1 && (
@@ -147,7 +209,7 @@ const ScreeningForm2 = () => {
               </button>
             ) : (
               <button
-                onClick={() => navigate("/")}
+                onClick={onClickSubmit}
                 className="btn bg-primary px-4 py-2 m-2 rounded"
               >
                 Submit

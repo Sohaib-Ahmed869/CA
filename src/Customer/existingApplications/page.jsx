@@ -20,7 +20,7 @@ import { MdPayment } from "react-icons/md";
 import { auth } from "../../firebase";
 import { onAuthStateChanged } from "firebase/auth";
 import { getApplications } from "../Services/customerApplication";
-
+import SpinnerLoader from "../components/spinnerLoader";
 import Loader from "../components/loader";
 
 import certificate from "../../assets/certificate.pdf";
@@ -32,6 +32,7 @@ const ExistingApplications = () => {
   const [userId, setUserId] = useState("");
   const navigate = useNavigate();
   const [applications, setApplications] = useState([]);
+  const [submissionLoading, setSubmissionLoading] = useState(false);
   const statuses = [
     "Waiting for Verification",
     "Waiting for Payment",
@@ -54,8 +55,9 @@ const ExistingApplications = () => {
     alert("Redirected to Payment Gateway");
   };
 
-  const onClickDownload = () => {
-    window.open(certificate);
+  const onClickDownload = (certificateId) => {
+    const certificateLink = certificateId;
+    window.open(certificateLink, "_blank");
   };
 
   const onClickStudentForm = (id) => {
@@ -78,10 +80,12 @@ const ExistingApplications = () => {
   }, []);
 
   const getUserApplications = async (userId) => {
+    setSubmissionLoading(true);
     try {
       const response = await getApplications(userId);
       console.log(response);
       setApplications(response);
+      setSubmissionLoading(false);
     } catch (error) {
       console.log(error);
     }
@@ -96,6 +100,7 @@ const ExistingApplications = () => {
   return (
     <div>
       {loading && <Loader />}
+      {submissionLoading && <SpinnerLoader />}
       <Navbar />
       <div className="p-3 lg:p-20 overflow-x-auto">
         <div className="flex items-center gap-4 mb-5 lg:flex-row flex-col">
@@ -107,7 +112,17 @@ const ExistingApplications = () => {
             </p>
           </div>
         </div>
+        <div className="w-full flex justify-between items-center gap-4 mb-10">
+          <button className="btn btn-sm text-white btn-primary" onClick={() => navigate("/new-application")}>
+            <BiEnvelopeOpen />
+            New Application
+          </button>
+          <button className="btn btn-sm text-white btn-primary" onClick={() => getUserApplications(userId)}>
+            Refresh
+          </button>
+        </div>
         <div className="table mx-auto max-sm:max-w-screen-sm sm:overflow-x-auto">
+          
           <div className="table-row-group mx-auto">
             <div className="table-row bg-gray-200">
               <div className="table-cell font-semibold p-5 max-sm:min-w-40">
@@ -166,7 +181,7 @@ const ExistingApplications = () => {
                       <BiUpload className="text-white" />
                       {application.currentStatus}
                     </div>
-                  ) : application.currentStatus === "Certficated Generated" ? (
+                  ) : application.currentStatus === "Certificate Generated" ? (
                     <div className="p-1 rounded-full bg-primary text-white flex items-center justify-center w-2/3 gap-2">
                       <FaCertificate className="text-white" />
                       {application.currentStatus}
@@ -229,10 +244,10 @@ const ExistingApplications = () => {
                     >
                       <BiUpload /> Upload
                     </button>
-                  ) : application.currentStatus === "Certficated Generated" ? (
+                  ) : application.currentStatus === "Certificate Generated" ? (
                     <button
                       className="btn btn-sm text-white btn-primary"
-                      onClick={onClickDownload}
+                      onClick={() => onClickDownload(application.certificateId)}
                     >
                       <BiDownload /> Download
                     </button>
@@ -248,7 +263,12 @@ const ExistingApplications = () => {
                   ) : (
                     application.currentStatus === "Completed" && (
                       <div className="flex gap-2 max-sm:flex-col">
-                        <button className="btn btn-sm text-white btn-primary">
+                        <button
+                          className="btn btn-sm text-white btn-primary"
+                          onClick={() =>
+                            onClickDownload(application.certificateId)
+                          }
+                        >
                           <BiDownload /> Download
                         </button>
                         <button className="btn btn-sm text-white btn-primary">

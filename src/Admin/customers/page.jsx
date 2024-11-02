@@ -5,7 +5,7 @@ import { Table } from "flowbite-react";
 import { getCustomers as fetchCustomers } from "../../Customer/Services/adminServices"; // Avoids naming conflict
 import customerspic from "../../assets/customers.png";
 import { verifyCustomer } from "../../Customer/Services/adminServices";
-
+import SpinnerLoader from "../../Customer/components/spinnerLoader";
 const CustomersInfo = () => {
   const [search, setSearch] = useState("");
   const [filteredCustomers, setFilteredCustomers] = useState([]);
@@ -13,17 +13,25 @@ const CustomersInfo = () => {
   const [customer, setCustomer] = useState({});
   const [showModel, setShowModel] = useState(false);
   const [filter, setFilter] = useState("unverified");
+  const [submissionLoading, setSubmissionLoading] = useState(false);
 
   // Fetch customers on component mount
   useEffect(() => {
+    setSubmissionLoading(true);
     const getCustomers = async () => {
       try {
         const customersData = await fetchCustomers();
-        setFilteredCustomers(customersData); // Set initial customer data
+
         setCustomers(customersData); // Set initial customer data
+        //set filtered customers as unverified customers
+        const unverifiedCustomers = customersData.filter(
+          (customer) => !customer.verified
+        );
+        setFilteredCustomers(unverifiedCustomers);
       } catch (error) {
         console.error("Failed to fetch customers:", error);
       }
+      setSubmissionLoading(false);
     };
     getCustomers();
   }, []);
@@ -38,7 +46,7 @@ const CustomersInfo = () => {
     } else {
       setFilteredCustomers(customers);
     }
-  }, [search, customers]);
+  }, [search]);
 
   // Show customer details modal
   const showDetails = (customer) => {
@@ -48,6 +56,7 @@ const CustomersInfo = () => {
 
   const verify = async (customerId) => {
     try {
+      setSubmissionLoading(true);
       await verifyCustomer(customerId);
 
       // Update the customer list after verification
@@ -60,13 +69,31 @@ const CustomersInfo = () => {
 
       setCustomers(updatedCustomers);
       setFilteredCustomers(updatedCustomers);
+      setSubmissionLoading(false);
     } catch (error) {
       console.error("Failed to verify customer:", error);
     }
   };
 
+  useEffect(() => {
+    if (filter === "verified") {
+      const verifiedCustomers = customers.filter(
+        (customer) => customer.verified
+      );
+      setFilteredCustomers(verifiedCustomers);
+    } else if (filter === "unverified") {
+      const unverifiedCustomers = customers.filter(
+        (customer) => !customer.verified
+      );
+      setFilteredCustomers(unverifiedCustomers);
+    } else {
+      setFilteredCustomers(customers);
+    }
+  }, [filter]);
+
   return (
     <div className="flex flex-col p-5 w-full justify-between animate-fade">
+      {submissionLoading && <SpinnerLoader />}
       <div className="flex items-center gap-4 mb-5 lg:flex-row flex-col">
         <img src={customerspic} alt="Dashboard" className="h-36" />
         <div className="flex flex-col lg:w-1/2 w-full">
@@ -122,10 +149,17 @@ const CustomersInfo = () => {
             <Table.HeadCell>Name</Table.HeadCell>
             <Table.HeadCell>Applications</Table.HeadCell>
 
-    
             <Table.HeadCell>Actions</Table.HeadCell>
           </Table.Head>
           <Table.Body>
+            {filteredCustomers.length === 0 && (
+              <Table.Row>
+                <Table.Cell colSpan="5" className="text-center">
+                  No unverified customers found
+                </Table.Cell>
+              </Table.Row>
+            )}
+
             {filteredCustomers.map((customer, index) => (
               <Table.Row key={index} className="hover:bg-gray-100">
                 <Table.Cell className="p-5">{index + 1}</Table.Cell>
@@ -137,7 +171,6 @@ const CustomersInfo = () => {
                 <Table.Cell>{`${customer.firstName} ${customer.lastName}`}</Table.Cell>
                 <Table.Cell>{customer.totalApplications}</Table.Cell>
 
-      
                 <Table.Cell className="flex items-center p-5">
                   <button
                     className="btn-sm flex items-center gap-2"

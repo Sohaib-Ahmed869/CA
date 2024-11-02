@@ -9,8 +9,10 @@ import StudentAgreement from "./studentAgreement";
 import { studentIntakeForm } from "../../Services/customerApplication";
 import toast, { Toaster } from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
+import SpinnerLoader from "../../components/spinnerLoader";
 
 const StudentIntakeForm = () => {
+  const [submissionLoading, setSubmissionLoading] = useState(false);
   const navigate = useNavigate();
   const onSuccess = () => toast.success("Form submitted successfully");
   const [personalInfo, setPersonalInfo] = useState({
@@ -81,6 +83,7 @@ const StudentIntakeForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setSubmissionLoading(true);
     if (!studentAgreement.agree) {
       alert("Please agree to the terms and conditions");
       return;
@@ -132,6 +135,7 @@ const StudentIntakeForm = () => {
         alert("Please enter your country of birth");
       }
 
+
       return;
     }
     console.log("previousQualifications", contactInfo.previousQualifications);
@@ -178,6 +182,11 @@ const StudentIntakeForm = () => {
       console.log(response);
       onSuccess();
       setFormSubmitted(true);
+      setSubmissionLoading(false);
+      //do timeout of 3 seconds to show success message
+      setTimeout(() => {
+        navigate("/");
+      }, 1000);
       navigate("/");
     } catch (error) {
       console.error("Error submitting form:", error);
@@ -187,6 +196,7 @@ const StudentIntakeForm = () => {
   return (
     <div>
       <Navbar />
+      {submissionLoading && <SpinnerLoader />}
       <Toaster />
       <div className="p-5 lg:p-60 lg:pt-20 lg:pb-20">
         <div className="flex flex-col items-center text-left w-full">

@@ -1,25 +1,21 @@
 import React, { useState } from "react";
-import Navbar from "./components/navbar";
 import { signInWithEmailAndPassword } from "firebase/auth";
-import { auth } from "../firebase";
+import { auth, db } from "../../firebase"; // Firebase imports
 import { useNavigate } from "react-router-dom";
-import certifcation from "../assets/certification.jpg";
-import login from "../assets/login.png";
+import certifcation from "../../assets/certification.jpg";
+import login from "../../assets/login.png";
 import toast, { Toaster } from "react-hot-toast";
-import SpinnerLoader from "./components/spinnerLoader";
-import { doc, getDoc } from "firebase/firestore";
-import { db } from "../firebase";
+import { doc, getDoc } from "firebase/firestore"; // Firestore imports
+import SpinnerLoader from "../../Customer/components/spinnerLoader";
 
-const Login = () => {
+const RtoLogin = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const [token, setToken] = useState("");
   const [submissionLoading, setSubmissionLoading] = useState(false);
-
   const notify = () => toast.success("Login Successful");
-  const notifyError = () => toast.error("Invalid email or password");
+  const notifyError = (message) => toast.error(message);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -33,34 +29,33 @@ const Login = () => {
         email,
         password
       );
-      //check what is user role must be customer
       const user = userCredential.user;
 
       // Fetch the user's role from Firestore
       const userDocRef = doc(db, "users", user.uid); // Assuming you store user roles in Firestore under 'users' collection
       const userDoc = await getDoc(userDocRef);
 
-      if (userDoc.data().role !== "customer") {
-        console.log(userDoc.data().role);
+      if (userDoc.exists() && userDoc.data().role === "rto") {
+        // User is an admin
+        localStorage.setItem("role", "rto");
+        //get rto type
+        localStorage.setItem("rtoType", userDoc.data().type);
+        console.log(userDoc.data().type);
+        const idToken = await user.getIdToken();
+        notify();
         setSubmissionLoading(false);
-        setError("Invalid email or password");
-        notifyError();
-        return;
+        navigate("/rto"); // Redirect to admin dashboard
+      } else {
+        // User is not an admin
+        await auth.signOut(); // Sign out non-admin user
+        notifyError("Access denied: Admins only");
+        setSubmissionLoading(false);
       }
-
-      const idToken = await userCredential.user.getIdToken();
-      setToken(idToken);
-      notify();
-      setSubmissionLoading(false);
-
-      // Redirect to dashboard
-      navigate("/");
     } catch (err) {
+      setSubmissionLoading(false);
       setError("Invalid email or password");
       console.error("Login error:", err);
-
-      notifyError();
-      setSubmissionLoading(false);
+      notifyError("Invalid email or password");
     }
   };
 
@@ -76,10 +71,9 @@ const Login = () => {
             className="object-cover h-full w-full"
           />
         </div>
-        <div className="p-5 lg:p-20 mx-auto lg:w-1/2 min-h-screen flex flex-col justify-center ">
+        <div className="p-5 lg:p-20 mx-auto lg:w-1/2 min-h-screen flex flex-col justify-center">
           <div className="w-full flex flex-col items-start">
             <img src={login} alt="login" className="object-cover h-32" />
-
             <p className="text-gray-600 mb-5">
               Welcome back! Please login to your account.
             </p>
@@ -126,4 +120,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default RtoLogin;

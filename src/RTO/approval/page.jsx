@@ -8,8 +8,10 @@ import Sidebar from "../components/siderbar";
 import pending from "../../assets/pending.png";
 import { getApplications } from "../../Customer/Services/rtoservices";
 import { uploadCertificate } from "../../Customer/Services/adminServices";
+import SpinnerLoader from "../../Customer/components/spinnerLoader";
 
 const Approval = () => {
+  const [submissionLoading, setSubmissionLoading] = useState(false);
   const [applications, setApplications] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -85,10 +87,13 @@ const Approval = () => {
   const [dateFilter, setDateFilter] = useState("All");
 
   useEffect(() => {
+    const rtoType = localStorage.getItem("rtoType");
     const fetchApplications = async () => {
+      setSubmissionLoading(true);
       const applicationsData = await getApplications();
-      setApplications(applicationsData);
-      setDisplayedApplications(applicationsData);
+      setApplications(applicationsData.filter((app) => app.type === rtoType));
+      setDisplayedApplications(applicationsData.filter((app) => app.type === rtoType));
+      setSubmissionLoading(false);
     };
     fetchApplications();
   }, []);
@@ -125,6 +130,7 @@ const Approval = () => {
     currentPage > 1 && setCurrentPage(currentPage - 1);
 
   const uploadCertificate2 = async (id) => {
+    setSubmissionLoading(true);
     try {
       if (!certificateFile) {
         console.error("No certificate file selected.");
@@ -145,6 +151,7 @@ const Approval = () => {
 
       const response = await uploadCertificate(id, formData); // Pass FormData directly
       console.log("Upload response:", response);
+      setSubmissionLoading(false);
       closeModal();
     } catch (err) {
       console.error("Error uploading certificate:", err);
@@ -153,6 +160,7 @@ const Approval = () => {
 
   return (
     <div className="flex overflow-x-auto">
+      {submissionLoading && <SpinnerLoader />}
       <div className="p-10 w-full">
         <div className="flex items-center gap-4 mb-5 lg:flex-row flex-col">
           <img src={pending} alt="Dashboard" className="h-36" />

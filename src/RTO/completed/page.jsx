@@ -7,183 +7,17 @@ import { BiUpload } from "react-icons/bi";
 import Sidebar from "../components/siderbar";
 import certificate from "../../assets/certificate.pdf";
 import pending from "../../assets/completed.png";
-
-const applications = [
-  {
-    id: 1,
-    customerRegisteredName: "John Doe",
-    dateCreated: new Date(),
-    status: "Sent to RTO",
-    paymentStatus: true,
-    paymentDate: new Date(),
-    certficateIssued: false,
-  },
-  {
-    id: 3,
-    customerRegisteredName: "Jane Doe",
-    dateCreated: new Date(),
-    status: "Sent to RTO",
-    paymentStatus: true,
-    certficateIssued: false,
-    paymentDate: new Date(),
-  },
-  {
-    id: 4,
-    customerRegisteredName: "John Doe",
-    dateCreated: new Date(),
-    status: "Sent to RTO",
-    paymentStatus: true,
-    certficateIssued: false,
-    paymentDate: new Date(),
-  },
-  {
-    id: 5,
-    customerRegisteredName: "Jane Doe",
-    dateCreated: new Date(),
-    status: "Sent to RTO",
-    paymentStatus: true,
-    certficateIssued: false,
-    paymentDate: new Date(),
-  },
-  {
-    id: 23,
-    customerRegisteredName: "John Doe",
-    dateCreated: new Date(),
-    status: "Sent to RTO",
-    paymentStatus: true,
-    paymentDate: new Date(),
-    certficateIssued: false,
-  },
-  {
-    id: 24,
-    customerRegisteredName: "Jane Doe",
-    dateCreated: new Date(),
-    status: "Sent to RTO",
-    paymentStatus: true,
-    paymentDate: new Date(),
-    certficateIssued: true,
-  },
-  {
-    id: 1432,
-    customerRegisteredName: "John Doe",
-    dateCreated: new Date(),
-    status: "Sent to RTO",
-    paymentStatus: true,
-    paymentDate: new Date(),
-    certficateIssued: false,
-  },
-  {
-    id: 3634,
-    customerRegisteredName: "Jane Doe",
-    dateCreated: new Date(),
-    status: "Sent to RTO",
-    paymentStatus: true,
-    certficateIssued: false,
-    paymentDate: new Date(),
-  },
-  {
-    id: 4234,
-    customerRegisteredName: "John Doe",
-    dateCreated: new Date(),
-    status: "Sent to RTO",
-    paymentStatus: true,
-    certficateIssued: false,
-    paymentDate: new Date(),
-  },
-  {
-    id: 543,
-    customerRegisteredName: "Jane Doe",
-    dateCreated: new Date(),
-    status: "Sent to RTO",
-    paymentStatus: true,
-    certficateIssued: false,
-    paymentDate: new Date(),
-  },
-  {
-    id: 2364,
-    customerRegisteredName: "John Doe",
-    dateCreated: new Date(),
-    status: "Sent to RTO",
-    paymentStatus: true,
-    paymentDate: new Date(),
-    certficateIssued: false,
-  },
-  {
-    id: 2421,
-    customerRegisteredName: "Jane Doe",
-    dateCreated: new Date(),
-    status: "Sent to RTO",
-    paymentStatus: true,
-    paymentDate: new Date(),
-    certficateIssued: true,
-  },
-  {
-    id: 1232,
-    customerRegisteredName: "John Doe",
-    dateCreated: new Date(),
-    status: "Sent to RTO",
-    paymentStatus: true,
-    paymentDate: new Date(),
-    certficateIssued: false,
-  },
-  {
-    id: 35,
-    customerRegisteredName: "Jane Doe",
-    dateCreated: new Date(),
-    status: "Sent to RTO",
-    paymentStatus: true,
-    certficateIssued: false,
-    paymentDate: new Date(),
-  },
-  {
-    id: 43,
-    customerRegisteredName: "John Doe",
-    dateCreated: new Date(),
-    status: "Sent to RTO",
-    paymentStatus: true,
-    certficateIssued: false,
-    paymentDate: new Date(),
-  },
-  {
-    id: 25,
-    customerRegisteredName: "Jane Doe",
-    dateCreated: new Date(),
-    status: "Sent to RTO",
-    paymentStatus: true,
-    certficateIssued: false,
-    paymentDate: new Date(),
-  },
-  {
-    id: 232,
-    customerRegisteredName: "John Doe",
-    dateCreated: new Date(),
-    status: "Sent to RTO",
-    paymentStatus: true,
-    paymentDate: new Date(),
-    certficateIssued: false,
-  },
-  {
-    id: 224,
-    customerRegisteredName: "Jane Doe",
-    dateCreated: new Date(),
-    status: "Sent to RTO",
-    paymentStatus: true,
-    paymentDate: new Date(),
-    certficateIssued: true,
-  },
-];
+import { getApplications } from "../../Customer/Services/rtoservices";
+import SpinnerLoader from "../../Customer/components/spinnerLoader";
 
 const Completed = () => {
+  const [applications, setApplications] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
+  const [submissionLoading, setSubmissionLoading] = useState(false);
 
   const applicationsPerPage = 10;
   const [selectedApplicationId, setSelectedApplicationId] = useState(null);
   const [certificateFile, setCertificateFile] = useState(null);
-
-  const handleOpenModal = (id) => {
-    setSelectedApplicationId(id);
-    document.getElementById("uploadCertificateModal").showModal();
-  };
 
   const closeModal = () => {
     document.getElementById("uploadCertificateModal").close();
@@ -210,22 +44,46 @@ const Completed = () => {
   const [displayedApplications, setDisplayedApplications] = useState([]);
   const [dateFilter, setDateFilter] = useState("All");
 
-  // Filter and paginate applications when `applications`, `dateFilter`, or `currentPage` changes
   useEffect(() => {
-    const today = new Date();
-    const filteredApplications = applications.filter((app) => {
-      if (dateFilter === "All") return true;
-      const daysDifference = Math.ceil(
-        Math.abs(today - app.dateCreated) / (1000 * 60 * 60 * 24)
-      );
-      return daysDifference <= parseInt(dateFilter);
-    });
+    const getApplicationsData = async () => {
+      try {
+        const rtoType = localStorage.getItem("rtoType");
+        setSubmissionLoading(true);
+        const applicationsData = await getApplications();
+        setApplications(applicationsData);
+        //filter the applications where the current status is certificate generated
+        const filteredApplications = applicationsData.filter(
+          (app) => app.currentStatus === "Certificate Generated"
+        );
+        setApplications(filteredApplications.filter((app) => app.type === rtoType));
+        setDisplayedApplications(
+          filteredApplications.filter((app) => app.type === rtoType)
+        );
+        setSubmissionLoading(false);
+      } catch (error) {
+        setSubmissionLoading(false);
+        console.error("Failed to fetch applications:", error);
+      }
+    };
+    getApplicationsData();
+  }, []);
 
-    const startIndex = (currentPage - 1) * applicationsPerPage;
-    setDisplayedApplications(
-      filteredApplications.slice(startIndex, startIndex + applicationsPerPage)
-    );
-  }, [applications, currentPage, dateFilter]);
+  // Filter and paginate applications when `applications`, `dateFilter`, or `currentPage` changes
+  // useEffect(() => {
+  //   const today = new Date();
+  //   const filteredApplications = applications.filter((app) => {
+  //     if (dateFilter === "All") return true;
+  //     const daysDifference = Math.ceil(
+  //       Math.abs(today - app.dateCreated) / (1000 * 60 * 60 * 24)
+  //     );
+  //     return daysDifference <= parseInt(dateFilter);
+  //   });
+
+  //   const startIndex = (currentPage - 1) * applicationsPerPage;
+  //   setDisplayedApplications(
+  //     filteredApplications.slice(startIndex, startIndex + applicationsPerPage)
+  //   );
+  // }, [applications, currentPage, dateFilter]);
 
   // Pagination Controls
   const totalPages = Math.ceil(
@@ -244,14 +102,15 @@ const Completed = () => {
 
   return (
     <div className="">
+      {submissionLoading && <SpinnerLoader />}
       <div className="mt-10 lg:p-10 w-full animate-fade">
         <div className="flex items-center gap-4 mb-5 lg:flex-row flex-col">
           <img src={pending} alt="Dashboard" className="h-36" />
           <div className="flex flex-col lg:w-1/2 w-full">
             <h1 className="text-3xl font-bold">Completed Applications</h1>
             <p className="text-sm mt-2">
-              Here you can view all the applications that have been completed and
-              are ready to be dispatched to the customers.
+              Here you can view all the applications that have been completed
+              and are ready to be dispatched to the customers.
             </p>
           </div>
         </div>
@@ -274,7 +133,7 @@ const Completed = () => {
           <thead>
             <tr>
               <th>Id</th>
-
+              <th>Customer Name</th>
               <th>Completion Date</th>
               <th>Actions</th>
             </tr>
@@ -284,14 +143,18 @@ const Completed = () => {
               application.certficateIssued ? null : (
                 <tr key={application.id}>
                   <td>{application.id}</td>
-
                   <td>
-                    {application.paymentDate
-                      ? application.paymentDate.toLocaleDateString()
-                      : "N/A"}
+                    {application.user.firstName} {application.user.lastName}
+                  </td>
+                  <td>
+                    {
+                      application.status[
+                        application.status.length - 1
+                      ].time.split("T")[0]
+                    }
                   </td>
                   <td className="flex gap-2 max-sm:flex-col">
-                    {application.status === "Sent to RTO" && (
+                    {application.currentStatus === "Certificate Generated" && (
                       <>
                         <button className="bg-blue-500 text-white px-2 py-1 rounded flex gap-1 items-center">
                           <BsEye />

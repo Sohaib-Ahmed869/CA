@@ -16,6 +16,7 @@ import { CgTrack } from "react-icons/cg";
 import { GrFormAdd } from "react-icons/gr";
 import { IoCall } from "react-icons/io5";
 import { MdPayment } from "react-icons/md";
+import SpinnerLoader from "../../Customer/components/spinnerLoader";
 
 import applicationsimg from "../../assets/applications.png";
 
@@ -34,6 +35,7 @@ import {
 
 const ExistingApplicationsAdmin = () => {
   const navigate = useNavigate();
+  const [submissionLoading, setSubmissionLoading] = useState(false);
   const [applications, setApplications] = useState([]);
   const statuses = [
     "Student Intake Form ",
@@ -75,20 +77,26 @@ const ExistingApplicationsAdmin = () => {
 
   const getApplicationsData = async () => {
     try {
+      setSubmissionLoading(true);
       const applicationsData = await getApplications();
       setApplications(applicationsData);
       setFilteredApplications(applicationsData);
+      setSubmissionLoading(false);
     } catch (error) {
+      setSubmissionLoading(false);
       console.error("Failed to fetch applications:", error);
     }
   };
 
   const onVerifyApplication = async (applicationId) => {
     try {
+      setSubmissionLoading(true);
       await verifyApplication(applicationId);
       getApplicationsData();
+      setSubmissionLoading(false);
     } catch (error) {
       console.error("Failed to verify application:", error);
+      setSubmissionLoading(false);
     }
   };
 
@@ -103,6 +111,7 @@ const ExistingApplicationsAdmin = () => {
   return (
     <div>
       {loading && <Loader />}
+      {submissionLoading && <SpinnerLoader />}
 
       {!selectedApplication && (
         <div className="p-5">

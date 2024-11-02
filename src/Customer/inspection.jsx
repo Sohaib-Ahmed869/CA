@@ -60,6 +60,7 @@ const ScreeningForm = () => {
   const [country, setCountry] = useState("");
   const [questions, setQuestions] = useState("");
   const [toc, setToc] = useState(false);
+  const [type, setType] = useState("");
 
   useEffect(() => {
     //send data to server
@@ -78,7 +79,8 @@ const ScreeningForm = () => {
       country,
       questions,
       toc,
-      password
+      password,
+      type
     );
   }, [
     industry,
@@ -129,11 +131,12 @@ const ScreeningForm = () => {
         country,
         questions,
         toc,
-        password
+        password,
+        type
       );
       console.log(response);
       //if successful redirect to dashboard
-      navigate("/");
+      navigate("/login");
     } catch (err) {
       alert("Error submitting application");
       console.error(err);
@@ -181,6 +184,8 @@ const ScreeningForm = () => {
               setIndustry={setIndustry}
               qualification={qualification}
               setQualification={setQualification}
+              type={type}
+              setType={setType}
             />
           )}
           {step === 1 && (

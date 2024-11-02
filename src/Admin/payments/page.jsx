@@ -14,9 +14,11 @@ const PaymentApproval = () => {
   const [unpaidApplications, setUnpaidApplications] = useState([]);
   const fetchApplications = async () => {
     const applicationsData = await getApplications();
+    //filter out the applications that are not paid (status must be Waiting for payment)
     setApplications(applicationsData);
+
     setUnpaidApplications(
-      applicationsData.filter((application) => !application.paid)
+      applicationsData.filter((application) => application.currentStatus === "Waiting for Payment")
     );
   };
   useEffect(() => {

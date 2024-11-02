@@ -30,7 +30,8 @@ export const register = async (
   country,
   questions,
   toc,
-  password
+  password,
+  type
 ) => {
   try {
     console.log(URL);
@@ -51,6 +52,7 @@ export const register = async (
       questions,
       toc,
       password,
+      type,
     });
 
     return response.data;

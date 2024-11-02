@@ -14,12 +14,17 @@ import Dashboard from "./Admin/dashboard/page";
 import Login from "./Customer/login";
 import AdminLogin from "./Admin/adminLogin/login";
 
+import RtoLogin from "./RTO/rtoLogin/page";
+
+import CustomerDashboardSignup from "./Customer/components/newUserOptions";
+
 function App() {
   return (
     <Router>
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/" element={<CustomerDashboard />} />
+        <Route path="/signup" element={<CustomerDashboardSignup />} />
         <Route path="/screening" element={<ScreeningForm />} />
         <Route path="/new-application" element={<ScreeningForm2 />} />
         <Route
@@ -32,6 +37,7 @@ function App() {
         />
         <Route path="/upload-documents/:id" element={<UploadDocuments />} />
         <Route path="/rto" element={<Sidebar />} />
+        <Route path="/rto/login" element={<RtoLogin />} />
 
         <Route path="/admin" element={<AdminSidebar />} />
         <Route path="/admin-dashboard" element={<Dashboard />} />
