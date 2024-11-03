@@ -8,6 +8,8 @@ const Screen1 = ({
   setQualification,
   type,
   setType,
+  price,
+  setPrice,
 }) => {
   const industryOptions = [
     "Community Services",
@@ -37,6 +39,8 @@ const Screen1 = ({
     );
     //set the type of the certificate
     setType(selectedCertificate.type);
+    //set the price of the certificate
+    setPrice(selectedCertificate.price);
   };
 
   return (

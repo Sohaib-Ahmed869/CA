@@ -61,6 +61,7 @@ const ScreeningForm = () => {
   const [questions, setQuestions] = useState("");
   const [toc, setToc] = useState(false);
   const [type, setType] = useState("");
+  const [price, setPrice] = useState(0);
 
   useEffect(() => {
     //send data to server
@@ -80,7 +81,8 @@ const ScreeningForm = () => {
       questions,
       toc,
       password,
-      type
+      type,
+      price
     );
   }, [
     industry,
@@ -132,7 +134,8 @@ const ScreeningForm = () => {
         questions,
         toc,
         password,
-        type
+        type,
+        price
       );
       console.log(response);
       //if successful redirect to dashboard
@@ -186,6 +189,8 @@ const ScreeningForm = () => {
               setQualification={setQualification}
               type={type}
               setType={setType}
+              price={price}
+              setPrice={setPrice}
             />
           )}
           {step === 1 && (

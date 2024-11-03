@@ -46,6 +46,7 @@ const FinalScreen = ({
         <div className="flex flex-col w-full">
           <label htmlFor="password">Password</label>
           <input
+            type="password"
             id="password"
             value={password}
             className="input mt-2"
@@ -62,7 +63,7 @@ const FinalScreen = ({
             id="phone"
             value={phone}
             className="input mt-2"
-            placeholder="Phone number"
+            placeholder="Phone number (Please include country code)"
             onChange={(e) => setPhone(e.target.value)}
           />
         </div>
@@ -84,7 +85,7 @@ const FinalScreen = ({
             id="country"
             value={country}
             className="input mt-2"
-            placeholder="Country"
+            placeholder="Which country are you currently residing in?"
             onChange={(e) => setCountry(e.target.value)}
           />
         </div>
@@ -94,7 +95,7 @@ const FinalScreen = ({
             id="questions"
             value={questions}
             className="input mt-2"
-            placeholder="Questions"
+            placeholder="Any questions for us?"
             onChange={(e) => setQuestions(e.target.value)}
           />
         </div>
@@ -111,7 +112,7 @@ const FinalScreen = ({
         <label htmlFor="toc">
           {" "}
           I agree to let Certified Australia contact me about the qualification
-          or services it provide.
+          or services it provides.
         </label>
       </div>
     </div>

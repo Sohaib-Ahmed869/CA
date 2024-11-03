@@ -47,3 +47,31 @@ export const createNewApplication = async (data, userId) => {
     return error.response.data;
   }
 };
+
+export const paymentProcessing = async (applicationId, price) => {
+  try {
+    // Step 1: Initiate payment with backend to get the client secret
+    const response = await axios.post(
+      `${URL}/api/applications/payment/${applicationId}`,
+      { price }
+    );
+    const clientSecret = response.data.client_secret;
+
+    return clientSecret;
+  } catch (error) {
+    console.error("Error initiating payment:", error.response.data);
+    return null;
+  }
+};
+
+export const markApplicationAsPaid = async (applicationId) => {
+  try {
+    const response = await axios.put(
+      `${URL}/api/applications/markAsPaid/${applicationId}`
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error marking application as paid:", error.response.data);
+    return error.response.data;
+  }
+};

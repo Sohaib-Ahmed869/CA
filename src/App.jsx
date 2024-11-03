@@ -17,6 +17,11 @@ import AdminLogin from "./Admin/adminLogin/login";
 import RtoLogin from "./RTO/rtoLogin/page";
 
 import CustomerDashboardSignup from "./Customer/components/newUserOptions";
+import PaymentPage from "./Customer/checkoutForm";
+
+import AgentLogin from "./Agent/AgentLogin/page";
+import AgentSignup from "./Agent/AgentSignup/page";
+import MainAgentScreen from "./Agent/Applications/main";
 
 function App() {
   return (
@@ -35,6 +40,7 @@ function App() {
           path="/student-intake-form/:id"
           element={<StudentIntakeForm />}
         />
+        <Route path="/payment" element={<PaymentPage />} />
         <Route path="/upload-documents/:id" element={<UploadDocuments />} />
         <Route path="/rto" element={<Sidebar />} />
         <Route path="/rto/login" element={<RtoLogin />} />
@@ -42,6 +48,10 @@ function App() {
         <Route path="/admin" element={<AdminSidebar />} />
         <Route path="/admin-dashboard" element={<Dashboard />} />
         <Route path="/admin/login" element={<AdminLogin />} />
+
+        <Route path="/agent/login" element={<AgentLogin />} />
+        <Route path="/agent/signup" element={<AgentSignup />} />
+        <Route path="/agent" element={<MainAgentScreen />} /> 
       </Routes>
     </Router>
   );

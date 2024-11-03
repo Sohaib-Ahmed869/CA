@@ -5,7 +5,7 @@ import Navbar from "../components/navbar";
 import { BsEye } from "react-icons/bs";
 import { BiDownload } from "react-icons/bi";
 import { BiEnvelopeOpen } from "react-icons/bi";
-
+import PaymentPage from "../checkoutForm";
 import { BsArrowUpRight } from "react-icons/bs";
 import { BsClock } from "react-icons/bs";
 import { BiUser } from "react-icons/bi";
@@ -43,7 +43,12 @@ const ExistingApplications = () => {
     "Dispatched",
     "Completed",
   ];
+
+  const [showCheckoutModal, setShowCheckoutModal] = useState(false);
   const [loading, setLoading] = React.useState(true);
+
+  const [price, setPrice] = useState(0);
+  const [applicationId, setApplicationId] = useState("");
 
   React.useEffect(() => {
     setTimeout(() => {
@@ -51,8 +56,10 @@ const ExistingApplications = () => {
     }, 0);
   }, []);
 
-  const onClickPayment = () => {
-    alert("Redirected to Payment Gateway");
+  const onClickPayment = (price, applicationId) => {
+    setPrice(price);
+    setApplicationId(applicationId);
+    setShowCheckoutModal(true);
   };
 
   const onClickDownload = (certificateId) => {
@@ -113,16 +120,21 @@ const ExistingApplications = () => {
           </div>
         </div>
         <div className="w-full flex justify-between items-center gap-4 mb-10">
-          <button className="btn btn-sm text-white btn-primary" onClick={() => navigate("/new-application")}>
+          <button
+            className="btn btn-sm text-white btn-primary"
+            onClick={() => navigate("/new-application")}
+          >
             <BiEnvelopeOpen />
             New Application
           </button>
-          <button className="btn btn-sm text-white btn-primary" onClick={() => getUserApplications(userId)}>
+          <button
+            className="btn btn-sm text-white btn-primary"
+            onClick={() => getUserApplications(userId)}
+          >
             Refresh
           </button>
         </div>
         <div className="table mx-auto max-sm:max-w-screen-sm sm:overflow-x-auto">
-          
           <div className="table-row-group mx-auto">
             <div className="table-row bg-gray-200">
               <div className="table-cell font-semibold p-5 max-sm:min-w-40">
@@ -218,7 +230,9 @@ const ExistingApplications = () => {
                     "Waiting for Payment" ? (
                     <button
                       className="btn btn-sm text-white btn-primary"
-                      onClick={onClickPayment}
+                      onClick={() =>
+                        onClickPayment(application.price, application.id)
+                      }
                     >
                       <MdPayment />
                       Pay Now
@@ -283,6 +297,24 @@ const ExistingApplications = () => {
           </div>
         </div>
       </div>
+      {showCheckoutModal && (
+        <div className="modal modal-open">
+          <div className="modal-box">
+            <h3 className="font-bold text-lg">Payment</h3>
+            <div className="py-4">
+              <PaymentPage price={price} applicationId={applicationId} />
+            </div>
+            <div className="modal-action">
+              <button
+                className="btn btn-primary"
+                onClick={() => setShowCheckoutModal(false)}
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

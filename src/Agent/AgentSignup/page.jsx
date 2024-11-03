@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import login from "../../assets/login.png";
-import certification from '../../assets/certification.jpg'
+import certification from "../../assets/certification.jpg";
 
 const AgentSignup = () => {
   const [firstName, setFirstName] = useState("");
@@ -13,16 +13,17 @@ const AgentSignup = () => {
   };
 
   return (
-    <div>
-      <div className="flex flex-col animate-fade w-1/2">
+    <div className="flex flex-col items-center justify-center animate-fade min-h-screen bg-gray-200">
+      <div className="flex flex-col animate-fade p-5 bg-white rounded-2xl shadow-lg w-1/2">
         <div className="w-full flex flex-col items-start">
           <img src={login} alt="login" className="object-cover h-32" />
           <p className="text-gray-600 mb-5">
-            Welcome back! Please login to your account.
+            Welcome to Certified Australia! Please sign up to create an agent
+            account.
           </p>
         </div>
         <form onSubmit={onClickSignup} className="flex flex-col">
-          <div className="flex items-center">
+          <div className="flex items-center gap-5">
             <input
               type="text"
               placeholder="First Name"
@@ -57,7 +58,15 @@ const AgentSignup = () => {
             required
           />
         </form>
+        <button
+          onClick={onClickSignup}
+          className="btn btn-primary w-full text-white"
+        >
+          Sign up
+        </button>
       </div>
     </div>
   );
 };
+
+export default AgentSignup;

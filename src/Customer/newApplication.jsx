@@ -58,6 +58,7 @@ const ScreeningForm2 = () => {
   const [userId, setUserId] = useState("");
   const [submissionLoading, setSubmissionLoading] = useState(false);
   const [type, setType] = useState("");
+  const [price, setPrice] = useState(0);
 
   const [step, setStep] = useState(0);
 
@@ -132,6 +133,8 @@ const ScreeningForm2 = () => {
         state,
         formal_education: formalEducation,
         qualification: formalEducationAnswer,
+        type,
+        price,
       };
       console.log("Data: ", data);
       const response = await createNewApplication(data, userId);
@@ -171,6 +174,8 @@ const ScreeningForm2 = () => {
               setQualification={setQualification}
               type={type}
               setType={setType}
+              price={price}
+              setPrice={setPrice}
             />
           )}
           {step === 1 && (

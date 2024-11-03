@@ -21,7 +21,7 @@ const Screen2 = ({
   return (
     <div className="flex flex-col items-center animate-fade">
       <div className="flex flex-col items-center">
-        <label htmlFor="yearsOfExperience">Years of Experience</label>
+        <label htmlFor="yearsOfExperience">How many years of relevant work experience do you have?</label>
         <div className="grid grid-cols-2 gap-5 m-5">
           {options.map((option, index) => (
             <div
@@ -39,7 +39,7 @@ const Screen2 = ({
         </div>
       </div>
       <div className="flex flex-col items-center">
-        <label htmlFor="locationOfExperience">Location of Experience</label>
+        <label htmlFor="locationOfExperience">Where is your work experience?</label>
         <div className="flex items-center gap-2 m-5">
           {locationOptions.map((option, index) => (
             <div
