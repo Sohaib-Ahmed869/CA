@@ -31,7 +31,8 @@ export const register = async (
   questions,
   toc,
   password,
-  type
+  type,
+  price
 ) => {
   try {
     console.log(URL);
@@ -53,6 +54,23 @@ export const register = async (
       toc,
       password,
       type,
+      price,
+    });
+
+    return response.data;
+  } catch (error) {
+    console.error("Register error:", error); // Log the error for debugging
+    return error.response ? error.response.data : { message: "Network Error" };
+  }
+};
+
+export const registerAgent = async (firstName, lastName, email, password) => {
+  try {
+    const response = await axios.post(`${URL}/api/agent/register`, {
+      firstName,
+      lastName,
+      email,
+      password,
     });
 
     return response.data;

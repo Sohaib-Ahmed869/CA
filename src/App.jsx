@@ -22,6 +22,9 @@ import PaymentPage from "./Customer/checkoutForm";
 import AgentLogin from "./Agent/AgentLogin/page";
 import AgentSignup from "./Agent/AgentSignup/page";
 import MainAgentScreen from "./Agent/Applications/main";
+import ScreeningFormAgent from "./Agent/Applications/initial";
+import CustomersByAgent from "./Agent/Customers/page";
+import ExistingApplicationsbyAgent from "./Agent/Applications/page";
 
 function App() {
   return (
@@ -51,7 +54,16 @@ function App() {
 
         <Route path="/agent/login" element={<AgentLogin />} />
         <Route path="/agent/signup" element={<AgentSignup />} />
-        <Route path="/agent" element={<MainAgentScreen />} /> 
+        <Route path="/agent" element={<MainAgentScreen />} />
+        <Route
+          path="/agent/register-customer"
+          element={<ScreeningFormAgent />}
+        />
+        <Route path="/agent/customers" element={<CustomersByAgent />} />
+        <Route
+          path="/agent/applications"
+          element={<ExistingApplicationsbyAgent />}
+        />
       </Routes>
     </Router>
   );

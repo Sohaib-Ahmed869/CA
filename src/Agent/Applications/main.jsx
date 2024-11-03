@@ -29,12 +29,6 @@ const MainAgentScreen = () => {
       description: "View and manage customers",
       redirect: "/agent/customers",
     },
-    {
-      icon: <BsCreditCard />,
-      title: "View Payments",
-      description: "View and manage payments",
-      redirect: "/agent/payments",
-    },
   ];
 
   return (
@@ -43,7 +37,7 @@ const MainAgentScreen = () => {
       <div className="flex flex-col items-center animate-fade mt-28">
         <img src={agent} alt="agent" className="object-cover h-32 lg:h-64" />
         <h1 className="text-3xl font-semibold mt-5">Agent Dashboard</h1>
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-5 mt-5 w-full p-20">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mt-5 w-full p-20">
           {options.map((option, index) => (
             <div
               key={index}

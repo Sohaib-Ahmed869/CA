@@ -15,7 +15,7 @@ export const createNewApplicationByAgent = async (data, userId) => {
   }
 };
 
-export const registerByAdmin = async (
+export const registerByAgent = async (
   industry,
   qualification,
   yearsOfExperience,
@@ -32,12 +32,13 @@ export const registerByAdmin = async (
   toc,
   password,
   type,
+  price,
   agentId
 ) => {
   try {
     console.log(URL);
     console.log(industry);
-    const response = await axios.post(`${URL}/api/users/register`, {
+    const response = await axios.post(`${URL}/api/users/registerByAgent`, {
       industry,
       lookingForWhatQualification: qualification,
       yearsOfExperience,
@@ -54,12 +55,33 @@ export const registerByAdmin = async (
       toc,
       password,
       type,
-      agentId,
+      price,
+      agentId: agentId,
     });
 
     return response.data;
   } catch (error) {
     console.error("Register error:", error); // Log the error for debugging
     return error.response ? error.response.data : { message: "Network Error" };
+  }
+};
+
+export const getCustomersByAgents = async (agentId) => {
+  try {
+    const response = await axios.get(`${URL}/api/agent/customers/${agentId}`);
+    return response.data.customers;
+  } catch (error) {
+    return error.response.data;
+  }
+};
+
+export const getApplicationsByAgent = async (agentId) => {
+  try {
+    const response = await axios.get(
+      `${URL}/api/agent/applications/${agentId}`
+    );
+    return response.data.applications;
+  } catch (error) {
+    return error.response.data;
   }
 };

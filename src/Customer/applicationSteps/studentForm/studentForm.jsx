@@ -189,6 +189,7 @@ const StudentIntakeForm = () => {
       }, 1000);
       navigate("/");
     } catch (error) {
+      setSubmissionLoading(false);
       console.error("Error submitting form:", error);
     }
   };
