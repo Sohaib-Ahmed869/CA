@@ -91,8 +91,16 @@ const Approval = () => {
     const fetchApplications = async () => {
       setSubmissionLoading(true);
       const applicationsData = await getApplications();
-      setApplications(applicationsData.filter((app) => app.type === rtoType));
-      setDisplayedApplications(applicationsData.filter((app) => app.type === rtoType));
+      setApplications(
+        applicationsData.filter(
+          (app) => app.type === rtoType && app.currentStatus === "Sent to RTO"
+        )
+      );
+      setDisplayedApplications(
+        applicationsData.filter(
+          (app) => app.type === rtoType && app.currentStatus === "Sent to RTO"
+        )
+      );
       setSubmissionLoading(false);
     };
     fetchApplications();
@@ -196,6 +204,13 @@ const Approval = () => {
             </tr>
           </thead>
           <tbody>
+            {displayedApplications.length === 0 && (
+              <tr>
+                <td colSpan="4" className="text-center">
+                  No applications found
+                </td>
+              </tr>
+            )}
             {displayedApplications.map((application, index) =>
               application.certficateIssued ? null : (
                 <tr key={application.id}>
