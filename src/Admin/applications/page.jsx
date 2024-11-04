@@ -42,8 +42,6 @@ const ExistingApplicationsAdmin = () => {
     "Upload Documents",
     "Sent to RTO",
     "Certificate Generated",
-    "Dispatched",
-    "Completed",
   ];
   const [loading, setLoading] = React.useState(true);
 
@@ -97,6 +95,18 @@ const ExistingApplicationsAdmin = () => {
     } catch (error) {
       console.error("Failed to verify application:", error);
       setSubmissionLoading(false);
+    }
+  };
+
+  const filterApplications = (status) => {
+    setActiveStatus(status);
+    if (status === "All") {
+      setFilteredApplications(applications);
+    } else {
+      const filtered = applications.filter(
+        (application) => application.currentStatus === status
+      );
+      setFilteredApplications(filtered);
     }
   };
 
@@ -183,45 +193,45 @@ const ExistingApplicationsAdmin = () => {
                   </td>
                   <td className="p-2 flex items-center justify-center">
                     {application.currentStatus === "Sent to RTO" ? (
-                      <div className="p-1 rounded-full bg-red-600 text-white flex items-center justify-center gap-2 w-3/4 max-sm:w-full max-sm:text-center">
+                      <div className="p-1 rounded-full bg-red-600 text-white flex items-center justify-center gap-2 max-sm:w-full max-sm:text-center">
                         <BsArrowUpRight className="text-white" />
                         {application.currentStatus}
                       </div>
                     ) : application.currentStatus ===
                       "Waiting for Verification" ? (
-                      <div className="p-1 rounded-full bg-yellow-300 text-black flex items-center justify-center gap-2  w-3/4 max-sm:w-full max-sm:text-center">
+                      <div className="p-1 rounded-full bg-yellow-300 text-black flex items-center justify-center gap-2   max-sm:w-full max-sm:text-center">
                         <BsClock className="text-black" />
                         {application.currentStatus}
                       </div>
                     ) : application.currentStatus === "Waiting for Payment" ? (
-                      <div className="p-1 rounded-full bg-green-400 text-white flex items-center justify-center gap-2  w-3/4 max-sm:w-full max-sm:text-center">
+                      <div className="p-1 rounded-full bg-green-400 text-white flex items-center justify-center gap-2   max-sm:w-full max-sm:text-center">
                         <BsClock className="text-white" />
                         {application.currentStatus}
                       </div>
                     ) : application.currentStatus === "Student Intake Form" ? (
-                      <div className="p-1 rounded-full bg-blue-900 text-white flex items-center justify-center gap-2  w-3/4 max-sm:w-full max-sm:text-center">
+                      <div className="p-1 rounded-full bg-blue-900 text-white flex items-center justify-center gap-2   max-sm:w-full max-sm:text-center">
                         <BiUser className="text-white" />
                         {application.currentStatus}
                       </div>
                     ) : application.currentStatus === "Upload Documents" ? (
-                      <div className="p-1 rounded-full bg-red-900 text-white flex items-center justify-center gap-2  w-3/4">
+                      <div className="p-1 rounded-full bg-red-900 text-white flex items-center justify-center gap-2  ">
                         <BiUpload className="text-white" />
                         {application.currentStatus}
                       </div>
                     ) : application.currentStatus ===
                       "Certificate Generated" ? (
-                      <div className="p-1 rounded-full bg-primary text-white flex items-center justify-center gap-2  w-3/4">
+                      <div className="p-1 rounded-full bg-primary text-white flex items-center justify-center gap-2  ">
                         <FaCertificate className="text-white" />
                         {application.currentStatus}
                       </div>
                     ) : application.currentStatus === "Dispatched" ? (
-                      <div className="p-1 rounded-full bg-black text-white flex items-center justify-center gap-2  w-3/4">
+                      <div className="p-1 rounded-full bg-black text-white flex items-center justify-center gap-2  ">
                         <BsTruck className="text-white" />
                         {application.currentStatus}
                       </div>
                     ) : (
                       application.currentStatus === "Completed" && (
-                        <div className="p-1 rounded-full bg-green-500 text-white flex items-center justify-center gap-2  w-3/4">
+                        <div className="p-1 rounded-full bg-green-500 text-white flex items-center justify-center gap-2  ">
                           <BiCheck className="text-white" />
                           {application.currentStatus}
                         </div>

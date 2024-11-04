@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { BiCheckCircle } from "react-icons/bi";
 import { FaTimesCircle } from "react-icons/fa";
-import Navbar from "../../Customer/components/navbar";
+import Navbar from "../Components/navbar";
 import { BsEye } from "react-icons/bs";
 import { BiDownload } from "react-icons/bi";
 import { BiEnvelopeOpen } from "react-icons/bi";

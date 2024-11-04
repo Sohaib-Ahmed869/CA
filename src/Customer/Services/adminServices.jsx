@@ -66,3 +66,12 @@ export const uploadCertificate = async (applicationId, data) => {
     return error.response.data;
   }
 };
+
+export const getDashboardStats = async () => {
+  try {
+    const response = await axios.get(`${URL}/api/admin/dashboardStats`);
+    return response.data;
+  } catch (error) {
+    return error.response.data;
+  }
+};

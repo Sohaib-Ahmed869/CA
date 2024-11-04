@@ -135,7 +135,6 @@ const StudentIntakeForm = () => {
         alert("Please enter your country of birth");
       }
 
-
       return;
     }
     console.log("previousQualifications", contactInfo.previousQualifications);
@@ -185,9 +184,9 @@ const StudentIntakeForm = () => {
       setSubmissionLoading(false);
       //do timeout of 3 seconds to show success message
       setTimeout(() => {
-        navigate("/");
+        navigate("/login");
       }, 1000);
-      navigate("/");
+      navigate("/login");
     } catch (error) {
       setSubmissionLoading(false);
       console.error("Error submitting form:", error);

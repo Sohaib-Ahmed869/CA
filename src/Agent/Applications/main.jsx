@@ -5,7 +5,7 @@ import { BiPlus } from "react-icons/bi";
 import { AiOutlineUserAdd } from "react-icons/ai";
 import { BsPeopleFill, BsCreditCard } from "react-icons/bs";
 import { BsFile } from "react-icons/bs";
-import Navbar from "../../Customer/components/navbar";
+import Navbar from "../Components/navbar";
 
 const MainAgentScreen = () => {
   const navigate = useNavigate();

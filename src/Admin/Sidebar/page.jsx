@@ -1,23 +1,32 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import certifiedAustralia from "../../assets/certifiedAustralia.png";
-
 import CustomersInfo from "../customers/page";
 import ExistingApplicationsAdmin from "../applications/page";
 import PaymentApproval from "../payments/page";
 import Dashboard from "../dashboard/page";
-
 import { MdDashboard } from "react-icons/md";
 import { FaCheckSquare } from "react-icons/fa";
 import { BsClock } from "react-icons/bs";
 import { BiLogOut } from "react-icons/bi";
 import { GiHamburgerMenu } from "react-icons/gi";
 import { FaMoneyBill1Wave } from "react-icons/fa6";
+import { getAuth, signOut } from "firebase/auth";
+import { getDashboardStats } from "../../Customer/Services/adminServices";
 const AdminSidebar = () => {
   const navigate = useNavigate();
+  
 
   const [active, setActive] = useState("Dashboard");
   const [isOpen, setIsOpen] = useState(false); // State for mobile menu toggle
+
+  const auth = getAuth();
+  const onClickLogout = async () => {
+    await signOut(auth);
+    navigate("/login");
+  };
+
+  
 
   useEffect(() => {
     console.log(isOpen);
@@ -97,9 +106,7 @@ const AdminSidebar = () => {
               </li>
               <li
                 className="cursor-pointer p-3 flex items-center gap-2"
-                onClick={() => {
-                  navigate("/");
-                }}
+                onClick={onClickLogout}
               >
                 <BiLogOut className="text-xl" />
                 <button className="font-medium">Logout</button>

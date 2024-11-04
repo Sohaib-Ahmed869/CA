@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import DashboardCard from "./charts/one";
 import UserStatsCard from "./charts/two";
 import ApplicationStatusCard from "./charts/three";
@@ -14,16 +14,35 @@ import { BiTimeFive } from "react-icons/bi";
 import { BiUserCheck } from "react-icons/bi";
 import { MdPending } from "react-icons/md";
 import { FaTimes } from "react-icons/fa";
+import { getDashboardStats } from "../../Customer/Services/rtoservices";
 
 const Dashboard = () => {
-  const [totalApplications, setTotalApplications] = useState(10);
-  const [applicationsPending, setApplicationsPending] = useState(5);
+  const [totalApplications, setTotalApplications] = useState(0);
+  const [applicationsPending, setApplicationsPending] = useState(0);
   const [applicationsCompletedThisMonth, setApplicationsCompletedThisMonth] =
-    useState(5);
-  const [applicationsCompletedLastMonth, setApplicationsCompletedLastMonth] =
-    useState(5);
-  const [MTC, setMTC] = useState(5);
-  const [rejectedApplications, setRejectedApplications] = useState(5);
+    useState(0);
+  const [applicationsCompletedThisWeek, setApplicationsCompletedThisWeek] =
+    useState(0);
+  const [totalRTOs, setTotalRTOs] = useState(0);
+  const [rejectedApplications, setRejectedApplications] = useState(0);
+
+  useEffect(() => {
+    const fetchDashboardStats = async () => {
+      try {
+        const stats = await getDashboardStats();
+        setTotalApplications(stats.totalApplications);
+        setApplicationsPending(stats.applicationsPending);
+        setApplicationsCompletedThisMonth(stats.applicationsCompletedInLastMonth);
+        setApplicationsCompletedThisWeek(stats.applicationsCompletedInLastWeek);
+        setTotalRTOs(stats.totalRTOs);
+        setRejectedApplications(stats.rejectedApplications);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    fetchDashboardStats();
+  }, []);
   return (
     <div className="flex flex-col lg:p-10 w-full justify-between animate-fade">
       <div className="flex items-center gap-4 mb-5 lg:flex-row flex-col">
@@ -64,9 +83,9 @@ const Dashboard = () => {
           />
         </div>
         <div className="flex flex-col w-full shadow-md p-5 rounded-xl relative">
-          <label className="text-sm">Applications Completed Last Month</label>
+          <label className="text-sm">Applications Completed This Week</label>
           <h1 className="text-xl font-bold mt-2">
-            {applicationsCompletedLastMonth}
+            {applicationsCompletedThisWeek}
           </h1>
           <BiTimeFive
             alt="Applications"
@@ -74,8 +93,8 @@ const Dashboard = () => {
           />
         </div>
         <div className="flex flex-col w-full shadow-md p-5 rounded-xl relative">
-          <label className="text-sm">Mean Time to Complete</label>
-          <h1 className="text-xl font-bold mt-2">{MTC} days</h1>
+          <label className="text-sm">Total RTOs</label>
+          <h1 className="text-xl font-bold mt-2">{totalRTOs}</h1>
           <BiUserCheck
             alt="Applications"
             className="text-4xl absolute right-5 bottom-5"
@@ -84,7 +103,7 @@ const Dashboard = () => {
         <div className="flex flex-col w-full shadow-md p-5 rounded-xl relative">
           <label className="text-sm">Rejected Applications</label>
           <h1 className="text-xl font-bold mt-2">{rejectedApplications}</h1>
-          <FaTimes
+          <FaTimes  
             alt="Applications"
             className="text-4xl absolute right-5 bottom-5"
           />

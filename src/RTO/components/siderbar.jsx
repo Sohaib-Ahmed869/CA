@@ -5,7 +5,7 @@ import Approval from "../approval/page";
 import Completed from "../completed/page";
 import Dashboard from "../dashboard/page";
 import { GiHamburgerMenu } from "react-icons/gi";
-
+import { getAuth, signOut } from "firebase/auth";
 import { MdDashboard } from "react-icons/md";
 import { FaCheckSquare } from "react-icons/fa";
 import { BsClock } from "react-icons/bs";
@@ -16,6 +16,11 @@ const Sidebar = () => {
   const [active, setActive] = useState("Dashboard");
   const [isOpen, setIsOpen] = useState(false); // State for mobile menu toggle
 
+  const auth = getAuth();
+  const onClickLogout = async () => {
+    await signOut(auth);
+    navigate("/login");
+  };
   return (
     <div className="flex animate-fade-right">
       <div className="lg:hidden">
@@ -76,8 +81,8 @@ const Sidebar = () => {
               <li
                 className="cursor-pointer p-3 flex items-center gap-2"
                 onClick={() => {
-                  navigate("/");
                   setIsOpen(false);
+                  onClickLogout();
                 }}
               >
                 <BiLogOut className="text-xl" />
@@ -143,9 +148,9 @@ const Sidebar = () => {
             <button className="font-medium">Completed Applications</button>
           </li>
           <li
-            className="absolute bottom-3 cursor-pointer p-3 flex items-center gap-2"
+            className=" bottom-3 cursor-pointer p-3 flex items-center gap-2"
             onClick={() => {
-              navigate("/");
+              onClickLogout();
             }}
           >
             <BiLogOut className="text-xl" />

@@ -105,7 +105,7 @@ const AgentLogin = () => {
             </button>
             <p className="text-center mt-5">
               Don't have an account?{" "}
-              <a href="/signup" className="text-primary">
+              <a href="/agent/signup" className="text-primary">
                 Sign up
               </a>
             </p>

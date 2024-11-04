@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { auth } from "../../firebase";
 import { onAuthStateChanged } from "firebase/auth";
-import Navbar from "../../Customer/components/navbar";
+import Navbar from "../Components/navbar";
 import { useNavigate } from "react-router-dom";
 import SpinnerLoader from "../../Customer/components/spinnerLoader";
 import customersimg from "../../assets/customer.png";

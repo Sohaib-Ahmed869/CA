@@ -11,3 +11,13 @@ export const getApplications = async () => {
     return error.response.data;
   }
 };
+
+export const getDashboardStats = async () => {
+  try {
+    const response = await axios.get(`${URL}/api/rto/stats`);
+    console.log(response.data);
+    return response.data;
+  } catch (error) {
+    return error.response.data;
+  }
+};

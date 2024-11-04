@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
-import Navbar from "../../Customer/components/navbar";
+import Navbar from "../Components/navbar";
 import { useNavigate } from "react-router-dom";
 import Loader from "../../Customer/components/loader";
 import Screen1 from "../../Customer/screeningScreens/screen1";
