@@ -10,6 +10,7 @@ import { studentIntakeForm } from "../../Services/customerApplication";
 import toast, { Toaster } from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import SpinnerLoader from "../../components/spinnerLoader";
+import { BsBack } from "react-icons/bs";
 
 const StudentIntakeForm = () => {
   const [submissionLoading, setSubmissionLoading] = useState(false);
@@ -198,12 +199,13 @@ const StudentIntakeForm = () => {
       <Navbar />
       {submissionLoading && <SpinnerLoader />}
       <Toaster />
-      <div className="p-5 lg:p-60 lg:pt-20 lg:pb-20">
-        <div className="flex flex-col items-center text-left w-full">
+
+      <div className="p-5 lg:w-1/2 mx-auto lg:pt-36 lg:pb-20">
+        <div className="flex flex-col items-center text-left w-full shadow-md rounded-2xl p-10 mb-10">
           <h1 className="text-2xl lg:text-3xl font-bold">
             Student Intake Form
           </h1>
-          <p className="text-md text-gray-600 mb-3 lg:mb-8">
+          <p className="text-md text-gray-600">
             Please fill in the form below to complete your enrolment.
           </p>
         </div>

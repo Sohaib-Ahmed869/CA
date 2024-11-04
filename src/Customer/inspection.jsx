@@ -9,6 +9,7 @@ import FormalEducationScreen from "./screeningScreens/screen4";
 import FinalScreen from "./screeningScreens/screen5";
 import certifiedAustralia from "../assets/certifiedAustralia.png";
 import { register } from "./Services/authService";
+import SpinnerLoader from "./components/spinnerLoader";
 import "./stepper.css";
 
 const Stepper = ({ steps, currentStep }) => {
@@ -62,6 +63,7 @@ const ScreeningForm = () => {
   const [toc, setToc] = useState(false);
   const [type, setType] = useState("");
   const [price, setPrice] = useState(0);
+  const [submissionLoading, setSubmissionLoading] = useState(false);
 
   useEffect(() => {
     //send data to server
@@ -104,10 +106,36 @@ const ScreeningForm = () => {
 
   const [step, setStep] = useState(0);
 
+  useEffect(() => {
+    console.log(step);
+  }, [step]);
+
   const navigate = useNavigate();
   const handleNext = () => {
+    if ((step === 0 && industry === "") || qualification === "") {
+      alert("Please fill in the required fields");
+      return;
+    }
+
+    if (
+      step === 1 &&
+      (yearsOfExperience === "" || locationOfExperience === "")
+    ) {
+      alert("Please fill in the required fields");
+      return;
+    }
+    if (step === 2 && state === "") {
+      alert("Please fill in the required fields");
+      return;
+    }
+    if (step === 3 && formalEducation === "" && formalEducationAnswer === "") {
+      alert("Please fill in the required fields");
+      return;
+    }
+
     setStep((prevStep) => Math.min(prevStep + 1, 4));
   };
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const handleBack = () => {
     setStep((prevStep) => Math.max(prevStep - 1, 0));
@@ -116,7 +144,7 @@ const ScreeningForm = () => {
   const onClickSubmit = async (e) => {
     e.preventDefault();
     //send data to server
-
+    setSubmissionLoading(true);
     try {
       const response = await register(
         industry,
@@ -138,9 +166,10 @@ const ScreeningForm = () => {
         price
       );
       console.log(response);
-      //if successful redirect to dashboard
-      navigate("/login");
+      setSubmissionLoading(false);
+      setIsDialogOpen(true);
     } catch (err) {
+      setSubmissionLoading(false);
       alert("Error submitting application");
       console.error(err);
     }
@@ -165,6 +194,7 @@ const ScreeningForm = () => {
   return (
     <div className="min-h-screen">
       {loading && <Loader />}
+      {submissionLoading && <SpinnerLoader />}
       <Navbar />
       <div className="flex flex-col items-center justify-center lg:p-16 p-4 mt-20">
         <img
@@ -259,6 +289,37 @@ const ScreeningForm = () => {
           </div>
         </div>
       </div>
+      {
+        //overlay
+        isDialogOpen && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 z-50"></div>
+        )
+      }
+      {isDialogOpen && (
+        <dialog className="modal" open>
+          <div className="modal-box">
+            <h3 className="font-bold text-lg">Form Submitted Successfully!</h3>
+            <p className="py-4">
+              Your Initial Screening Form has been submitted successfully.
+              Please visit the dashboard to verify your application via call.
+            </p>
+            <div className="modal-action">
+              <button
+                className="btn btn-primary"
+                onClick={() => {
+                  setIsDialogOpen(false);
+                  navigate("/dashboard");
+                }}
+              >
+                Go to Dashboard
+              </button>
+              <button className="btn" onClick={() => setIsDialogOpen(false)}>
+                Close
+              </button>
+            </div>
+          </div>
+        </dialog>
+      )}
     </div>
   );
 };

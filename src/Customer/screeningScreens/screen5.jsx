@@ -1,4 +1,6 @@
 import React, { useState } from "react";
+import PhoneInput from "react-phone-input-2";
+import "react-phone-input-2/lib/style.css";
 
 const FinalScreen = ({
   firstName,
@@ -59,12 +61,18 @@ const FinalScreen = ({
       <div className="flex items-center justify-between gap-4 mb-5 lg:flex-row flex-col">
         <div className="flex flex-col lg:w-1/2 w-full">
           <label htmlFor="phone">Phone</label>
-          <input
-            id="phone"
+          <PhoneInput
+            country={"us"} // Default country
             value={phone}
-            className="input mt-2"
-            placeholder="Phone number (Please include country code)"
-            onChange={(e) => setPhone(e.target.value)}
+            dashes={false}
+            onChange={(phone) => setPhone(phone)}
+            inputClass="input mt-2 p-2" // Apply custom input class if necessary
+            inputStyle={{
+              width: "100%",
+              borderRadius: "0.25rem",
+           
+            }}
+            placeholder="Enter phone number"
           />
         </div>
         <div className="flex flex-col lg:w-1/2 w-full">
