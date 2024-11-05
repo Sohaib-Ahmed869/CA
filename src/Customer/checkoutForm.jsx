@@ -17,6 +17,22 @@ const stripePromise = loadStripe(
   "pk_test_51OpbgVEUOaf2osppFuZpU9bkzw5Lml8DnipRkYfyRwXkyCubUe6gdvAjHvtMRLN8KLBI11eCDqk36ScyDj1kdfCI002FULOKh8"
 );
 
+const cardStyle = {
+  style: {
+    base: {
+      color: "#32325d",
+      fontFamily: "Arial, sans-serif",
+      fontSize: "16px",
+      "::placeholder": {
+        color: "#aab7c4",
+      },
+    },
+    invalid: {
+      color: "#fa755a",
+    },
+  },
+};
+
 const CheckoutForm = ({ price, applicationId }) => {
   const notify = () => toast.success("Payment successful!");
   const [paid, setPaid] = useState(false);
@@ -61,18 +77,19 @@ const CheckoutForm = ({ price, applicationId }) => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+    <form onSubmit={handleSubmit} className="flex flex-col gap-4 w-full">
       <Toaster />
-      <CardElement />
-      <p>Price: {price}</p>
+      <p className="text-sm text-gray-700">Card Information</p>
+      <CardElement options={cardStyle} />
+     
       <button
         type="submit"
         disabled={!stripe || loading || paid}
-        className={`btn ${
-          loading ? "bg-gray-400" : { paid } ? "bg-green-500" : "bg-blue-500"
+        className={`btn mt-4 ${
+          loading ? "bg-green-800 text-white" : { paid } ? "bg-green-500" : "bg-blue-500"
         }`}
       >
-        {loading ? "Processing..." : paid ? "Paid" : "Pay"}
+        {loading ? "Processing..." : paid ? "Paid" : `Pay $${price}.00`}
       </button>
     </form>
   );

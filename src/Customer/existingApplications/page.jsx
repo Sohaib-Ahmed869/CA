@@ -320,18 +320,17 @@ const ExistingApplications = () => {
       {showCheckoutModal && (
         <div className="modal modal-open">
           <div className="modal-box">
-            <h3 className="font-bold text-lg">Payment</h3>
+            <h3 className="font-bold text-lg">Payment Details</h3>
             <div className="py-4">
               <PaymentPage price={price} applicationId={applicationId} />
-            </div>
-            <div className="modal-action">
               <button
-                className="btn btn-primary"
+                className="btn bg-red-500 hover:bg-red-600 btn-primary w-full mt-4"
                 onClick={() => setShowCheckoutModal(false)}
               >
                 Close
               </button>
             </div>
+            <div className="modal-action"></div>
           </div>
         </div>
       )}

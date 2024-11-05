@@ -1,0 +1,15 @@
+.checkout-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.card-element-container {
+  padding: 12px;
+  border: 1px solid #d1d1d1;
+  border-radius: 4px;
+  background-color: #f9f9f9;
+}
