@@ -11,7 +11,7 @@ import Sidebar from "./RTO/components/siderbar";
 import AdminSidebar from "./Admin/Sidebar/page";
 import Dashboard from "./Admin/dashboard/page";
 
-import Login from "./Customer/login";
+import Login from "./Login/page";
 import AdminLogin from "./Admin/adminLogin/login";
 
 import RtoLogin from "./RTO/rtoLogin/page";

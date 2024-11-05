@@ -305,13 +305,13 @@ const ScreeningForm = () => {
             </p>
             <div className="modal-action">
               <button
-                className="btn btn-primary"
+                className="btn btn-primary text-white"
                 onClick={() => {
                   setIsDialogOpen(false);
-                  navigate("/dashboard");
+                  navigate("/login");
                 }}
               >
-                Go to Dashboard
+                Login to Your Account
               </button>
               <button className="btn" onClick={() => setIsDialogOpen(false)}>
                 Close

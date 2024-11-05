@@ -18,7 +18,7 @@ import { GrFormAdd } from "react-icons/gr";
 import { IoCall } from "react-icons/io5";
 import { MdPayment } from "react-icons/md";
 import { auth } from "../../firebase";
-import { onAuthStateChanged } from "firebase/auth";
+import { onAuthStateChanged, signInWithCustomToken } from "firebase/auth";
 import { getApplications } from "../Services/customerApplication";
 import SpinnerLoader from "../components/spinnerLoader";
 import Loader from "../components/loader";
@@ -76,7 +76,26 @@ const ExistingApplications = () => {
   };
 
   useEffect(() => {
-    onAuthStateChanged(auth, (user) => {
+    const autoLogin = async () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const token = urlParams.get("token");
+
+      if (token) {
+        try {
+          await signInWithCustomToken(auth, token);
+          console.log("User signed in automatically with token");
+        } catch (error) {
+          console.error("Error during auto-login:", error);
+          navigate("/login"); // Redirect to login if token is invalid
+        }
+      }
+    };
+
+    autoLogin();
+  }, []);
+
+  useEffect(() => {
+    const authListener = onAuthStateChanged(auth, (user) => {
       if (user) {
         setUserId(user.uid);
         console.log("User ID:", user.uid);
@@ -84,7 +103,8 @@ const ExistingApplications = () => {
         navigate("/login");
       }
     });
-  }, []);
+    return () => authListener(); // Cleanup listener on unmount
+  }, [navigate]);
 
   const getUserApplications = async (userId) => {
     setSubmissionLoading(true);
