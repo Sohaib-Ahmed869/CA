@@ -99,14 +99,11 @@ const UploadDocuments = () => {
       const applicationId = id;
       const response = await documentsUpload(formData, applicationId);
       console.log(response);
-      if (response.status === 200) {
-        successToast();
-      } else {
-        errorToast();
-        return;
-      }
+      setSubmissionLoading(false);
+      successToast();
+
       alert("Documents uploaded successfully");
-      // navigate("/");
+      navigate("/");
     } catch (err) {
       setSubmissionLoading(false);
       alert("Error uploading documents");
