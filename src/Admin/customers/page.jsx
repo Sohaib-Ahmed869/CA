@@ -1,218 +1,300 @@
-import React, { useState, useEffect } from "react";
-import { GoVerified } from "react-icons/go";
-import { IoEye } from "react-icons/io5";
-import { Table } from "flowbite-react";
-import { getCustomers as fetchCustomers } from "../../Customer/Services/adminServices"; // Avoids naming conflict
-import customerspic from "../../assets/customers.png";
-import { verifyCustomer } from "../../Customer/Services/adminServices";
+import React, { useEffect, useState } from "react";
+import { BiCheckCircle } from "react-icons/bi";
+import { FaTimesCircle } from "react-icons/fa";
+import { BsEye } from "react-icons/bs";
+import { BiDownload } from "react-icons/bi";
+import { BiEnvelopeOpen } from "react-icons/bi";
+
+import { BsArrowUpRight } from "react-icons/bs";
+import { BsClock } from "react-icons/bs";
+import { BiUser } from "react-icons/bi";
+import { BiUpload } from "react-icons/bi";
+import { FaCertificate } from "react-icons/fa";
+import { BsTruck } from "react-icons/bs";
+import { BiCheck } from "react-icons/bi";
+import { CgTrack } from "react-icons/cg";
+import { GrFormAdd } from "react-icons/gr";
+import { IoCall } from "react-icons/io5";
+import { MdPayment } from "react-icons/md";
 import SpinnerLoader from "../../Customer/components/spinnerLoader";
+
+import applicationsimg from "../../assets/applications.png";
+
+import Loader from "../../Customer/components/loader";
+
+import certificate from "../../assets/certificate.pdf";
+
+import { useNavigate } from "react-router-dom";
+
+import {
+  getApplications,
+  verifyApplication,
+} from "../../Customer/Services/adminServices";
+
 const CustomersInfo = () => {
-  const [search, setSearch] = useState("");
-  const [filteredCustomers, setFilteredCustomers] = useState([]);
-  const [customers, setCustomers] = useState([]);
-  const [customer, setCustomer] = useState({});
-  const [showModel, setShowModel] = useState(false);
-  const [filter, setFilter] = useState("unverified");
+  const navigate = useNavigate();
   const [submissionLoading, setSubmissionLoading] = useState(false);
+  const [applications, setApplications] = useState([]);
+  const statuses = ["Verified", "Unverified"];
+  const [loading, setLoading] = React.useState(true);
 
-  // Fetch customers on component mount
-  useEffect(() => {
-    setSubmissionLoading(true);
-    const getCustomers = async () => {
-      try {
-        const customersData = await fetchCustomers();
-
-        setCustomers(customersData); // Set initial customer data
-        //set filtered customers as unverified customers
-        const unverifiedCustomers = customersData.filter(
-          (customer) => !customer.verified
-        );
-        setFilteredCustomers(unverifiedCustomers);
-      } catch (error) {
-        console.error("Failed to fetch customers:", error);
-      }
-      setSubmissionLoading(false);
-    };
-    getCustomers();
+  React.useEffect(() => {
+    setTimeout(() => {
+      setLoading(false);
+    }, 0);
   }, []);
 
-  // Update customers based on search
-  useEffect(() => {
-    if (search) {
-      const filtered = customers.filter((customer) =>
-        customer.firstName.toLowerCase().includes(search.toLowerCase())
-      );
-      setFilteredCustomers(filtered);
-    } else {
-      setFilteredCustomers(customers);
-    }
-  }, [search]);
-
-  // Show customer details modal
-  const showDetails = (customer) => {
-    setCustomer(customer);
-    setShowModel(true);
+  const onClickPayment = () => {
+    alert("Redirected to Payment Gateway");
   };
 
-  const verify = async (customerId) => {
+  const onClickDownload = () => {
+    window.open(certificate);
+  };
+
+  const onClickStudentForm = () => {
+    navigate("/student-intake-form");
+  };
+
+  const onClickUpload = () => {
+    navigate("/upload-documents");
+  };
+
+  const [filteredApplications, setFilteredApplications] = useState([]);
+
+  const [activeStatus, setActiveStatus] = useState("Unverified");
+
+  const [selectedApplication, setSelectedApplication] = useState(null);
+
+  const getApplicationsData = async () => {
     try {
       setSubmissionLoading(true);
-      await verifyCustomer(customerId);
-
-      // Update the customer list after verification
-      const updatedCustomers = customers.map((customer) => {
-        if (customer.id === customerId) {
-          return { ...customer, verified: true };
-        }
-        return customer;
-      });
-
-      setCustomers(updatedCustomers);
-      setFilteredCustomers(updatedCustomers);
+      let applicationsData = await getApplications();
+      //filter applications based on status which are not in Waiting for Verification
+      setApplications(applicationsData);
+      setFilteredApplications(
+        applicationsData.filter((app) => app.verified === false)
+      );
       setSubmissionLoading(false);
     } catch (error) {
-      console.error("Failed to verify customer:", error);
+      setSubmissionLoading(false);
+      console.error("Failed to fetch applications:", error);
+    }
+  };
+
+  const onVerifyApplication = async (applicationId) => {
+    try {
+      setSubmissionLoading(true);
+      await verifyApplication(applicationId);
+      getApplicationsData();
+      setSubmissionLoading(false);
+    } catch (error) {
+      console.error("Failed to verify application:", error);
+      setSubmissionLoading(false);
+    }
+  };
+
+  const filterApplications = (status) => {
+    setActiveStatus(status);
+    if (status === "All") {
+      setFilteredApplications(applications);
+    } else {
+      if (status === "Verified") {
+        let filtered = applications.filter((app) => app.verified === true);
+        setFilteredApplications(filtered);
+      }
+      if (status === "Unverified") {
+        let filtered = applications.filter((app) => app.verified === false);
+        setFilteredApplications(filtered);
+      }
     }
   };
 
   useEffect(() => {
-    if (filter === "verified") {
-      const verifiedCustomers = customers.filter(
-        (customer) => customer.verified
-      );
-      setFilteredCustomers(verifiedCustomers);
-    } else if (filter === "unverified") {
-      const unverifiedCustomers = customers.filter(
-        (customer) => !customer.verified
-      );
-      setFilteredCustomers(unverifiedCustomers);
-    } else {
-      setFilteredCustomers(customers);
-    }
-  }, [filter]);
+    getApplicationsData();
+  }, []);
+
+  useEffect(() => {
+    console.log(selectedApplication);
+  }, [selectedApplication]);
 
   return (
-    <div className="flex flex-col p-5 w-full justify-between animate-fade">
+    <div>
+      {loading && <Loader />}
       {submissionLoading && <SpinnerLoader />}
-      <div className="flex items-center gap-4 mb-5 lg:flex-row flex-col">
-        <img src={customerspic} alt="Dashboard" className="h-36" />
-        <div className="flex flex-col lg:w-1/2 w-full">
-          <h1 className="text-3xl font-bold">Customers</h1>
-          <p className="text-sm mt-2">
-            Welcome to the customers page. Here you can view all the customers
-            and their details.
-          </p>
-        </div>
-      </div>
-      <div className="flex flex-col lg:flex-row items-center justify-between gap-4 mb-5">
-        <div className="grid grid-cols-3 max-sm:grid-cols-1 gap-4 w-full">
-          <button
-            className={`btn bg-gray-300 btn-sm rounded-xl text-black ${
-              filter === "verified" ? "btn-primary bg-primary text-white" : ""
-            }`}
-            onClick={() => setFilter("verified")}
-          >
-            Show Verified Only
-          </button>
-          <button
-            className={`btn bg-gray-300 btn-sm text-black ${
-              filter === "unverified" ? "btn-primary bg-primary text-white" : ""
-            }`}
-            onClick={() => setFilter("unverified")}
-          >
-            Show Unverified Only
-          </button>
-          <button
-            className={`btn bg-gray-300 btn-sm text-black ${
-              filter === "all" ? "btn-primary bg-primary text-white" : ""
-            }`}
-            onClick={() => setFilter("all")}
-          >
-            Show All
-          </button>
-        </div>
-      </div>
-      <div className="flex flex-col border border-base-300 rounded-lg shadow-lg p-2 lg:p-5 overflow-x-auto">
-        <div className="flex flex-col">
-          <input
-            id="search"
-            value={search}
-            className="input mt-2 border border-gray-200 shadow-sm mb-5 input-sm"
-            placeholder="Search by name"
-            onChange={(e) => setSearch(e.target.value)}
-          />
-        </div>
-        <Table>
-          <Table.Head>
-            <Table.HeadCell>ID</Table.HeadCell>
-            <Table.HeadCell className="max-sm:hidden"></Table.HeadCell>
-            <Table.HeadCell>Name</Table.HeadCell>
-            <Table.HeadCell>Applications</Table.HeadCell>
 
-            <Table.HeadCell>Actions</Table.HeadCell>
-          </Table.Head>
-          <Table.Body>
-            {filteredCustomers.length === 0 && (
-              <Table.Row>
-                <Table.Cell colSpan="5" className="text-center">
-                  No unverified customers found
-                </Table.Cell>
-              </Table.Row>
-            )}
-
-            {filteredCustomers.map((customer, index) => (
-              <Table.Row key={index} className="hover:bg-gray-100">
-                <Table.Cell className="p-5">{index + 1}</Table.Cell>
-                <Table.Cell className="max-sm:hidden">
-                  {customer.verified && (
-                    <GoVerified className="text-primary mr-2" />
-                  )}
-                </Table.Cell>
-                <Table.Cell>{`${customer.firstName} ${customer.lastName}`}</Table.Cell>
-                <Table.Cell>{customer.totalApplications}</Table.Cell>
-
-                <Table.Cell className="flex items-center p-5">
-                  <button
-                    className="btn-sm flex items-center gap-2"
-                    onClick={() => showDetails(customer)}
-                  >
-                    <IoEye className="text-lg" />
-                    <span className="max-sm:hidden">View Details</span>
-                  </button>
-                  {customer.verified && (
-                    <GoVerified className="text-primary ml-2" />
-                  )}
-                  {!customer.verified && (
-                    <button
-                      className="btn-sm bg-primary text-white rounded-xl ml-2"
-                      onClick={() => verify(customer.id)}
-                    >
-                      Verify
-                    </button>
-                  )}
-                </Table.Cell>
-              </Table.Row>
-            ))}
-          </Table.Body>
-        </Table>
-      </div>
-      {showModel && (
-        <dialog className="modal modal-open">
-          <div className="modal-box">
-            <h2 className="font-bold text-lg">Customer Details</h2>
-            <p>Name: {`${customer.firstName} ${customer.lastName}`}</p>
-            <p>Email: {customer.email}</p>
-            <p>Phone: {customer.phone}</p>
-            <p>Country: {customer.country}</p>
-
-            <button
-              className="btn btn-secondary mt-4"
-              onClick={() => setShowModel(false)}
-            >
-              Close
-            </button>
+      {!selectedApplication && (
+        <div className="p-5">
+          <div className="flex items-center gap-4 mb-5 lg:flex-row flex-col">
+            <img src={applicationsimg} alt="Applications" className="h-36" />
+            <div className="flex flex-col lg:w-1/2 w-full">
+              <h1 className="text-3xl font-bold">Applications</h1>
+              <p className="text-sm mt-2">
+                Here you can view all the applications and their statuses.
+              </p>
+            </div>
           </div>
-        </dialog>
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-3 mb-5">
+            <div className="flex items-center gap-2 ">
+              <button
+                className={`px-8 py-2 w-full btn rounded-xl font-normal focus:text-white hover:text-white ${
+                  activeStatus === "All"
+                    ? "btn-primary text-white"
+                    : "btn-secondary"
+                }`}
+                onClick={() => filterApplications("All")}
+              >
+                All
+              </button>
+            </div>
+            {statuses.map((status) => (
+              <div key={status} className="flex items-center gap-2">
+                <button
+                  className={`px-4 py-2 w-full rounded-xl font-normal btn  focus:text-white ${
+                    activeStatus === status
+                      ? "btn-primary text-white"
+                      : "btn-secondary"
+                  }`}
+                  onClick={() => filterApplications(status)}
+                >
+                  {status}
+                </button>
+              </div>
+            ))}
+          </div>
+
+          <table className="table w-full">
+            <thead>
+              <tr className="bg-gray-200">
+                <th className="font-semibold p-5">ID</th>
+                <th className="font-semibold">Date Created</th>
+                <th className="font-semibold">Customer</th>
+                <th className="font-semibold text-center">Certificate</th>
+                <th className="font-semibold text-center">Status</th>
+                <th className="font-semibold text-center">Paid</th>
+                <th className="font-semibold">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {
+                //if there are no applications to show
+                filteredApplications.length === 0 && (
+                  <tr>
+                    <td colSpan="7" className="text-center p-5">
+                      No applications to show
+                    </td>
+                  </tr>
+                )
+              }
+              {filteredApplications.map((application) => (
+                <tr
+                  key={application.id}
+                  className="animate-fade-up items-center"
+                >
+                  <td className="p-5">{application.id}</td>
+                  <td>{application.status[0].time.split("T")[0]}</td>
+                  <td>
+                    {application.user.firstName +
+                      " " +
+                      application.user.lastName}
+                  </td>
+                  <td className="text-center w-40">
+                    {application.isf.lookingForWhatQualification}
+                  </td>
+                  <td className="p-2 flex items-center justify-center">
+                    {application.currentStatus === "Sent to RTO" ? (
+                      <div className="p-1 rounded-full bg-red-600 text-white flex items-center justify-center gap-2 max-sm:w-full max-sm:text-center">
+                        <BsArrowUpRight className="text-white" />
+                        {application.currentStatus}
+                      </div>
+                    ) : application.currentStatus ===
+                      "Waiting for Verification" ? (
+                      <div className="p-1 rounded-full bg-yellow-300 text-black flex items-center justify-center gap-2   max-sm:w-full max-sm:text-center">
+                        <BsClock className="text-black" />
+                        {application.currentStatus}
+                      </div>
+                    ) : application.currentStatus === "Waiting for Payment" ? (
+                      <div className="p-1 rounded-full bg-green-400 text-white flex items-center justify-center gap-2   max-sm:w-full max-sm:text-center">
+                        <BsClock className="text-white" />
+                        {application.currentStatus}
+                      </div>
+                    ) : application.currentStatus === "Student Intake Form" ? (
+                      <div className="p-1 rounded-full bg-blue-900 text-white flex items-center justify-center gap-2   max-sm:w-full max-sm:text-center">
+                        <BiUser className="text-white" />
+                        {application.currentStatus}
+                      </div>
+                    ) : application.currentStatus === "Upload Documents" ? (
+                      <div className="p-1 rounded-full bg-red-900 text-white flex items-center justify-center gap-2  ">
+                        <BiUpload className="text-white" />
+                        {application.currentStatus}
+                      </div>
+                    ) : application.currentStatus ===
+                      "Certificate Generated" ? (
+                      <div className="p-1 rounded-full bg-primary text-white flex items-center justify-center gap-2  ">
+                        <FaCertificate className="text-white" />
+                        {application.currentStatus}
+                      </div>
+                    ) : application.currentStatus === "Dispatched" ? (
+                      <div className="p-1 rounded-full bg-black text-white flex items-center justify-center gap-2  ">
+                        <BsTruck className="text-white" />
+                        {application.currentStatus}
+                      </div>
+                    ) : (
+                      application.currentStatus === "Completed" && (
+                        <div className="p-1 rounded-full bg-green-500 text-white flex items-center justify-center gap-2  ">
+                          <BiCheck className="text-white" />
+                          {application.currentStatus}
+                        </div>
+                      )
+                    )}
+                  </td>
+                  <td className="p-2 text-center">
+                    {application.paid ? (
+                      <BiCheckCircle className="text-green-500 text-xl" />
+                    ) : (
+                      <FaTimesCircle className="text-red-500 text-xl" />
+                    )}
+                  </td>
+                  <td>
+                    {application.currentStatus === "Completed" ||
+                    application.currentStatus === "Dispatched" ||
+                    application.currentStatus === "Certificate Generated" ? (
+                      <div className="flex items-center gap-2">
+                        <button
+                          className="btn bg-green-500 hover:bg-green-600 text-white btn-sm"
+                          onClick={onClickDownload}
+                        >
+                          <BiDownload className="text-white" />
+                          Download
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        {application.verified ? null : (
+                          <div className="flex items-center gap-2">
+                            <button
+                              className="btn bg-green-500 hover:bg-green-600 text-white btn-sm"
+                              onClick={() =>
+                                onVerifyApplication(application.id)
+                              }
+                            >
+                              <BiCheck className="text-white" />
+                              Verify
+                            </button>
+                            <button className="btn bg-red-500 hover:bg-red-600 text-white btn-sm">
+                              <FaTimesCircle className="text-white" />
+                              Reject
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
     </div>
   );

@@ -42,14 +42,20 @@ const PersonalInfo = ({ personalInfo, setPersonalInfo }) => {
           value={personalInfo.USI}
           onChange={handleChange}
         />
-        <FloatingLabelInput
-          name="gender"
-          type="text"
-          id="gender"
-          label="Gender"
-          value={personalInfo.gender}
-          onChange={handleChange}
-        />
+        <div className="flex flex-col">
+          <label htmlFor="gender">Gender</label>
+          <select
+            onChange={handleChange}
+            value={personalInfo.gender}
+            name="gender"
+            id="gender"
+            className="input mt-2 p-2"
+          >
+            <option value="">Select Gender</option>
+            <option value="male">Male</option>
+            <option value="female">Female</option>
+          </select>
+        </div>
 
         <FloatingLabelInput
           name="dob"

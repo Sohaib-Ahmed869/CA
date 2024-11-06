@@ -190,7 +190,7 @@ const AdminSidebar = () => {
           <li
             className="border-b border-base-300 cursor-pointer p-3 flex items-center gap-2"
             onClick={() => {
-              navigate("/");
+              onClickLogout();
             }}
           >
             <BiLogOut className="text-xl" />

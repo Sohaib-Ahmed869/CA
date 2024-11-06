@@ -77,6 +77,8 @@ const StudentIntakeForm = () => {
 
   const [studentAgreement, setStudentAgreement] = useState({
     agree: false,
+    applicantAgreement: false,
+    toc: false,
     date: "",
   });
 
@@ -84,8 +86,12 @@ const StudentIntakeForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setSubmissionLoading(true);
-    if (!studentAgreement.agree) {
+
+    if (
+      !studentAgreement.agree ||
+      !studentAgreement.applicantAgreement ||
+      !studentAgreement.toc
+    ) {
       alert("Please agree to the terms and conditions");
       return;
     }
@@ -138,6 +144,7 @@ const StudentIntakeForm = () => {
 
       return;
     }
+    setSubmissionLoading(true);
     console.log("previousQualifications", contactInfo.previousQualifications);
     const data = {
       firstName: personalInfo.firstName,
@@ -170,7 +177,7 @@ const StudentIntakeForm = () => {
       nameOfQualification: creditsTransfer.nameOfQualification,
       YearCompleted: creditsTransfer.YearCompleted,
       agree: studentAgreement.agree,
-      date: studentAgreement.date,
+      date: new Date().toISOString().split("T")[0],
     };
 
     try {

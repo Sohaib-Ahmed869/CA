@@ -22,6 +22,7 @@ import { onAuthStateChanged, signInWithCustomToken } from "firebase/auth";
 import { getApplications } from "../Services/customerApplication";
 import SpinnerLoader from "../components/spinnerLoader";
 import Loader from "../components/loader";
+import Footer from "../components/footer";
 
 import certificate from "../../assets/certificate.pdf";
 import applicationsimg from "../../assets/applications.png";
@@ -334,6 +335,7 @@ const ExistingApplications = () => {
           </div>
         </div>
       )}
+      <Footer />
     </div>
   );
 };

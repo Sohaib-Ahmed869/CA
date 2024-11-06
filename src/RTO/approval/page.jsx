@@ -14,6 +14,7 @@ const Approval = () => {
   const [submissionLoading, setSubmissionLoading] = useState(false);
   const [applications, setApplications] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
+  const [documentLinks, setDocumentLinks] = useState([]);
 
   const applicationsPerPage = 10;
   const [selectedApplicationId, setSelectedApplicationId] = useState(null);
@@ -41,6 +42,11 @@ const Approval = () => {
     document.getElementById("uploadCertificateModal").close();
   };
 
+  const openDocument = (url) => {
+    console.log("Opening document:", url);
+    window.open(url, "_blank");
+  };
+
   const handleFileChange = (event) => {
     const file = event.target.files[0];
     if (file) {
@@ -65,7 +71,7 @@ const Approval = () => {
       "medicare",
       "creditcard",
       "resume",
-      "previous_qualifications",
+      "previousQualifications",
       "reference1",
       "reference2",
       "employmentLetter",
@@ -73,13 +79,15 @@ const Approval = () => {
     ];
 
     // Loop through each document key, open the link if it's not null
-    documentKeys.forEach((docKey) => {
-      const docUrl = application.document[docKey];
-      if (docUrl) {
-        // Open the document in a new tab as a PDF
-        window.open(docUrl, "_blank");
-      }
-    });
+    const links = documentKeys
+      .map((docKey) => ({
+        name: docKey,
+        url: application.document[docKey],
+      }))
+      .filter((doc) => doc.url); // Filter out null/undefined URLs
+
+    setDocumentLinks(links);
+    document.getElementById("documentLinksModal").showModal();
   };
 
   // Separate displayed applications from full applications list
@@ -302,6 +310,44 @@ const Approval = () => {
             </button>
             <button onClick={closeModal} className="btn btn-outline btn-sm">
               Cancel
+            </button>
+          </div>
+        </div>
+      </dialog>
+
+      <dialog id="documentLinksModal" className="modal">
+        <div className="modal-box">
+          <button
+            className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
+            onClick={() =>
+              document.getElementById("documentLinksModal").close()
+            }
+          >
+            ✕
+          </button>
+          <h2 className="font-bold text-lg">View Documents</h2>
+          <ul className="mt-4">
+            {documentLinks.map((doc, index) => (
+              <li key={index} className="my-2">
+                <a
+                  href={doc.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-500 underline"
+                >
+                  {doc.name}
+                </a>
+              </li>
+            ))}
+          </ul>
+          <div className="modal-action">
+            <button
+              onClick={() =>
+                document.getElementById("documentLinksModal").close()
+              }
+              className="btn btn-outline btn-sm"
+            >
+              Close
             </button>
           </div>
         </div>

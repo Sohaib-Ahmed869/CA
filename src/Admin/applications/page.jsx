@@ -77,8 +77,9 @@ const ExistingApplicationsAdmin = () => {
     try {
       setSubmissionLoading(true);
       const applicationsData = await getApplications();
-      setApplications(applicationsData);
-      setFilteredApplications(applicationsData);
+      //only keep verified applications
+      setApplications(applicationsData.filter((app) => app.verified));
+      setFilteredApplications(applicationsData.filter((app) => app.verified));
       setSubmissionLoading(false);
     } catch (error) {
       setSubmissionLoading(false);
@@ -265,27 +266,7 @@ const ExistingApplicationsAdmin = () => {
                           View
                         </button>
                       </div>
-                    ) : (
-                      <div className="flex items-center gap-2">
-                        {application.verified ? null : (
-                          <div className="flex items-center gap-2">
-                            <button
-                              className="btn bg-green-500 hover:bg-green-600 text-white btn-sm"
-                              onClick={() =>
-                                onVerifyApplication(application.id)
-                              }
-                            >
-                              <BiCheck className="text-white" />
-                              Verify
-                            </button>
-                            <button className="btn bg-red-500 hover:bg-red-600 text-white btn-sm">
-                              <FaTimesCircle className="text-white" />
-                              Reject
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                    )}
+                    ) : null}
                   </td>
                 </tr>
               ))}

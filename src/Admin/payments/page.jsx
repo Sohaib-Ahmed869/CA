@@ -8,6 +8,13 @@ import {
 import toast from "react-hot-toast";
 import { Toaster } from "react-hot-toast";
 const PaymentApproval = () => {
+  const statuses = [
+    "All Payments",
+    "Payments Completed",
+    "Waiting for Payment",
+  ];
+
+  const [activeFilter, setActiveFilter] = useState("Waiting for Payment");
   const paymentSuccess = () => toast.success("Payment approved successfully");
   const paymentError = () => toast.error("Failed to approve payment");
   const [applications, setApplications] = useState([]);
@@ -18,7 +25,9 @@ const PaymentApproval = () => {
     setApplications(applicationsData);
 
     setUnpaidApplications(
-      applicationsData.filter((application) => application.currentStatus === "Waiting for Payment")
+      applicationsData.filter(
+        (application) => application.currentStatus === "Waiting for Payment"
+      )
     );
   };
   useEffect(() => {
@@ -41,6 +50,26 @@ const PaymentApproval = () => {
       setShowModal(false);
     }
   };
+
+  useEffect(() => {
+    //on filter change, filter out the applications that match the filter
+    if (activeFilter === "All Payments") {
+      setUnpaidApplications(applications);
+    }
+    if (activeFilter === "Payments Completed") {
+      setUnpaidApplications(
+        applications.filter((application) => application.paid === true)
+      );
+    }
+    if (activeFilter === "Waiting for Payment") {
+      setUnpaidApplications(
+        applications.filter(
+          (application) => application.currentStatus === "Waiting for Payment"
+        )
+      );
+    }
+  }, [activeFilter, applications]);
+
   return (
     <div className="flex flex-col p-5 w-full justify-between animate-fade">
       <Toaster position="bottom-right" reverseOrder={false} />
@@ -54,6 +83,19 @@ const PaymentApproval = () => {
           </p>
         </div>
       </div>
+      <div className="flex flex-row w-full gap-6 mb-10">
+        {statuses.map((status) => (
+          <button
+            key={status}
+            onClick={() => setActiveFilter(status)}
+            className={`btn ${
+              activeFilter === status ? "btn-primary" : "btn-secondary"
+            }`}
+          >
+            {status}
+          </button>
+        ))}
+      </div>
       <div className="flex flex-col w-full">
         <table className="w-full table">
           <thead>
@@ -63,10 +105,16 @@ const PaymentApproval = () => {
               <th className="">Date Created</th>
               <th className="">Status</th>
               <th className="">Payment Date</th>
-              <th className="">Action</th>
             </tr>
           </thead>
           <tbody>
+            {unpaidApplications.length === 0 && (
+              <tr>
+                <td colSpan="5" className="text-center">
+                  No applications found
+                </td>
+              </tr>
+            )}
             {unpaidApplications.map((application) => (
               <tr key={application.id}>
                 <td className="">{application.id}</td>
@@ -77,14 +125,6 @@ const PaymentApproval = () => {
                 <td className="">{application.status[0].time.split("T")[0]}</td>
                 <td className="">{application.currentStatus}</td>
                 <td className="">{application.paid ? "paid" : "N/A"}</td>
-                <td className="">
-                  <button
-                    onClick={() => onClick(application)}
-                    className="btn btn-primary btn-sm text-white"
-                  >
-                    Approve Payment
-                  </button>
-                </td>
               </tr>
             ))}
           </tbody>

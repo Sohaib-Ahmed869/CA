@@ -196,7 +196,7 @@ const ScreeningForm = () => {
       {loading && <Loader />}
       {submissionLoading && <SpinnerLoader />}
       <Navbar />
-      <div className="flex flex-col items-center justify-center lg:p-16 p-4 mt-20">
+      <div className="flex flex-col items-center justify-center lg:p-16 p-4 mt-28">
         <img
           src={certifiedAustralia}
           alt="Certified Australia"

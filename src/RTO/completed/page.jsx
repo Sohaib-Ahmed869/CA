@@ -36,8 +36,8 @@ const Completed = () => {
     }
   };
 
-  const onClickDownload = () => {
-    window.open(certificate);
+  const onClickDownload = (url) => {
+    window.open(url, "_blank");
   };
 
   // Separate displayed applications from full applications list
@@ -55,7 +55,9 @@ const Completed = () => {
         const filteredApplications = applicationsData.filter(
           (app) => app.currentStatus === "Certificate Generated"
         );
-        setApplications(filteredApplications.filter((app) => app.type === rtoType));
+        setApplications(
+          filteredApplications.filter((app) => app.type === rtoType)
+        );
         setDisplayedApplications(
           filteredApplications.filter((app) => app.type === rtoType)
         );
@@ -156,12 +158,14 @@ const Completed = () => {
                   <td className="flex gap-2 max-sm:flex-col">
                     {application.currentStatus === "Certificate Generated" && (
                       <>
-                        <button className="bg-blue-500 text-white px-2 py-1 rounded flex gap-1 items-center">
+                        {/* <button className="bg-blue-500 text-white px-2 py-1 rounded flex gap-1 items-center">
                           <BsEye />
                           View Documents
-                        </button>
+                        </button> */}
                         <button
-                          onClick={() => onClickDownload(application.id)}
+                          onClick={() =>
+                            onClickDownload(application.certificateId)
+                          }
                           className="bg-green-500 text-white px-2 py-1 rounded flex gap-1 items-center"
                         >
                           <BiCertification />

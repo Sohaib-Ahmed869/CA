@@ -1,23 +1,32 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import FloatingLabelInput from "../../components/floatingLabelInput";
+import PhoneInput from "react-phone-input-2";
+import "react-phone-input-2/lib/style.css";
 
 const ContactInfo = ({ contactInfo, setContactInfo }) => {
   const handleChange = (e) => {
     setContactInfo({ ...contactInfo, [e.target.name]: e.target.value });
   };
 
+  useEffect(() => {
+    console.log(contactInfo.phone);
+  }, [contactInfo.phone]);
+
   return (
     <div className="mb-10">
       <h2 className="text-2xl font-semibold mb-5">Contact Information</h2>
       <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-        <FloatingLabelInput
-          name="contactNumber"
-          type="text"
-          id="contactNumber"
-          label="Contact Number"
-          value={contactInfo.contactNumber}
-          onChange={handleChange}
-        />
+        <div className="flex flex-col">
+          <label htmlFor="phone">Phone Number</label>
+          <PhoneInput
+            country={"au"}
+            value={contactInfo.contactNumber}
+            onChange={(phone) =>
+              setContactInfo({ ...contactInfo, contactNumber: phone })
+            }
+            inputClass="input p-0 mt-2"
+          />
+        </div>
         <FloatingLabelInput
           name="email"
           type="email"

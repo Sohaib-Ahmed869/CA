@@ -2,7 +2,11 @@
 export default {
   content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
   theme: {
-    extend: {},
+    extend: {
+      fontFamily: {
+        outfit: ["Outfit", "sans-serif"], // Add Outfit font
+      },
+    },
   },
   plugins: [
     require("daisyui"),
@@ -21,7 +25,6 @@ export default {
           "base-100": "#ffffff", //white
           info: "#9ce37d", //bright light green
           warning: "#ff5722", //default (not part of nstp color pallette)
-
         },
       },
     ],

@@ -10,6 +10,8 @@ import login from "../assets/login.png";
 import { MdEmail } from "react-icons/md";
 import { BiLock } from "react-icons/bi";
 import { FaSpinner } from "react-icons/fa";
+import certifiedAustralia from "../assets/certifiedAustralia.png";
+import Footer from "../Customer/components/footer";
 const Login = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
@@ -72,52 +74,63 @@ const Login = () => {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center h-screen bg-gray-100">
-      <Toaster />
-      <div className="flex flex-col items-center justify-center bg-white p-8 rounded-lg shadow-lg w-1/4">
-        <img src={login} alt="Login" className="w-24 h-24 mb-4" />
-        <h1 className="text-2xl font-bold text-gray-800 mb-2">Login</h1>
-        <p className="text-gray-500 mb-4">Login today to get certified</p>
-        <form onSubmit={handleLogin} className="flex flex-col w-full">
-          <div className="flex items-center border p-2 rounded-lg mb-2">
-            <MdEmail className="text-gray-500" />
-            <input
-              type="email"
-              placeholder="Email"
-              className="w-full ml-2 border-none"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
-          </div>
-          <div className="flex items-center border p-2 rounded-lg mb-2">
-            <BiLock className="text-gray-500" />
-            <input
-              type="password"
-              placeholder="Password"
-              className="w-full ml-2 focus:border-none border-none"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-          </div>
-          <button
-            type="submit"
-            className="btn btn-primary text-white p-2 rounded-lg font-semibold"
-          >
-            {submissionLoading ? (
-              <FaSpinner className="animate-spin text-white text-2xl" />
-            ) : (
-              "Login"
-            )}
-          </button>
-          <p className="text-gray-500 mt-2 text-sm text-center">
-            Don't have an account?{" "}
-            <a href="/signup" className="text-blue-500">
-              Sign up
-            </a>
-          </p>
-      
-        </form>
+    <div>
+      <div className="w-full flex items-center justify-between p-4 bg-secondary text-white shadow-md">
+        <img src={certifiedAustralia} alt="Certified Australia" className="h-12" />
+        <button
+          onClick={() => navigate("/")}
+          className="btn btn-primary text-white p-2 rounded-lg font-semibold px-4 btn-sm"
+        >
+          Home
+        </button>
       </div>
+      <div className="flex flex-col items-center  h-screen bg-gray-200">
+        <Toaster />
+        <div className="flex flex-col items-center justify-center lg:mt-20 bg-white p-8 rounded-lg shadow-xl md:w-1/2 lg:w-1/4 hover:scale-105 transition-transform duration-300">
+          <img src={login} alt="Login" className="w-24 h-24 mb-4" />
+          <h1 className="text-2xl font-bold text-gray-800 mb-2">Login</h1>
+          <p className="text-gray-500 mb-4">Login today to get certified</p>
+          <form onSubmit={handleLogin} className="flex flex-col w-full">
+            <div className="flex items-center border p-2 rounded-lg mb-4">
+              <MdEmail className="text-gray-500" />
+              <input
+                type="email"
+                placeholder="Email"
+                className="w-full ml-2 border-none"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            </div>
+            <div className="flex items-center border p-2 rounded-lg mb-4">
+              <BiLock className="text-gray-500" />
+              <input
+                type="password"
+                placeholder="Password"
+                className="w-full ml-2 focus:border-none border-none"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+            </div>
+            <button
+              type="submit"
+              className="btn btn-primary text-white p-2 rounded-lg font-semibold"
+            >
+              {submissionLoading ? (
+                <FaSpinner className="animate-spin text-white text-2xl" />
+              ) : (
+                "Login"
+              )}
+            </button>
+            <p className="text-gray-500 mt-2 text-sm text-center">
+              Don't have an account?{" "}
+              <a href="/screening" className="text-blue-500">
+                Sign up
+              </a>
+            </p>
+          </form>
+        </div>
+      </div>
+      <Footer />
     </div>
   );
 };
