@@ -75,3 +75,49 @@ export const getDashboardStats = async () => {
     return error.response.data;
   }
 };
+
+export const createIndustry = async ({ name, description }) => {
+  try {
+    const response = await axios.post(`${URL}/api/industry/create`, {
+      name,
+      description,
+    });
+    return response.data;
+  } catch (error) {
+    console.log(error.response.data);
+    return error.response.data;
+  }
+};
+
+export const addCertificateToIndustry = async ({
+  industry,
+  qualification,
+  price,
+  type,
+}) => {
+  try {
+    console.log("Industry:", industry);
+    console.log("Qualification:", qualification);
+    console.log("Price:", price);
+    console.log("Type:", type);
+    const response = await axios.post(`${URL}/api/industry/certification/`, {
+      qualification,
+      price,
+      type,
+      industryId: industry,
+    });
+    return response.data;
+  } catch (error) {
+    return error.response.data;
+  }
+};
+
+export const getIndustries = async () => {
+  try {
+    const response = await axios.get(`${URL}/api/industry`);
+
+    return response.data;
+  } catch (error) {
+    return error.response.data;
+  }
+};

@@ -46,7 +46,7 @@ const certificates = [
   {
     industry: "Community Services",
     qualification: "CHC42021 Certificate IV in Community Services",
-    price: "0",
+    price: "1",
     type: "default",
   },
   {
@@ -64,7 +64,7 @@ const certificates = [
   {
     industry: "Community Services",
     qualification: "CHC50321 Diploma of Child, Youth and Family Intervention",
-    price: "0",
+    price: "1",
     type: "aes",
   },
   {
@@ -100,7 +100,7 @@ const certificates = [
   {
     industry: "Community Services",
     qualification: "CHC41015 Certificate IV in Celebrancy",
-    price: "0",
+    price: "1",
     type: "aes",
   },
 
@@ -115,7 +115,7 @@ const certificates = [
     industry: "Business",
     qualification:
       "BSB40320 Certificate IV in Entrepreneurship and New Business",
-    price: "0",
+    price: "1",
     type: "default",
   },
   {
@@ -211,7 +211,7 @@ const certificates = [
   {
     industry: "Business",
     qualification: "TLI40324 Certificate IV in Supply Chain Operations",
-    price: "0",
+    price: "1",
     type: "educube",
   },
 
@@ -320,7 +320,7 @@ const certificates = [
     qualification:
       "FNS50322 Diploma of Finance and Mortgage Broking Management",
     type: "aes",
-    price: "0",
+    price: "1",
   },
   {
     industry: "Finance & Accounting",
@@ -331,13 +331,13 @@ const certificates = [
   {
     industry: "Finance & Accounting",
     qualification: "FNS51822 Diploma of Financial Services",
-    price: "0",
+    price: "1",
     type: "default",
   },
   {
     industry: "Finance & Accounting",
     qualification: "FNS40821 Certificate IV in Finance and Mortgage Broking",
-    price: "0",
+    price: "1",
     type: "educube",
   },
 
@@ -466,7 +466,7 @@ const certificates = [
   {
     industry: "Building & Construction",
     qualification: "CPP80221 Graduate Diploma of Building Design",
-    price: "0",
+    price: "1",
     type: "default",
   },
   {
@@ -496,7 +496,7 @@ const certificates = [
   {
     industry: "Building & Construction",
     qualification: "CPC32720 Certificate III in Gas Fitting",
-    price: "0",
+    price: "1",
     type: "default",
   },
   {
@@ -557,7 +557,7 @@ const certificates = [
     industry: "Building & Construction",
     qualification: "CPC30120 Certificate III in Shopfitting",
     type: "educube",
-    price: "0",
+    price: "1",
   },
   {
     industry: "Building & Construction",
@@ -569,7 +569,7 @@ const certificates = [
     industry: "Building & Construction",
     qualification:
       "MSF31113 Certificate III in Cabinet Making and Timber Technology",
-    price: "0",
+    price: "1",
     type: "default",
   },
   {
@@ -583,7 +583,7 @@ const certificates = [
     qualification:
       "UEE32220 Certificate III in Air Conditioning and Refrigeration",
     type: "educube",
-    price: "0",
+    price: "1",
   },
   {
     industry: "Building & Construction",
@@ -645,7 +645,7 @@ const certificates = [
     qualification:
       "AUR32120 Certificate III in Automotive Body Repair Technology",
     type: "aes",
-    price: "0",
+    price: "1",
   },
   {
     industry: "Automotive",
@@ -672,7 +672,7 @@ const certificates = [
     qualification:
       "AUR40720 Certificate IV in Automotive Body Repair Technology",
     type: "aes",
-    price: "0",
+    price: "1",
   },
   {
     industry: "Automotive",
@@ -707,13 +707,13 @@ const certificates = [
     industry: "Security Management",
     qualification: "CPP50619 Diploma of Security Risk Management",
     type: "aes",
-    price: "0",
+    price: "1",
   },
   {
     industry: "Security Management",
     type: "aes",
     qualification: "CPP41519 Certificate IV in Security Risk Analysis",
-    price: "0",
+    price: "1",
   },
 
   // Fitness & Allied Health

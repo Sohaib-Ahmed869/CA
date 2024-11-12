@@ -6,6 +6,7 @@ import {
   markApplicationAsPaid,
 } from "../../Customer/Services/adminServices";
 import toast from "react-hot-toast";
+import SpinnerLoader from "../../Customer/components/spinnerLoader";
 import { Toaster } from "react-hot-toast";
 const PaymentApproval = () => {
   const statuses = [
@@ -19,17 +20,26 @@ const PaymentApproval = () => {
   const paymentError = () => toast.error("Failed to approve payment");
   const [applications, setApplications] = useState([]);
   const [unpaidApplications, setUnpaidApplications] = useState([]);
+  const [submissionLoading, setSubmissionLoading] = useState(false);
   const fetchApplications = async () => {
-    const applicationsData = await getApplications();
-    //filter out the applications that are not paid (status must be Waiting for payment)
-    setApplications(applicationsData);
+    setSubmissionLoading(true);
+    try {
+      const applicationsData = await getApplications();
+      //filter out the applications that are not paid (status must be Waiting for payment)
+      setApplications(applicationsData);
 
-    setUnpaidApplications(
-      applicationsData.filter(
-        (application) => application.currentStatus === "Waiting for Payment"
-      )
-    );
+      setUnpaidApplications(
+        applicationsData.filter(
+          (application) => application.currentStatus === "Waiting for Payment"
+        )
+      );
+      setSubmissionLoading(false);
+    } catch (err) {
+      console.log(err);
+      setSubmissionLoading(false);
+    }
   };
+
   useEffect(() => {
     fetchApplications();
   }, []);
@@ -72,6 +82,7 @@ const PaymentApproval = () => {
 
   return (
     <div className="flex flex-col p-5 w-full justify-between animate-fade">
+      {submissionLoading && <SpinnerLoader />}
       <Toaster position="bottom-right" reverseOrder={false} />
       <div className="flex items-center gap-4 mb-5 lg:flex-row flex-col">
         <img src={paymentsimg} alt="Payments" className="h-36" />

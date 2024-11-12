@@ -313,9 +313,7 @@ const ScreeningForm = () => {
               >
                 Login to Your Account
               </button>
-              <button className="btn" onClick={() => setIsDialogOpen(false)}>
-                Close
-              </button>
+         
             </div>
           </div>
         </dialog>

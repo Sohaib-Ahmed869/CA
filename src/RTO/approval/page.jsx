@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import Navbar from "../../Customer/components/navbar";
+import JSZip from "jszip";
 import { BsEye } from "react-icons/bs";
 import { BiCertification } from "react-icons/bi";
 import { FaTimes } from "react-icons/fa";
@@ -113,6 +114,23 @@ const Approval = () => {
     };
     fetchApplications();
   }, []);
+
+  const donwloadAllDocsAsZip = async () => {
+    const zip = new JSZip();
+    const folder = zip.folder("Documents");
+    documentLinks.forEach((doc) => {
+      fetch(doc.url)
+        .then((response) => response.blob())
+        .then((blob) => {
+          folder.file(doc.name, blob);
+        });
+    });
+
+    zip.generateAsync({ type: "blob" }).then((content) => {
+      saveAs(content, "Documents.zip");
+    });
+  };
+
   // Filter and paginate applications when `applications`, `dateFilter`, or `currentPage` changes
   // useEffect(() => {
   //   const today = new Date();
@@ -326,6 +344,12 @@ const Approval = () => {
             ✕
           </button>
           <h2 className="font-bold text-lg">View Documents</h2>
+          <button
+            onClick={donwloadAllDocsAsZip}
+            className="btn btn-primary text-white btn-sm"
+          >
+            Download All Documents
+          </button>
           <ul className="mt-4">
             {documentLinks.map((doc, index) => (
               <li key={index} className="my-2">

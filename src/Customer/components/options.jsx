@@ -20,7 +20,7 @@ import SpinnerLoader from "./spinnerLoader";
 const Timeline = ({ timeline, applicationId }) => (
   <div className="p-3 lg:p-4 mt-28 w-full border-b-2 border-t-2 lg:pl-10 lg:pr-10">
     <div className="flex justify-between items-center">
-      <p className="text-md text-white text-left">
+      <p className="text-md  text-left">
         Applicaiton ID: <span className="font-semibold">{applicationId}</span>
       </p>
       <p className="text-sm text-gray-200">
@@ -35,7 +35,7 @@ const Timeline = ({ timeline, applicationId }) => (
           <div className="flex flex-col items-center mr-4">
             <div className="text-4xl">
               {item.time ? (
-                <BiCheck className="text-white bg-green-500 rounded-full p-1" />
+                <BiCheck className=" bg-green-500 rounded-full p-1" />
               ) : (
                 <BsClock className="text-gray-500 bg-gray-200 rounded-full p-1" />
               )}
@@ -44,7 +44,7 @@ const Timeline = ({ timeline, applicationId }) => (
               <div className="w-px bg-gray-300 h-full"></div>
             )}
           </div>
-          <div className="text-md text-white">
+          <div className="text-md ">
             <p className="font-medium">{item.statusname}</p>
           </div>
         </div>
@@ -128,7 +128,7 @@ const CustomerDashboard = () => {
   const navigateToNewApplication = () => navigate("/new-application");
 
   return (
-    <div className="min-h-screen bg-green-900">
+    <div className="min-h-screen">
       {loading && <Loader />}
       {submissionLoading && <SpinnerLoader />}
       <Navbar />
@@ -137,44 +137,44 @@ const CustomerDashboard = () => {
           {lastApplication ? (
             <Timeline timeline={timeline} applicationId={lastApplication.id} />
           ) : (
-            <p className="text-white">No applications found.</p>
+            <p className="">No applications found.</p>
           )}
         </div>
         <div className="flex flex-col items-center lg:p-10 lg:w-full w-full mt-5">
           <div className="flex flex-col items-center text-left w-full">
             <img src={customer} alt="Customer" className="h-24" />
             <div className="text-center">
-              <h1 className="text-2xl lg:text-3xl font-bold text-white">
+              <h1 className="text-2xl lg:text-3xl font-bold ">
                 Hello and Welcome to Certified Australia!
               </h1>
-              <p className="text-md text-white mb-3 lg:mb-8">
+              <p className="text-md  mb-3 lg:mb-8">
                 We are here to help you with your certification needs. Please
                 select from the following options to get started.
               </p>
             </div>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6 w-1/2">
+          <div className="grid grid-cols-1 sm:g rid-cols-2 lg:grid-cols-2 gap-6 w-1/2">
             <div
-              className="bg-secondary rounded-lg shadow-lg p-6 flex flex-col items-center text-center hover:scale-105 transition-transform duration-300 cursor-pointer"
+              className="bg-white rounded-lg shadow-lg p-6 flex flex-col items-center text-center hover:scale-105 transition-transform duration-300 cursor-pointer"
               onClick={navigateToNewApplication}
             >
               <FaPlusCircle className="text-primary mb-4 text-2xl md:text-5xl" />
-              <h2 className="text-xl font-semibold mb-2 text-white">
+              <h2 className="text-xl font-semibold mb-2 ">
                 New Application
               </h2>
-              <p className="text-white">
+              <p className="">
                 Start a new application for the desired service.
               </p>
             </div>
             <div
-              className="bg-secondary rounded-lg shadow-lg p-6 flex flex-col items-center text-center hover:scale-105 transition-transform duration-300 cursor-pointer"
+              className="bg-white rounded-lg shadow-lg p-6 flex flex-col items-center text-center hover:scale-105 transition-transform duration-300 cursor-pointer"
               onClick={navigateToExistingApplications}
             >
               <FaFolderOpen className="text-primary mb-4 text-2xl md:text-5xl" />
-              <h2 className="text-xl font-semibold text-white mb-2">
+              <h2 className="text-xl font-semibold  mb-2">
                 Existing Applications
               </h2>
-              <p className="text-white">
+              <p className="">
                 View and manage your existing applications.
               </p>
             </div>

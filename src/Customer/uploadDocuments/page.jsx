@@ -27,6 +27,12 @@ const UploadDocuments = () => {
   const [payslip, setPayslip] = useState("");
 
   const handleChange = (e) => {
+    //if file size is greater than 5MB
+    if (e.target.files[0].size > 5000000) {
+      alert("File size is too large. Maximum file size is 5MB");
+      return;
+    }
+
     setHundredPointsOfID({
       ...hundredPointsOfID,
       [e.target.name]: e.target.files[0], // Set the File object directly
@@ -34,14 +40,32 @@ const UploadDocuments = () => {
   };
 
   const handleResume = (e) => {
+    //if file size is greater than 5MB
+    if (e.target.files[0].size > 5000000) {
+      alert("File size is too large. Maximum file size is 5MB");
+      return;
+    }
+
     setResume(e.target.files[0]);
   };
 
   const handlePreviousQualifications = (e) => {
+    //if file size is greater than 5MB
+    if (e.target.files[0].size > 5000000) {
+      alert("File size is too large. Maximum file size is 5MB");
+      return;
+    }
+
     setPreviousQualifications(e.target.files[0]);
   };
 
   const handleTwoReferences = (e) => {
+    //if file size is greater than 5MB
+    if (e.target.files[0].size > 5000000) {
+      alert("File size is too large. Maximum file size is 5MB");
+      return;
+    }
+
     setTwoReferences({
       ...twoReferences,
       [e.target.name]: e.target.files[0],
@@ -49,10 +73,22 @@ const UploadDocuments = () => {
   };
 
   const handleEmploymentLetter = (e) => {
+    //if file size is greater than 5MB
+    if (e.target.files[0].size > 5000000) {
+      alert("File size is too large. Maximum file size is 5MB");
+      return;
+    }
+
     setEmploymentLetter(e.target.files[0]);
   };
 
   const handlePayslip = (e) => {
+    //if file size is greater than 5MB
+    if (e.target.files[0].size > 5000000) {
+      alert("File size is too large. Maximum file size is 5MB");
+      return;
+    }
+
     setPayslip(e.target.files[0]);
   };
 

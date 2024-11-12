@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import FloatingLabelInput from "../../components/floatingLabelInput";
-import studentAgreement from "../../../assets/1.pdf";
+import studentAgreementdoc from "../../../assets/1.pdf";
 import studentApplicantAgreement from "../../../assets/2.pdf";
-import TOC from "../../../assets/3.pdf";
+import TOCdoc from "../../../assets/3.pdf";
 
 const StudentAgreement = ({ studentAgreement, setStudentAgreement }) => {
   const handleChange = (e) => {
@@ -61,11 +61,7 @@ const StudentAgreement = ({ studentAgreement, setStudentAgreement }) => {
             <span>
               {" "}
               <a
-                href={
-                  studentAgreement.applicantAgreement
-                    ? studentAgreement.applicantAgreement
-                    : studentAgreement.applicantAgreement
-                }
+                href={studentAgreementdoc}
                 target="_blank"
                 rel="noreferrer"
                 className="text-md text-blue-500"
@@ -87,11 +83,7 @@ const StudentAgreement = ({ studentAgreement, setStudentAgreement }) => {
             I agree to the{" "}
             <span>
               <a
-                href={
-                  studentAgreement.toc
-                    ? studentAgreement.toc
-                    : studentAgreement.toc
-                }
+                href={TOCdoc}
                 target="_blank"
                 rel="noreferrer"
                 className="text-md text-blue-500"

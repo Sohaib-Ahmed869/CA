@@ -70,7 +70,7 @@ const Screen1 = ({
           </label>
           <select
             id="qualification"
-            className="input ;g:w-96"
+            className="input lg:w-96"
             value={qualification}
             onChange={onChangeCertificate}
           >

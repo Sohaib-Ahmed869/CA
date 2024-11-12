@@ -5,6 +5,7 @@ import CustomersInfo from "../customers/page";
 import ExistingApplicationsAdmin from "../applications/page";
 import PaymentApproval from "../payments/page";
 import Dashboard from "../dashboard/page";
+import Industries from "../Industries/page";
 import { MdDashboard } from "react-icons/md";
 import { FaCheckSquare } from "react-icons/fa";
 import { BsClock } from "react-icons/bs";
@@ -12,10 +13,10 @@ import { BiLogOut } from "react-icons/bi";
 import { GiHamburgerMenu } from "react-icons/gi";
 import { FaMoneyBill1Wave } from "react-icons/fa6";
 import { getAuth, signOut } from "firebase/auth";
+import { FaIndustry } from "react-icons/fa";
 import { getDashboardStats } from "../../Customer/Services/adminServices";
 const AdminSidebar = () => {
   const navigate = useNavigate();
-  
 
   const [active, setActive] = useState("Dashboard");
   const [isOpen, setIsOpen] = useState(false); // State for mobile menu toggle
@@ -25,8 +26,6 @@ const AdminSidebar = () => {
     await signOut(auth);
     navigate("/login");
   };
-
-  
 
   useEffect(() => {
     console.log(isOpen);
@@ -188,6 +187,20 @@ const AdminSidebar = () => {
             <button className="font-medium">Payments</button>
           </li>
           <li
+            className={`border-b border-base-300 cursor-pointer p-3 flex items-center gap-2 ${
+              active === "Industries"
+                ? "bg-gray-100 bg-opacity-15 rounded-xl"
+                : ""
+            }`}
+            onClick={() => {
+              setActive("Industries");
+              setIsOpen(false);
+            }}
+          >
+            <FaIndustry className="text-xl" />
+            <button className="font-medium">Industries</button>
+          </li>
+          <li
             className="border-b border-base-300 cursor-pointer p-3 flex items-center gap-2"
             onClick={() => {
               onClickLogout();
@@ -208,6 +221,7 @@ const AdminSidebar = () => {
         {active === "Customers" && <CustomersInfo />}
         {active === "Applications" && <ExistingApplicationsAdmin />}
         {active === "Payments" && <PaymentApproval />}
+        {active === "Industries" && <Industries />}
       </div>
 
       {isOpen && (

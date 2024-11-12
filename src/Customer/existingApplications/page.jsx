@@ -23,6 +23,8 @@ import { getApplications } from "../Services/customerApplication";
 import SpinnerLoader from "../components/spinnerLoader";
 import Loader from "../components/loader";
 import Footer from "../components/footer";
+import { initiateVerificationCall } from "../Services/twilioService";
+
 
 import certificate from "../../assets/certificate.pdf";
 import applicationsimg from "../../assets/applications.png";
@@ -124,6 +126,22 @@ const ExistingApplications = () => {
       getUserApplications(userId);
     }
   }, [userId]);
+
+  // Function to initiate the call for verification
+  const handleVerifyNow = async (applicationId) => {
+    try {
+      setLoading(true);
+      const response = await initiateVerificationCall(applicationId);
+      console.log("Call response:", response);
+      alert("Verification call initiated successfully!");
+    } catch (error) {
+      console.error("Error during call initiation:", error);
+      alert("Failed to initiate the verification call. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
 
   return (
     <div>
@@ -260,7 +278,7 @@ const ExistingApplications = () => {
                     </button>
                   ) : application.currentStatus ===
                     "Waiting for Verification" ? (
-                    <button className="btn btn-sm text-white btn-primary">
+                    <button className="btn btn-sm text-white btn-primary"   onClick={() => handleVerifyNow(application.id)}>
                       <IoCall />
                       Verify Now
                     </button>

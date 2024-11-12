@@ -10,7 +10,7 @@ import login from "../assets/login.png";
 import { MdEmail } from "react-icons/md";
 import { BiLock } from "react-icons/bi";
 import { FaSpinner } from "react-icons/fa";
-import certifiedAustralia from "../assets/certifiedAustralia.png";
+import certifiedAustralia from "../assets/certifiedAustraliaBlack.png";
 import Footer from "../Customer/components/footer";
 const Login = () => {
   const navigate = useNavigate();
@@ -75,16 +75,12 @@ const Login = () => {
 
   return (
     <div>
-      <div className="w-full flex items-center justify-between p-4 bg-secondary text-white shadow-md">
-        <img src={certifiedAustralia} alt="Certified Australia" className="h-12" />
-        <button
-          onClick={() => navigate("/")}
-          className="btn btn-primary text-white p-2 rounded-lg font-semibold px-4 btn-sm"
-        >
-          Home
-        </button>
-      </div>
-      <div className="flex flex-col items-center  h-screen bg-gray-200">
+      <div className="flex flex-col items-center  h-screen">
+        <img
+          src={certifiedAustralia}
+          alt="Certified Australia"
+          className="h-24 mt-4"
+        />
         <Toaster />
         <div className="flex flex-col items-center justify-center lg:mt-20 bg-white p-8 rounded-lg shadow-xl md:w-1/2 lg:w-1/4 hover:scale-105 transition-transform duration-300">
           <img src={login} alt="Login" className="w-24 h-24 mb-4" />
