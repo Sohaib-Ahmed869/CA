@@ -50,7 +50,7 @@ const Screen1 = ({
           <label htmlFor="industry">What industry is your experience in?</label>
           <select
             id="industry"
-            className="input lg:w-96"
+            className="input lg:w-96 max-sm:w-full"
             value={industry}
             onChange={(e) => setIndustry(e.target.value)}
           >
@@ -70,7 +70,7 @@ const Screen1 = ({
           </label>
           <select
             id="qualification"
-            className="input lg:w-96"
+            className="input lg:w-96 max-sm:w-full"
             value={qualification}
             onChange={onChangeCertificate}
           >

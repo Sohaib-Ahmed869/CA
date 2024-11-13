@@ -13,6 +13,8 @@ const UploadDocuments = () => {
     birthCertificate: "",
     medicareCard: "",
     creditCard: "",
+    idCard: "",
+    australianCitizenship: "",
   });
 
   const [resume, setResume] = useState("");
@@ -25,6 +27,8 @@ const UploadDocuments = () => {
 
   const [employmentLetter, setEmploymentLetter] = useState("");
   const [payslip, setPayslip] = useState("");
+
+  const [score, setScore] = useState(0);
 
   const handleChange = (e) => {
     //if file size is greater than 5MB
@@ -92,18 +96,36 @@ const UploadDocuments = () => {
     setPayslip(e.target.files[0]);
   };
 
+  useEffect(() => {
+    let score = 0;
+    if (hundredPointsOfID.driversLicense) {
+      score += 40;
+    }
+    if (hundredPointsOfID.idCard) {
+      score += 40;
+    }
+    if (hundredPointsOfID.passport) {
+      score += 70;
+    }
+    if (hundredPointsOfID.birthCertificate) {
+      score += 70;
+    }
+    if (hundredPointsOfID.medicareCard) {
+      score += 25;
+    }
+
+    setScore(score);
+  }, [hundredPointsOfID]);
   const navigate = useNavigate();
 
   const successToast = () => toast.success("Documents uploaded successfully");
   const errorToast = () => toast.error("Please fill in all the fields");
-
+  const errorToast2 = () =>
+    toast.error("100 points of ID score is less than 100");
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     if (
-      !hundredPointsOfID.driversLicense ||
-      !hundredPointsOfID.passport ||
-      !hundredPointsOfID.birthCertificate ||
-      !hundredPointsOfID.medicareCard ||
       !hundredPointsOfID.creditCard ||
       !resume ||
       !previousQualifications ||
@@ -116,19 +138,52 @@ const UploadDocuments = () => {
       errorToast();
       return;
     }
+
+    if (score < 100) {
+      errorToast2();
+      return;
+    }
+
     setSubmissionLoading(true);
     const formData = new FormData();
-    formData.append("license", hundredPointsOfID.driversLicense);
-    formData.append("passport", hundredPointsOfID.passport);
-    formData.append("birth_certificate", hundredPointsOfID.birthCertificate);
-    formData.append("medicare", hundredPointsOfID.medicareCard);
-    formData.append("creditcard", hundredPointsOfID.creditCard);
-    formData.append("resume", resume);
-    formData.append("previousQualifications", previousQualifications);
-    formData.append("reference1", twoReferences.referenceOne);
-    formData.append("reference2", twoReferences.referenceTwo);
-    formData.append("employmentLetter", employmentLetter);
-    formData.append("payslip", payslip);
+    if (hundredPointsOfID.passport) {
+      formData.append("passport", hundredPointsOfID.passport);
+    }
+    if (hundredPointsOfID.driversLicense) {
+      formData.append("license", hundredPointsOfID.driversLicense);
+    }
+    if (hundredPointsOfID.idCard) {
+      formData.append("idCard", hundredPointsOfID.idCard);
+    }
+    if (hundredPointsOfID.australianCitizenship) {
+      formData.append(
+        "australian_citizenship",
+        hundredPointsOfID.australianCitizenship
+      );
+    }
+    if (hundredPointsOfID.birthCertificate) {
+      formData.append("birth_certificate", hundredPointsOfID.birthCertificate);
+    }
+    if (hundredPointsOfID.medicareCard)
+      formData.append("medicare", hundredPointsOfID.medicareCard);
+
+    if (hundredPointsOfID.creditCard)
+      formData.append("creditcard", hundredPointsOfID.creditCard);
+
+    if (resume) formData.append("resume", resume);
+
+    if (previousQualifications)
+      formData.append("previousQualifications", previousQualifications);
+
+    if (twoReferences.referenceOne)
+      formData.append("reference1", twoReferences.referenceOne);
+
+    if (twoReferences.referenceTwo)
+      formData.append("reference2", twoReferences.referenceTwo);
+
+    if (employmentLetter) formData.append("employmentLetter", employmentLetter);
+
+    if (payslip) formData.append("payslip", payslip);
 
     try {
       const id = window.location.pathname.split("/")[2];
@@ -164,7 +219,7 @@ const UploadDocuments = () => {
   return (
     <div>
       <Navbar />
-      <Toaster position="bottom-right" reverseOrder={false} />
+      <Toaster position="top-right" reverseOrder={false} />
       {submissionLoading && <SpinnerLoader />}
       <div className="p-5 lg:p-60 lg:pt-36 lg:pb-20">
         <div className="flex flex-col items-center text-left w-full">
@@ -180,6 +235,7 @@ const UploadDocuments = () => {
           </p>
           <div>
             <h3 className="file-lg font-semibold mb-3">100 Points of ID</h3>
+            <p className="text-md">Score: {score}</p>
             <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
               <div className="gap-1 flex flex-col">
                 <label className="text-md text-gray-600">
@@ -196,6 +252,20 @@ const UploadDocuments = () => {
               </div>
               <div className="gap-1 flex flex-col">
                 <label className="text-md text-gray-600">
+                  ID Card <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="file"
+                  name="idCard"
+                  id="idCard"
+                  onChange={handleChange}
+                  placeholder="ID Card"
+                  className="border border-gray-300 max-sm:p-0 w-full"
+                />
+              </div>
+
+              <div className="gap-1 flex flex-col">
+                <label className="text-md text-gray-600">
                   Passport <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -204,6 +274,20 @@ const UploadDocuments = () => {
                   id="passport"
                   onChange={handleChange}
                   placeholder="Passport"
+                  className="border border-gray-300 max-sm:p-0 w-full"
+                />
+              </div>
+
+              <div className="gap-1 flex flex-col">
+                <label className="text-md text-gray-600">
+                  Australian Citizenship <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="file"
+                  name="australianCitizenship"
+                  id="australianCitizenship"
+                  onChange={handleChange}
+                  placeholder="Australian Citizenship"
                   className="border border-gray-300 max-sm:p-0 w-full"
                 />
               </div>

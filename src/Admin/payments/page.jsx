@@ -8,6 +8,7 @@ import {
 import toast from "react-hot-toast";
 import SpinnerLoader from "../../Customer/components/spinnerLoader";
 import { Toaster } from "react-hot-toast";
+
 const PaymentApproval = () => {
   const statuses = [
     "All Payments",
@@ -21,13 +22,12 @@ const PaymentApproval = () => {
   const [applications, setApplications] = useState([]);
   const [unpaidApplications, setUnpaidApplications] = useState([]);
   const [submissionLoading, setSubmissionLoading] = useState(false);
+
   const fetchApplications = async () => {
     setSubmissionLoading(true);
     try {
       const applicationsData = await getApplications();
-      //filter out the applications that are not paid (status must be Waiting for payment)
       setApplications(applicationsData);
-
       setUnpaidApplications(
         applicationsData.filter(
           (application) => application.currentStatus === "Waiting for Payment"
@@ -62,7 +62,6 @@ const PaymentApproval = () => {
   };
 
   useEffect(() => {
-    //on filter change, filter out the applications that match the filter
     if (activeFilter === "All Payments") {
       setUnpaidApplications(applications);
     }
@@ -81,12 +80,13 @@ const PaymentApproval = () => {
   }, [activeFilter, applications]);
 
   return (
-    <div className="flex flex-col p-5 w-full justify-between animate-fade">
+    <div className="flex flex-col animate-fade">
       {submissionLoading && <SpinnerLoader />}
       <Toaster position="bottom-right" reverseOrder={false} />
+      
       <div className="flex items-center gap-4 mb-5 lg:flex-row flex-col">
         <img src={paymentsimg} alt="Payments" className="h-36" />
-        <div className="flex flex-col lg:w-1/2 w-full">
+        <div className="flex flex-col lg:w-1/2">
           <h1 className="text-3xl font-bold">Payment Approval</h1>
           <p className="text-sm mt-2">
             Here you can approve payments for the applications that are pending
@@ -94,7 +94,8 @@ const PaymentApproval = () => {
           </p>
         </div>
       </div>
-      <div className="flex flex-row w-full gap-6 mb-10">
+      
+      <div className="flex flex-row w-full gap-6 mb-10 max-sm:flex-col">
         {statuses.map((status) => (
           <button
             key={status}
@@ -107,15 +108,17 @@ const PaymentApproval = () => {
           </button>
         ))}
       </div>
-      <div className="flex flex-col w-full">
-        <table className="w-full table">
-          <thead>
+
+      {/* Horizontal Scrollable Table */}
+      <div className="overflow-x-auto max-sm:border">
+        <table className="table">
+          <thead className="sticky top-0 bg-gray-200">
             <tr>
-              <th className="">ID</th>
-              <th className="">Customer Name</th>
-              <th className="">Date Created</th>
-              <th className="">Status</th>
-              <th className="">Payment Date</th>
+              <th>ID</th>
+              <th>Customer Name</th>
+              <th>Date Created</th>
+              <th>Status</th>
+              <th>Payment Date</th>
             </tr>
           </thead>
           <tbody>
@@ -128,19 +131,19 @@ const PaymentApproval = () => {
             )}
             {unpaidApplications.map((application) => (
               <tr key={application.id}>
-                <td className="">{application.id}</td>
-
-                <td className="">
+                <td>{application.id}</td>
+                <td>
                   {application.user.firstName + " " + application.user.lastName}
                 </td>
-                <td className="">{application.status[0].time.split("T")[0]}</td>
-                <td className="">{application.currentStatus}</td>
-                <td className="">{application.paid ? "paid" : "N/A"}</td>
+                <td>{application.status[0].time.split("T")[0]}</td>
+                <td>{application.currentStatus}</td>
+                <td>{application.paid ? "paid" : "N/A"}</td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
+
       {showModal && (
         <dialog className="modal modal-open">
           <div className="modal-box">

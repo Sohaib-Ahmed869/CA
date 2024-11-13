@@ -33,7 +33,13 @@ const cardStyle = {
   },
 };
 
-const CheckoutForm = ({ price, applicationId }) => {
+const CheckoutForm = ({
+  price,
+  applicationId,
+  setShowCheckoutModal,
+  getUserApplications,
+  userId,
+}) => {
   const notify = () => toast.success("Payment successful!");
   const [paid, setPaid] = useState(false);
   const notifyError = () => toast.error("Payment failed!");
@@ -69,7 +75,10 @@ const CheckoutForm = ({ price, applicationId }) => {
 
       // Step 3: Mark application as paid
       await markApplicationAsPaid(applicationId);
-
+      notify();
+      //close the modal
+      setShowCheckoutModal(false);
+      getUserApplications(userId);
       setPaid(true);
     }
 
@@ -81,12 +90,16 @@ const CheckoutForm = ({ price, applicationId }) => {
       <Toaster />
       <p className="text-sm text-gray-700">Card Information</p>
       <CardElement options={cardStyle} />
-     
+
       <button
         type="submit"
         disabled={!stripe || loading || paid}
         className={`btn mt-4 ${
-          loading ? "bg-green-800 text-white" : { paid } ? "bg-green-500" : "bg-blue-500"
+          loading
+            ? "bg-green-800 text-white"
+            : { paid }
+            ? "bg-green-500"
+            : "bg-blue-500"
         }`}
       >
         {loading ? "Processing..." : paid ? "Paid" : `Pay $${price}.00`}
@@ -95,14 +108,26 @@ const CheckoutForm = ({ price, applicationId }) => {
   );
 };
 
-const PaymentPage = ({ price, applicationId }) => (
+const PaymentPage = ({
+  price,
+  applicationId,
+  setShowCheckoutModal,
+  getUserApplications,
+  userId,
+}) => (
   useEffect(() => {
     console.log("Price: ", price);
     console.log("Application ID: ", applicationId);
   }, [price, applicationId]),
   (
     <Elements stripe={stripePromise}>
-      <CheckoutForm price={price} applicationId={applicationId} />
+      <CheckoutForm
+        price={price}
+        applicationId={applicationId}
+        setShowCheckoutModal={setShowCheckoutModal}
+        getUserApplications={getUserApplications}
+        userId={userId}
+      />
     </Elements>
   )
 );

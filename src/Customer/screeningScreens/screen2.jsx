@@ -13,20 +13,19 @@ const Screen2 = ({
     "10+ years",
   ]);
 
-
   const locationOptions = ["Australia", "Overseas", "Both"];
-
-
 
   return (
     <div className="flex flex-col items-center animate-fade">
       <div className="flex flex-col items-center">
-        <label htmlFor="yearsOfExperience">How many years of relevant work experience do you have?</label>
-        <div className="grid grid-cols-4 gap-5 m-5">
+        <label htmlFor="yearsOfExperience">
+          How many years of relevant work experience do you have?
+        </label>
+        <div className="grid grid-cols-4 gap-5 m-5 max-sm:m-1">
           {options.map((option, index) => (
             <div
               key={index}
-              className={`flex items-center  p-3 rounded-md cursor-pointer ${
+              className={`flex items-center  p-3 rounded-md cursor-pointer max-sm:text-center ${
                 yearsOfExperience === option
                   ? "bg-green-500 text-white"
                   : "bg-white"
@@ -38,9 +37,11 @@ const Screen2 = ({
           ))}
         </div>
       </div>
-      <div className="flex flex-col items-center">
-        <label htmlFor="locationOfExperience">Where is your work experience?</label>
-        <div className="grid grid-cols-3 justify-center text-center items-center gap-2 m-5">
+      <div className="flex flex-col items-center max-sm:mt-5">
+        <label htmlFor="locationOfExperience">
+          Where is your work experience?
+        </label>
+        <div className="grid grid-cols-3 justify-center text-center items-center gap-2 m-5 max-sm:w-full">
           {locationOptions.map((option, index) => (
             <div
               key={index}

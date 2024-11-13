@@ -10,11 +10,11 @@ const Footer = () => {
     <footer className="bg-gray-800 text-white py-2 fixed w-full bottom-0">
       <div className="container mx-auto flex flex-col sm:flex-row items-center justify-between">
         <div className="flex flex-col sm:flex-row items-center">
-          <p className="text-SM font-semibold mt-5 sm:mt-0 sm:ml-5">
+          <p className="text-sm font-semibold mt-5 max-sm:mt-0 sm:ml-5">
             &copy; 2024. All rights reserved.
           </p>
         </div>
-        <div className="flex items-center gap-5 mt-5 sm:mt-0">
+        <div className="flex items-center gap-5 mt-5 sm:mt-0 max-sm:hidden">
           <Link to="/about" className="text-sm font-semibold">
             About Us
           </Link>
@@ -31,7 +31,7 @@ const Footer = () => {
             Privacy Policy
           </Link>
         </div>
-        <div className="flex items-center gap-5 mt-5 sm:mt-0">
+        <div className="flex items-center gap-5 mt-5 sm:mt-0 max-sm:hidden">
           <FaFacebook className="text-2xl" />
           <FaTwitter className="text-2xl" />
           <FaInstagram className="text-2xl" />

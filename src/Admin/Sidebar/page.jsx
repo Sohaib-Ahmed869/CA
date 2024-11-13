@@ -104,6 +104,21 @@ const AdminSidebar = () => {
                 <button className="font-medium">Payments</button>
               </li>
               <li
+                className={`cursor-pointer p-3 flex items-center gap-2 ${
+                  active === "Industries"
+                    ? "bg-gray-100 bg-opacity-15 rounded-xl"
+                    : ""
+                }`}
+                onClick={() => {
+                  setActive("Industries");
+                  setIsOpen(false);
+                }}
+              >
+                <FaIndustry className="text-xl" />
+                <button className="font-medium">Industries</button>
+              </li>
+
+              <li
                 className="cursor-pointer p-3 flex items-center gap-2"
                 onClick={onClickLogout}
               >
@@ -117,7 +132,7 @@ const AdminSidebar = () => {
 
       {/* Sidebar */}
       <div
-        className={`flex flex-col min-h-screen bg-secondary w-72 fixed max-md:hidden lg:static transform ${
+        className={`flex flex-col min-h-screen bg-secondary w-72 fixed hidden lg:block lg:static transform ${
           isOpen ? "translate-x-0" : "-translate-x-full"
         } transition-transform duration-300 lg:translate-x-0`}
       >
@@ -214,7 +229,7 @@ const AdminSidebar = () => {
 
       {/* Main Content */}
       <div
-        className="flex-1 p-4 mt-10 lg:mt-0"
+        className="flex-1 p-4 mt-10 lg:mt-0 max-sm:overflow-x-hidden"
         onClick={() => setIsOpen(false)}
       >
         {active === "Dashboard" && <Dashboard />}

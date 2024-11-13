@@ -77,6 +77,8 @@ const Approval = () => {
       "reference2",
       "employmentLetter",
       "payslip",
+      "idCard",
+      "australian_citizenship",
     ];
 
     // Loop through each document key, open the link if it's not null

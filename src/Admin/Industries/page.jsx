@@ -109,7 +109,7 @@ const Industries = () => {
               Description
             </th>
             <th className="table-cell font-semibold p-5 max-sm:min-w-40">
-              Certificates
+              Certifications
             </th>
           </tr>
         </thead>
@@ -128,7 +128,7 @@ const Industries = () => {
                   }}
                   className="text-blue-700 underline"
                 >
-                  View Certificates
+                  View Certifications
                 </button>
               </td>
             </tr>
@@ -260,6 +260,16 @@ const Industries = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {showModal && (
+        <div className="fixed min-h-screen bg-black bg-opacity-40 w-full top-0 left-0"></div>
+      )}
+      {showCertificateModal && (
+        <div className="fixed min-h-screen bg-black bg-opacity-40 w-full top-0 left-0"></div>
+      )}
+      {viewAllCertificates && (
+        <div className="fixed min-h-screen bg-black bg-opacity-40 w-full top-0 left-0"></div>
       )}
     </div>
   );

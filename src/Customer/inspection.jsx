@@ -9,7 +9,11 @@ import FormalEducationScreen from "./screeningScreens/screen4";
 import FinalScreen from "./screeningScreens/screen5";
 import certifiedAustralia from "../assets/certifiedAustralia.png";
 import { register } from "./Services/authService";
+import { doc, getDoc } from "firebase/firestore";
+import { db } from "../firebase";
+import { auth } from "../firebase";
 import SpinnerLoader from "./components/spinnerLoader";
+import { signInWithEmailAndPassword } from "firebase/auth";
 import "./stepper.css";
 
 const Stepper = ({ steps, currentStep }) => {
@@ -191,6 +195,43 @@ const ScreeningForm = () => {
     "Final Details",
   ];
 
+  const onClickDashboard = async (e) => {
+    //login user
+    e.preventDefault();
+    setSubmissionLoading(true);
+    try {
+      // Sign in with Firebase Auth
+      const userCredential = await signInWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+      //check what is user role must be customer
+      const user = userCredential.user;
+
+      // Fetch the user's role from Firestore
+      const userDocRef = doc(db, "users", user.uid); // Assuming you store user roles in Firestore under 'users' collection
+      const userDoc = await getDoc(userDocRef);
+
+      if (userDoc.data().role !== "customer") {
+        console.log(userDoc.data().role);
+        setSubmissionLoading(false);
+        alert("Invalid email or password");
+        return;
+      }
+
+      setSubmissionLoading(false);
+
+      // Redirect to dashboard
+      navigate("/");
+    } catch (err) {
+      alert("Invalid email or password");
+      console.error("Login error:", err);
+
+      setSubmissionLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen">
       {loading && <Loader />}
@@ -306,14 +347,10 @@ const ScreeningForm = () => {
             <div className="modal-action">
               <button
                 className="btn btn-primary text-white"
-                onClick={() => {
-                  setIsDialogOpen(false);
-                  navigate("/login");
-                }}
+                onClick={onClickDashboard}
               >
-                Login to Your Account
+                Go to Dashboard
               </button>
-         
             </div>
           </div>
         </dialog>

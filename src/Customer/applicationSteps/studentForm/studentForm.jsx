@@ -192,9 +192,9 @@ const StudentIntakeForm = () => {
       setSubmissionLoading(false);
       //do timeout of 3 seconds to show success message
       setTimeout(() => {
-        navigate("/login");
+        navigate("/");
       }, 1000);
-      navigate("/login");
+      navigate("/");
     } catch (error) {
       setSubmissionLoading(false);
       console.error("Error submitting form:", error);
@@ -202,7 +202,7 @@ const StudentIntakeForm = () => {
   };
 
   return (
-    <div>
+    <div className="max-sm:mt-28">
       <Navbar />
       {submissionLoading && <SpinnerLoader />}
       <Toaster />

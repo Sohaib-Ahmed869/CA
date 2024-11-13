@@ -25,7 +25,6 @@ import Loader from "../components/loader";
 import Footer from "../components/footer";
 import { initiateVerificationCall } from "../Services/twilioService";
 
-
 import certificate from "../../assets/certificate.pdf";
 import applicationsimg from "../../assets/applications.png";
 
@@ -142,14 +141,13 @@ const ExistingApplications = () => {
     }
   };
 
-
   return (
     <div>
       {loading && <Loader />}
       {submissionLoading && <SpinnerLoader />}
       <Navbar />
       <div className="p-3 lg:p-20 overflow-x-auto">
-        <div className="flex items-center gap-4 mb-5 lg:flex-row flex-col">
+        <div className="flex items-center gap-4 mb-5 lg:flex-row flex-col max-sm:mt-24">
           <img src={applicationsimg} alt="Applications" className="h-36" />
           <div className="flex flex-col lg:w-1/2 w-full">
             <h1 className="text-3xl font-bold max-sm:text-xl">Applications</h1>
@@ -173,166 +171,182 @@ const ExistingApplications = () => {
             Refresh
           </button>
         </div>
-        <div className="table mx-auto max-sm:max-w-screen-sm sm:overflow-x-auto">
-          <div className="table-row-group mx-auto">
-            <div className="table-row bg-gray-200">
-              <div className="table-cell font-semibold p-5 max-sm:min-w-40">
-                Application ID
-              </div>
-              <div className="table-cell font-semibold max-sm:min-w-40">
-                Date Created
-              </div>
-              <div className="table-cell font-semibold text-center max-sm:min-w-96">
-                Status
-              </div>
-              <div className="table-cell font-semibold text-center max-sm:min-w-40">
-                Payment Status
-              </div>
-              <div className="table-cell font-semibold max-sm:min-w-40">
-                Payment Date
-              </div>
-              <div className="table-cell font-semibold max-sm:min-w-40 text-center">
-                Actions
-              </div>
-            </div>
-            {applications.map((application) => (
-              <div key={application.id} className="table-row">
-                <div className="table-cell p-5">{application.id}</div>
-                <div className="table-cell">
-                  {application.status[0].time ? (
-                    application.status[0].time.split("T")[0]
-                  ) : (
-                    <span className="text-sm">N/A</span>
-                  )}
+        <div className="max-sm:max-w-[500px] overflow-y-auto overflow-x-auto border border-gray-300 rounded-md p-3">
+          <div className="table mx-auto max-sm:overflow-x-auto">
+            <div className="table-row-group">
+              <div className="table-row bg-gray-200">
+                <div className="table-cell font-semibold p-5 min-w-40">
+                  Application ID
                 </div>
-                <div className="w-full p-2 flex items-center justify-center sm:flex-col">
-                  {application.currentStatus === "Sent to RTO" ? (
-                    <div className="p-1 text rounded-full bg-red-600 text-white flex items-center justify-center w-2/3 gap-2">
-                      <BsArrowUpRight className="text-white" />
-                      Waiting Approval
-                    </div>
-                  ) : application.currentStatus ===
-                    "Waiting for Verification" ? (
-                    <div className="p-1 rounded-full bg-yellow-300 text-black flex items-center justify-center w-2/3 gap-2">
-                      <BsClock className="text-black" />
-                      {application.currentStatus}
-                    </div>
-                  ) : application.currentStatus === "Waiting for Payment" ? (
-                    <div className="p-1 rounded-full bg-green-400 text-white flex items-center justify-center w-2/3 gap-2">
-                      <BsClock className="text-white" />
-                      {application.currentStatus}
-                    </div>
-                  ) : application.currentStatus === "Student Intake Form" ? (
-                    <div className="p-1 rounded-full bg-blue-900 text-white flex items-center justify-center w-2/3 gap-2">
-                      <BiUser className="text-white" />
-                      {application.currentStatus}
-                    </div>
-                  ) : application.currentStatus === "Upload Documents" ? (
-                    <div className="p-1 rounded-full bg-red-900 text-white flex items-center justify-center w-2/3 gap-2">
-                      <BiUpload className="text-white" />
-                      {application.currentStatus}
-                    </div>
-                  ) : application.currentStatus === "Certificate Generated" ? (
-                    <div className="p-1 rounded-full bg-primary text-white flex items-center justify-center w-2/3 gap-2">
-                      <FaCertificate className="text-white" />
-                      {application.currentStatus}
-                    </div>
-                  ) : application.currentStatus === "Dispatched" ? (
-                    <div className="p-1 rounded-full bg-black text-white flex items-center justify-center w-2/3 gap-2">
-                      <BsTruck className="text-white" />
-                      {application.currentStatus}
-                    </div>
-                  ) : (
-                    application.currentStatus === "Completed" && (
-                      <div className="p-1 rounded-full bg-green-500 text-white flex items-center justify-center w-2/3 gap-2">
-                        <BiCheck className="text-white" />
+                <div className="table-cell font-semibold min-w-40">
+                  Date Created
+                </div>
+                <div className="table-cell font-semibold min-w-40">
+                  Certification
+                </div>
+                <div className="table-cell font-semibold text-center min-w-96">
+                  Status
+                </div>
+                <div className="table-cell font-semibold text-center min-w-40">
+                  Payment Status
+                </div>
+                <div className="table-cell font-semibold min-w-48">
+                  Payment Date
+                </div>
+                <div className="table-cell font-semibold  text-center">
+                  Actions
+                </div>
+              </div>
+              {applications.map((application) => (
+                <div
+                  key={application.id}
+                  className="table-row max-sm:overflow-x-auto"
+                >
+                  <div className="table-cell p-5">{application.id}</div>
+                  <div className="table-cell">
+                    {application.status[0].time ? (
+                      application.status[0].time.split("T")[0]
+                    ) : (
+                      <span className="text-sm">N/A</span>
+                    )}
+                  </div>
+                  <div className="table-cell">
+                    {application.initialForm.lookingForWhatQualification}
+                  </div>
+                  <div className="w-full p-2 flex items-center justify-center sm:flex-col min-w-96">
+                    {application.currentStatus === "Sent to RTO" ? (
+                      <div className="p-1 text rounded-full bg-red-600 text-white flex items-center justify-center w-2/3 gap-2">
+                        <BsArrowUpRight className="text-white" />
+                        Waiting Approval
+                      </div>
+                    ) : application.currentStatus ===
+                      "Waiting for Verification" ? (
+                      <div className="p-1 rounded-full bg-yellow-300 text-black flex items-center justify-center w-2/3 gap-2">
+                        <BsClock className="text-black" />
                         {application.currentStatus}
                       </div>
-                    )
-                  )}
-                </div>
-                <div className="table-cell p-2">
-                  {application.paid ? (
-                    <BiCheckCircle className="text-green-500 text-xl text-center w-full" />
-                  ) : (
-                    <FaTimesCircle className="text-red-500 text-xl text-center w-full" />
-                  )}
-                </div>
-                <div className="table-cell p-2">
-                  {application.paymentDate
-                    ? application.paymentDate.toDateString()
-                    : "N/A"}
-                </div>
-                <div className="flex w-full justify-center">
-                  {application.currentStatus ===
-                  "Sent to RTO" ? null : application.currentStatus ===
-                    "Waiting for Payment" ? (
-                    <button
-                      className="btn btn-sm text-white btn-primary"
-                      onClick={() =>
-                        onClickPayment(application.price, application.id)
-                      }
-                    >
-                      <MdPayment />
-                      Pay Now
-                    </button>
-                  ) : application.currentStatus ===
-                    "Waiting for Verification" ? (
-                    <button className="btn btn-sm text-white btn-primary"   onClick={() => handleVerifyNow(application.id)}>
-                      <IoCall />
-                      Verify Now
-                    </button>
-                  ) : application.currentStatus === "Student Intake Form" ? (
-                    <button
-                      className="btn btn-sm text-white btn-primary"
-                      onClick={() => onClickStudentForm(application.id)}
-                    >
-                      <GrFormAdd />
-                      Fill Form
-                    </button>
-                  ) : application.currentStatus === "Upload Documents" ? (
-                    <button
-                      className="btn btn-sm text-white btn-primary"
-                      onClick={() => onClickUpload(application.id)}
-                    >
-                      <BiUpload /> Upload
-                    </button>
-                  ) : application.currentStatus === "Certificate Generated" ? (
-                    <button
-                      className="btn btn-sm text-white btn-primary"
-                      onClick={() => onClickDownload(application.certificateId)}
-                    >
-                      <BiDownload /> Download
-                    </button>
-                  ) : application.currentStatus === "Dispatched" ? (
-                    <div className="flex gap-2 max-sm:flex-col">
-                      <button className="btn btn-sm text-white btn-primary">
-                        <CgTrack /> Track
+                    ) : application.currentStatus === "Waiting for Payment" ? (
+                      <div className="p-1 rounded-full bg-green-400 text-white flex items-center justify-center w-2/3 gap-2">
+                        <BsClock className="text-white" />
+                        {application.currentStatus}
+                      </div>
+                    ) : application.currentStatus === "Student Intake Form" ? (
+                      <div className="p-1 rounded-full bg-blue-900 text-white flex items-center justify-center w-2/3 gap-2">
+                        <BiUser className="text-white" />
+                        {application.currentStatus}
+                      </div>
+                    ) : application.currentStatus === "Upload Documents" ? (
+                      <div className="p-1 rounded-full bg-red-900 text-white flex items-center justify-center w-2/3 gap-2">
+                        <BiUpload className="text-white" />
+                        {application.currentStatus}
+                      </div>
+                    ) : application.currentStatus ===
+                      "Certificate Generated" ? (
+                      <div className="p-1 rounded-full bg-primary text-white flex items-center justify-center w-2/3 gap-2">
+                        <FaCertificate className="text-white" />
+                        {application.currentStatus}
+                      </div>
+                    ) : application.currentStatus === "Dispatched" ? (
+                      <div className="p-1 rounded-full bg-black text-white flex items-center justify-center w-2/3 gap-2">
+                        <BsTruck className="text-white" />
+                        {application.currentStatus}
+                      </div>
+                    ) : (
+                      application.currentStatus === "Completed" && (
+                        <div className="p-1 rounded-full bg-green-500 text-white flex items-center justify-center w-2/3 gap-2">
+                          <BiCheck className="text-white" />
+                          {application.currentStatus}
+                        </div>
+                      )
+                    )}
+                  </div>
+                  <div className="table-cell p-2">
+                    {application.paid ? (
+                      <BiCheckCircle className="text-green-500 text-xl text-center w-full" />
+                    ) : (
+                      <FaTimesCircle className="text-red-500 text-xl text-center w-full" />
+                    )}
+                  </div>
+                  <div className="table-cell p-2">
+                    {application.paymentDate
+                      ? application.paymentDate.toDateString()
+                      : "N/A"}
+                  </div>
+                  <div className="flex w-full justify-center max-sm:flex-col">
+                    {application.currentStatus ===
+                    "Sent to RTO" ? null : application.currentStatus ===
+                      "Waiting for Payment" ? (
+                      <button
+                        className="btn btn-sm text-white btn-primary"
+                        onClick={() =>
+                          onClickPayment(application.price, application.id)
+                        }
+                      >
+                        <MdPayment className="max-sm:hidden" />
+                        Pay Now
                       </button>
-                      <button className="btn btn-sm text-white btn-primary">
+                    ) : application.currentStatus ===
+                      "Waiting for Verification" ? //   <button onClick={() => handleVerifyNow(application.id)}> //    ( //   className="btn btn-sm text-white btn-primary"
+                    //     <IoCall />
+                    //     Verify Now
+                    //   </button>
+                    // )
+                    null : application.currentStatus ===
+                      "Student Intake Form" ? (
+                      <button
+                        className="btn btn-sm text-white btn-primary"
+                        onClick={() => onClickStudentForm(application.id)}
+                      >
+                        <GrFormAdd />
+                        Fill Form
+                      </button>
+                    ) : application.currentStatus === "Upload Documents" ? (
+                      <button
+                        className="btn btn-sm text-white btn-primary"
+                        onClick={() => onClickUpload(application.id)}
+                      >
+                        <BiUpload className="max-sm:hidden" /> Upload
+                      </button>
+                    ) : application.currentStatus ===
+                      "Certificate Generated" ? (
+                      <button
+                        className="btn btn-sm text-white btn-primary"
+                        onClick={() =>
+                          onClickDownload(application.certificateId)
+                        }
+                      >
                         <BiDownload /> Download
                       </button>
-                    </div>
-                  ) : (
-                    application.currentStatus === "Completed" && (
+                    ) : application.currentStatus === "Dispatched" ? (
                       <div className="flex gap-2 max-sm:flex-col">
-                        <button
-                          className="btn btn-sm text-white btn-primary"
-                          onClick={() =>
-                            onClickDownload(application.certificateId)
-                          }
-                        >
-                          <BiDownload /> Download
+                        <button className="btn btn-sm text-white btn-primary">
+                          <CgTrack /> Track
                         </button>
                         <button className="btn btn-sm text-white btn-primary">
-                          <BsEye /> View
+                          <BiDownload /> Download
                         </button>
                       </div>
-                    )
-                  )}
+                    ) : (
+                      application.currentStatus === "Completed" && (
+                        <div className="flex gap-2 max-sm:flex-col">
+                          <button
+                            className="btn btn-sm text-white btn-primary"
+                            onClick={() =>
+                              onClickDownload(application.certificateId)
+                            }
+                          >
+                            <BiDownload /> Download
+                          </button>
+                          <button className="btn btn-sm text-white btn-primary">
+                            <BsEye /> View
+                          </button>
+                        </div>
+                      )
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
       </div>
@@ -341,7 +355,13 @@ const ExistingApplications = () => {
           <div className="modal-box">
             <h3 className="font-bold text-lg">Payment Details</h3>
             <div className="py-4">
-              <PaymentPage price={price} applicationId={applicationId} />
+              <PaymentPage
+                price={price}
+                applicationId={applicationId}
+                setShowCheckoutModal={setShowCheckoutModal}
+                getUserApplications={getUserApplications}
+                userId={userId}
+              />
               <button
                 className="btn bg-red-500 hover:bg-red-600 btn-primary w-full mt-4"
                 onClick={() => setShowCheckoutModal(false)}
