@@ -181,8 +181,11 @@ const ExistingApplications = () => {
                 <div className="table-cell font-semibold min-w-40">
                   Date Created
                 </div>
-                <div className="table-cell font-semibold min-w-40">
+                <div className="table-cell font-semibold w-52 text-center">
                   Certification
+                </div>
+                <div className="table-cell font-semibold min-w-40 text-center">
+                  Industry
                 </div>
                 <div className="table-cell font-semibold text-center min-w-96">
                   Status
@@ -190,9 +193,7 @@ const ExistingApplications = () => {
                 <div className="table-cell font-semibold text-center min-w-40">
                   Payment Status
                 </div>
-                <div className="table-cell font-semibold min-w-48">
-                  Payment Date
-                </div>
+
                 <div className="table-cell font-semibold  text-center">
                   Actions
                 </div>
@@ -202,7 +203,11 @@ const ExistingApplications = () => {
                   key={application.id}
                   className="table-row max-sm:overflow-x-auto"
                 >
-                  <div className="table-cell p-5">{application.id}</div>
+                  <div className="table-cell p-5">
+                    {application.applicationId
+                      ? application.applicationId
+                      : application.id}
+                  </div>
                   <div className="table-cell">
                     {application.status[0].time ? (
                       application.status[0].time.split("T")[0]
@@ -213,12 +218,27 @@ const ExistingApplications = () => {
                   <div className="table-cell">
                     {application.initialForm.lookingForWhatQualification}
                   </div>
+                  <div className="table-cell text-center">
+                    {application.initialForm.industry}
+                  </div>
                   <div className="w-full p-2 flex items-center justify-center sm:flex-col min-w-96">
                     {application.currentStatus === "Sent to RTO" ? (
-                      <div className="p-1 text rounded-full bg-red-600 text-white flex items-center justify-center w-2/3 gap-2">
-                        <BsArrowUpRight className="text-white" />
-                        Waiting Approval
-                      </div>
+                      application.paid ? (
+                        <div className="p-1 text rounded-full bg-red-600 text-white flex items-center justify-center w-2/3 gap-2">
+                          <BsArrowUpRight className="text-white" />
+                          Waiting Approval
+                        </div>
+                      ) : (
+                        <div
+                          className="p-1 rounded-full bg-red-700 text-white flex items-center justify-center w-2/3 gap-2"
+                          onClick={() =>
+                            onClickPayment(application.price, application.id)
+                          }
+                        >
+                          <MdPayment className="text-white" />
+                          Payment Awaiting
+                        </div>
+                      )
                     ) : application.currentStatus ===
                       "Waiting for Verification" ? (
                       <div className="p-1 rounded-full bg-yellow-300 text-black flex items-center justify-center w-2/3 gap-2">
@@ -228,7 +248,7 @@ const ExistingApplications = () => {
                     ) : application.currentStatus === "Waiting for Payment" ? (
                       <div className="p-1 rounded-full bg-green-400 text-white flex items-center justify-center w-2/3 gap-2">
                         <BsClock className="text-white" />
-                        {application.currentStatus}
+                        <p className="text-white">Payment Awaiting</p>
                       </div>
                     ) : application.currentStatus === "Student Intake Form" ? (
                       <div className="p-1 rounded-full bg-blue-900 text-white flex items-center justify-center w-2/3 gap-2">
@@ -267,37 +287,40 @@ const ExistingApplications = () => {
                       <FaTimesCircle className="text-red-500 text-xl text-center w-full" />
                     )}
                   </div>
-                  <div className="table-cell p-2">
-                    {application.paymentDate
-                      ? application.paymentDate.toDateString()
-                      : "N/A"}
-                  </div>
-                  <div className="flex w-full justify-center max-sm:flex-col">
-                    {application.currentStatus ===
-                    "Sent to RTO" ? null : application.currentStatus ===
-                      "Waiting for Payment" ? (
+
+                  <div className="flex  justify-center flex-col gap-2 w-40">
+                    {application.currentStatus === "Sent to RTO" ? (
+                      application.paid === false ? (
+                        <button
+                          className="btn btn-sm text-white btn-primary"
+                          onClick={() =>
+                            onClickPayment(application.price, application.id)
+                          }
+                        >
+                          Pay Now
+                        </button>
+                      ) : null
+                    ) : null}
+
+                    {application.paid === false &&
+                    application.currentStatus !== "Sent to RTO" ? (
                       <button
                         className="btn btn-sm text-white btn-primary"
                         onClick={() =>
                           onClickPayment(application.price, application.id)
                         }
                       >
-                        <MdPayment className="max-sm:hidden" />
                         Pay Now
                       </button>
-                    ) : application.currentStatus ===
-                      "Waiting for Verification" ? //   <button onClick={() => handleVerifyNow(application.id)}> //    ( //   className="btn btn-sm text-white btn-primary"
-                    //     <IoCall />
-                    //     Verify Now
-                    //   </button>
-                    // )
-                    null : application.currentStatus ===
+                    ) : null}
+
+                    {application.currentStatus ===
+                    "Waiting for Verification" ? null : application.currentStatus === // ) //   </button> //     Verify Now //     <IoCall /> //   <button onClick={() => handleVerifyNow(application.id)}> //    ( //   className="btn btn-sm text-white btn-primary"
                       "Student Intake Form" ? (
                       <button
                         className="btn btn-sm text-white btn-primary"
                         onClick={() => onClickStudentForm(application.id)}
                       >
-                        <GrFormAdd />
                         Fill Form
                       </button>
                     ) : application.currentStatus === "Upload Documents" ? (

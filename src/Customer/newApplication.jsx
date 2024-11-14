@@ -7,7 +7,7 @@ import Screen2 from "./screeningScreens/screen2";
 import StateScreen from "./screeningScreens/screen3";
 import FormalEducationScreen from "./screeningScreens/screen4";
 import FinalScreen from "./screeningScreens/screen5";
-import certifiedAustralia from "../assets/certifiedAustralia.png";
+import certifiedAustralia from "../assets/certifiedAustraliaBlack.png";
 import { auth } from "../firebase";
 import { onAuthStateChanged } from "firebase/auth";
 import { createNewApplication } from "./Services/customerApplication";
@@ -177,7 +177,7 @@ const ScreeningForm2 = () => {
         <img
           src={certifiedAustralia}
           alt="Certified Australia"
-          className="mb-2"
+          className="mb-2 h-28"
         />
         <p className="text-sm text-gray-500 mb-4">
           Get Certified Fast - Recognise Your Skills Today!

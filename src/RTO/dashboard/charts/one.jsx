@@ -10,7 +10,7 @@ const options = {
   series: [
     {
       name: "Completed",
-      color: "#089C34",
+      color: "#009934",
       data: [
         { x: "Mon", y: 231 },
         { x: "Tue", y: 122 },

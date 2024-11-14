@@ -17,18 +17,18 @@ import customer from "../../assets/customer.png";
 import { getApplications } from "../Services/customerApplication";
 import SpinnerLoader from "./spinnerLoader";
 
-const Timeline = ({ timeline, applicationId, applicationName }) => (
+const Timeline = ({ timeline, applicationId, applicationName, paid }) => (
   <div className="p-3 lg:p-4 mt-28 md:mt-3 lg:mt-10 w-full border-b-2 border-t-2 lg:pl-10 lg:pr-10 max-sm:mt-5">
     <div className="flex lg:flex-row flex-col justify-between lg:items-center items-center">
       <p className="text-md  text-left">
         Applicaiton ID: <span className="font-semibold">{applicationId}</span>
       </p>
       <p className="text-md  text-left">
-        Looking for: <span className="font-semibold">{applicationName}</span>
+        Applying for: <span className="font-semibold">{applicationName}</span>
       </p>
 
       <p className="text-sm text-gray-800">
-        ({timeline.filter((t) => t.time).length}/{timeline.length}) steps
+        ({timeline.filter((t) => t.time).length + 1}/{timeline.length}) steps
         completed
       </p>
     </div>
@@ -41,7 +41,13 @@ const Timeline = ({ timeline, applicationId, applicationName }) => (
           >
             <div className="flex flex-col items-center mr-4">
               <div className="text-4xl max-sm:text-2xl">
-                {item.time ? (
+                {item.statusname === "Payment Awaiting" ? (
+                  paid ? (
+                    <BiCheck className=" bg-green-500 rounded-full p-1" />
+                  ) : (
+                    <BsClock className="text-white bg-red-500 rounded-full p-1" />
+                  )
+                ) : item.time ? (
                   <BiCheck className=" bg-green-500 rounded-full p-1" />
                 ) : (
                   <BsClock className="text-gray-500 bg-gray-200 rounded-full p-1" />
@@ -52,7 +58,24 @@ const Timeline = ({ timeline, applicationId, applicationName }) => (
               )}
             </div>
             <div className="text-md ">
-              <p className="font-medium">{item.statusname}</p>
+              <p className="font-medium">
+                {item.statusname === "Waiting for Documents" ? "Evidence Submission" : null}
+                {item.statusname === "Student Intake Form"
+                  ? "Inquiry"
+                  : null}
+                {item.statusname === "Payment Awaiting"
+                  ? paid
+                    ? "Payment Received"
+                    : "Payment Awaiting"
+                  : null}
+                {item.statusname === "Sent to RTO"
+                  ? (paid ? "Sent for RTO Assessment" : "Documents Uploaded")
+                  : null}
+                {item.statusname === "Certificate Generated"
+                  ? "Completed"
+                  : null}
+                {item.statusname === "Rejected" ? "Application Rejected" : null}
+              </p>
             </div>
           </div>
         ))}
@@ -89,12 +112,11 @@ const CustomerDashboard = () => {
   }, [navigate]);
 
   const statuses = [
-    "Waiting for Verification",
-    "Waiting for Payment",
+    "Payment Awaiting",
     "Student Intake Form",
     "Waiting for Documents",
     "Sent to RTO",
-    "Certificated Generated",
+    "Certificate Generated",
   ];
 
   const fetchApplicationsData = async () => {
@@ -108,6 +130,7 @@ const CustomerDashboard = () => {
           ? applicationsData[applicationsData.length - 1]
           : null
       );
+      console.log("Last Application:", lastApplication);
     } catch (error) {
       console.error("Failed to fetch applications:", error);
     }
@@ -145,10 +168,11 @@ const CustomerDashboard = () => {
           {lastApplication ? (
             <Timeline
               timeline={timeline}
-              applicationId={lastApplication.id}
+              applicationId={lastApplication.applicationId}
               applicationName={
                 lastApplication.initialForm.lookingForWhatQualification
               }
+              paid={lastApplication.paid}
             />
           ) : (
             <p className="">No applications found.</p>
@@ -171,7 +195,7 @@ const CustomerDashboard = () => {
             {lastApplication ? (
               <Timeline
                 timeline={timeline}
-                applicationId={lastApplication.id}
+                applicationId={lastApplication.applicationId}
               />
             ) : (
               <p className="">No applications found.</p>
@@ -184,9 +208,7 @@ const CustomerDashboard = () => {
             >
               <FaPlusCircle className="text-primary mb-4 text-2xl md:text-5xl" />
               <h2 className="text-xl font-semibold mb-2 ">New Application</h2>
-              <p className="">
-                Start a new application for the desired service.
-              </p>
+              <p className="">Start a new application.</p>
             </div>
             <div
               className="bg-white rounded-lg shadow-lg p-6 flex flex-col items-center text-center hover:scale-105 transition-transform duration-300 cursor-pointer"

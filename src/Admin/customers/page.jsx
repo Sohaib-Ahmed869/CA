@@ -4,6 +4,8 @@ import { FaTimesCircle } from "react-icons/fa";
 import { BsEye } from "react-icons/bs";
 import { BiDownload } from "react-icons/bi";
 import { BiEnvelopeOpen } from "react-icons/bi";
+import { FaArrowRightLong } from "react-icons/fa6";
+import { FaTimes } from "react-icons/fa";
 
 import { BsArrowUpRight } from "react-icons/bs";
 import { BsClock } from "react-icons/bs";
@@ -31,11 +33,232 @@ import {
   verifyApplication,
 } from "../../Customer/Services/adminServices";
 
+import { initiateVerificationCall } from "../../Customer/Services/twilioService";
+
+const Application = ({ application, setSelectedApplication }) => {
+  const [viewIntakeForm, setViewIntakeForm] = useState(false);
+  const [viewDocuments, setViewDocuments] = useState(false);
+  const [documentLinks, setDocumentLinks] = useState([]);
+
+  const onClickViewDocuments = async () => {
+    console.log("Viewing documents for application with ID:", application);
+
+    // List of document keys to check in application.document
+    const documentKeys = [
+      "license",
+      "passport",
+      "birth_certificate",
+      "medicare",
+      "creditcard",
+      "resume",
+      "previousQualifications",
+      "reference1",
+      "reference2",
+      "employmentLetter",
+      "payslip",
+      "idCard",
+      "australian_citizenship",
+    ];
+
+    // Loop through each document key, open the link if it's not null
+    const links = documentKeys
+      .map((docKey) => ({
+        name: docKey,
+        url: application.document[docKey],
+      }))
+      .filter((doc) => doc.url); // Filter out null/undefined URLs
+
+    setDocumentLinks(links);
+    setViewDocuments(true);
+  };
+
+  return (
+    <div className="min-h-screen">
+      <button onClick={() => setSelectedApplication(null)} className="btn-sm">
+        Back
+      </button>
+      <div className="flex flex-col items-center justify-center p-16">
+        <div className="col-span-4 text-center">
+          <h1 className="text-2xl font-bold text-gray-800">
+            Application# {application.applicationId}
+          </h1>
+          <p className="text-sm text-gray-500">
+            This application was submitted by {application.user.firstName}{" "}
+            {application.user.lastName} on{" "}
+            {application.status[0].time.split("T")[0]}
+          </p>
+          <h1 className="text-lg font-semibold text-gray-800 mt-4">
+            {application.isf.lookingForWhatQualification}
+          </h1>
+        </div>
+
+        <div className="col-span-4 bg-white p-4 rounded-lg shadow-lg w-full">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="text-sm text-gray-500">
+              <h2 className="text-lg font-semibold text-gray-800">
+                Initial Screening Information
+              </h2>
+              <p>First Name: {application.user.firstName}</p>
+              <p>Last Name: {application.user.lastName}</p>
+              <p>Email: {application.user.email}</p>
+              <p>Country: {application.user.country}</p>
+              <p>State: {application.isf.state}</p>
+              <p>Industry: {application.isf.industry}</p>
+              <p>Qualification: {application.isf.qualification || "N/A"}</p>
+              <p>Years of Experience: {application.isf.yearsOfExperience}</p>
+              <p>
+                Location of Experience: {application.isf.locationOfExperience}
+              </p>
+              <p>
+                Formal Education:{" "}
+                {application.isf.formalEducation ? "Yes" : "No"} -{" "}
+                {application.isf.formalEducationAnswer || "N/A"}
+              </p>
+
+              <p>
+                Terms and Conditions:{" "}
+                {application.user.toc ? "Agreed" : "Not Agreed"}
+              </p>
+            </div>
+            <div className="text-sm text-gray-500 flex justify-end">
+              <button
+                onClick={onClickViewDocuments}
+                className="btn-sm rounded-xl flex items-center gap-2 bg-gray-200 px-4 py-2 m-2"
+              >
+                View Documents
+              </button>
+              <button
+                onClick={() => setViewIntakeForm(true)}
+                className="btn-sm rounded-xl flex items-center gap-2 bg-gray-200 px-4 py-2 m-2"
+              >
+                View Intake Form
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {viewIntakeForm && (
+          <dialog className="modal modal-open">
+            <div className="col-span-4 bg-white p-4 rounded-lg shadow-lg w-1/2">
+              <button
+                onClick={() => setViewIntakeForm(false)}
+                className="mt-4 mr-4 float-right"
+              >
+                <FaTimes className="text-lg" />
+              </button>
+              <div className="flex justify-between items-center">
+                <h2 className="text-lg font-semibold text-gray-800">
+                  Student Intake Form
+                </h2>
+                {/* <button
+                  onClick={onClickDownloadIntakeForm}
+                  className=" text-black btn-sm rounded-xl flex items-center gap-2 bg-gray-200 px-4 py-2 m-2 disabled:opacity-50"
+                >
+                  <GrDocumentDownload />
+                  Download Intake Form
+                </button> */}
+              </div>
+              <div className="grid grid-cols-1 gap-4">
+                <div className="text-md text-gray-500 ">
+                  <h2 className="text-lg font-semibold text-gray-800 mt-4">
+                    Personal Information
+                  </h2>
+                  <div className="text-md text-gray-500 grid grid-cols-2">
+                    <p>First Name: {application.user.firstName}</p>
+                    <p>Last Name: {application.user.lastName}</p>
+                    <p>USI: {application.sif.USI}</p>
+                    <p>Gender: {application.sif.gender}</p>
+                    <p className=" text-gray-500">
+                      Date of Birth: {application.sif.dob}
+                    </p>
+                    <p>Home Address: {application.sif.homeAddress}</p>
+                    <p>Suburb: {application.sif.suburb}</p>
+                    <p>Postcode: {application.sif.postcode}</p>
+                    <p>Country: {application.user.country}</p>
+                    <p>State: {application.sif.state}</p>
+
+                    <p className=" text-gray-500">
+                      Location Of Experience:{" "}
+                      {application.isf.locationOfExperience}
+                    </p>
+                  </div>
+                  <h2 className="text-lg font-semibold text-gray-800 mt-4">
+                    Contact Information
+                  </h2>
+                  <div className="text-md text-gray-500 grid grid-cols-2">
+                    <p>Email: {application.user.email}</p>
+                    <p>Phone: {application.sif.contactNumber}</p>
+                  </div>
+
+                  <h2 className="text-lg font-semibold text-gray-800 mt-4">
+                    Education
+                  </h2>
+                  <div className="text-md text-gray-500 grid grid-cols-2">
+                    <p>
+                      Credits Transfer:{" "}
+                      {application.sif.creditsTransfer ? "Yes" : "No"}
+                    </p>
+
+                    <p>
+                      Year of Completion:{" "}
+                      {application.sif.YearCompleted || "N/A"}
+                    </p>
+                    <p>
+                      Highest Level of Education:{" "}
+                      {application.sif.nameOfQualification || "N/A"}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </dialog>
+        )}
+        {viewDocuments && (
+          <dialog className="modal modal-open text-lg" id="documentLinksModal">
+            <div className="col-span-4 bg-white p-4 rounded-lg shadow-lg">
+              <button
+                onClick={() => setViewDocuments(false)}
+                className="mt-4 mr-4 float-right"
+              >
+                <FaTimes className="text-lg" />
+              </button>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="text-sm text-gray-500">
+                  <h2 className="text-lg font-semibold text-gray-800">
+                    Documents
+                  </h2>
+                  {documentLinks.length === 0 && (
+                    <p>No documents uploaded for this application</p>
+                  )}
+                  {documentLinks.map((doc, index) => (
+                    <p key={index}>
+                      <a
+                        href={doc.url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-blue-500 underline"
+                      >
+                        {doc.name}
+                      </a>
+                    </p>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </dialog>
+        )}
+      </div>
+    </div>
+  );
+};
+
 const CustomersInfo = () => {
   const navigate = useNavigate();
   const [submissionLoading, setSubmissionLoading] = useState(false);
   const [applications, setApplications] = useState([]);
-  const statuses = ["Verified", "Unverified"];
+
+  const [search, setSearch] = useState("");
   const [loading, setLoading] = React.useState(true);
 
   React.useEffect(() => {
@@ -72,9 +295,7 @@ const CustomersInfo = () => {
       let applicationsData = await getApplications();
       //filter applications based on status which are not in Waiting for Verification
       setApplications(applicationsData);
-      setFilteredApplications(
-        applicationsData.filter((app) => app.verified === false)
-      );
+      setFilteredApplications(applicationsData);
       setSubmissionLoading(false);
     } catch (error) {
       setSubmissionLoading(false);
@@ -91,22 +312,6 @@ const CustomersInfo = () => {
     } catch (error) {
       console.error("Failed to verify application:", error);
       setSubmissionLoading(false);
-    }
-  };
-
-  const filterApplications = (status) => {
-    setActiveStatus(status);
-    if (status === "All") {
-      setFilteredApplications(applications);
-    } else {
-      if (status === "Verified") {
-        let filtered = applications.filter((app) => app.verified === true);
-        setFilteredApplications(filtered);
-      }
-      if (status === "Unverified") {
-        let filtered = applications.filter((app) => app.verified === false);
-        setFilteredApplications(filtered);
-      }
     }
   };
 
@@ -134,6 +339,36 @@ const CustomersInfo = () => {
     return () => clearInterval(interval);
   };
 
+  const searchByIDorName = () => {
+    if (search === "") {
+      setFilteredApplications(applications);
+      return;
+    }
+    let searchValue = search.toLowerCase();
+    let filtered = applications.filter(
+      (app) =>
+        app.applicationId?.toLowerCase().includes(searchValue) ||
+        app.user?.firstName?.toLowerCase().includes(searchValue) ||
+        app.user?.lastName?.toLowerCase().includes(searchValue)
+    );
+    setFilteredApplications(filtered);
+  };
+  useEffect(() => {
+    //search applications by ID or Name
+    searchByIDorName();
+  }, [search]);
+
+  const onClickInitiateCall = async (applicationId) => {
+    try {
+      setSubmissionLoading(true);
+      await initiateVerificationCall(applicationId);
+      setSubmissionLoading(false);
+    } catch (error) {
+      console.error("Error initiating verification call:", error);
+      setSubmissionLoading(false);
+    }
+  };
+
   return (
     <div className="">
       {loading && <Loader />}
@@ -150,34 +385,20 @@ const CustomersInfo = () => {
               </p>
             </div>
           </div>
-          <div className="grid grid-cols-1 gap-4 lg:grid-cols-3 mb-5">
-            <div className="flex items-center gap-2 ">
-              <button
-                className={`px-8 py-2 w-full btn rounded-xl font-normal focus:text-white hover:text-white ${
-                  activeStatus === "All"
-                    ? "btn-primary text-white"
-                    : "btn-secondary"
-                }`}
-                onClick={() => filterApplications("All")}
-              >
-                All
-              </button>
-            </div>
-            {statuses.map((status) => (
-              <div key={status} className="flex items-center gap-2">
-                <button
-                  className={`px-4 py-2 w-full rounded-xl font-normal btn  focus:text-white ${
-                    activeStatus === status
-                      ? "btn-primary text-white"
-                      : "btn-secondary"
-                  }`}
-                  onClick={() => filterApplications(status)}
-                >
-                  {status}
-                </button>
-              </div>
-            ))}
+
+          <div className="flex items-start flex-col mb-4 gap-2">
+            <label htmlFor="search" className="text-sm">
+              Search by ID or Name
+            </label>
+            <input
+              type="text"
+              id="search"
+              className="input input-bordered w-full"
+              placeholder="Search"
+              onChange={(e) => setSearch(e.target.value)}
+            />
           </div>
+
           <div className=" overflow-x-auto border border-gray-300 rounded-md">
             <div className="table mx-auto max-sm:overflow-x-auto overflow-auto">
               <thead>
@@ -186,6 +407,7 @@ const CustomersInfo = () => {
                   <th className="font-semibold">Date Created</th>
                   <th className="font-semibold">Customer</th>
                   <th className="font-semibold text-center">Certificate</th>
+                  <th className="font-semibold text-center">Industry</th>
                   <th className="font-semibold text-center">Status</th>
                   <th className="font-semibold text-center">Paid</th>
                   <th className="font-semibold">Actions</th>
@@ -207,7 +429,15 @@ const CustomersInfo = () => {
                     key={application.id}
                     className="animate-fade-up items-center overflow-auto"
                   >
-                    <td className="p-5">{application.id}</td>
+                    <td className="p-5 flex items-center">
+                      {application.applicationId
+                        ? application.applicationId
+                        : application.id}
+                      <BsEye
+                        className="text-blue-500 ml-2 cursor-pointer"
+                        onClick={() => setSelectedApplication(application)}
+                      />
+                    </td>
                     <td className="">
                       {application.status[0].time.split("T")[0]}
                     </td>
@@ -219,7 +449,8 @@ const CustomersInfo = () => {
                     <td className="text-center w-40">
                       {application.isf.lookingForWhatQualification}
                     </td>
-                    <td className="p-2 flex items-center justify-center flex-col">
+                    <td className="text-center">{application.isf.industry}</td>
+                    <td className="p-2 flex items-center justify-center flex-col mt-5">
                       {application.currentStatus === "Sent to RTO" ? (
                         <div className="p-1 rounded-full bg-red-600 text-white flex items-center justify-center gap-2  max-sm:text-center">
                           <BsArrowUpRight className="text-white" />
@@ -275,13 +506,19 @@ const CustomersInfo = () => {
                         <FaTimesCircle className="text-red-500 text-xl" />
                       )}
                     </td>
-                    <td>
+                    <td className="flex items-center flex-col gap-2">
+                      <button
+                        className="btn btn-primary btn-sm w-full"
+                        onClick={() => onClickInitiateCall(application.id)}
+                      >
+                        Call Now
+                      </button>
                       {application.currentStatus === "Completed" ||
                       application.currentStatus === "Dispatched" ||
                       application.currentStatus === "Certificate Generated" ? (
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 w-full">
                           <button
-                            className="btn bg-green-500 hover:bg-green-600 text-white btn-sm"
+                            className="btn bg-green-500 hover:bg-green-600 text-white btn-sm w-full"
                             onClick={onClickDownload}
                           >
                             <BiDownload className="text-white" />
@@ -289,11 +526,11 @@ const CustomersInfo = () => {
                           </button>
                         </div>
                       ) : (
-                        <div className="flex items-center gap-2 max-sm:text-sm">
+                        <div className="flex items-center gap-2 max-sm:text-sm w-full">
                           {application.verified ? null : (
-                            <div className="flex items-center gap-2 max-sm:flex-col">
+                            <div className="flex items-center gap-2 max-sm:flex-col w-full">
                               <button
-                                className="btn bg-green-500 hover:bg-green-600 text-white btn-sm flex items-center max-sm:w-full"
+                                className="btn bg-green-500 hover:bg-green-600 text-white btn-sm flex items-center max-sm:w-full w-full"
                                 onClick={() =>
                                   onVerifyApplication(application.id)
                                 }
@@ -302,12 +539,12 @@ const CustomersInfo = () => {
                                 Verify
                               </button>
                               <button
-                                className="btn bg-yelloq-500 hover:bg-yellow-600 text-black btn-sm flex max-sm:w-full"
+                                className="btn bg-yelloq-500 hover:bg-yellow-600 text-black btn-sm flex max-sm:w-full w-full"
                                 onClick={simulateCall}
                               >
                                 {text}
                               </button>
-                              <button className="btn bg-red-500 hover:bg-red-600 text-white btn-sm flex max-sm:w-full">
+                              <button className="btn bg-red-500 hover:bg-red-600 text-white btn-sm flex max-sm:w-full w-full">
                                 <FaTimesCircle className="text-white max-sm:hidden" />
                                 Reject
                               </button>
@@ -322,6 +559,12 @@ const CustomersInfo = () => {
             </div>
           </div>
         </div>
+      )}
+      {selectedApplication && (
+        <Application
+          application={selectedApplication}
+          setSelectedApplication={setSelectedApplication}
+        />
       )}
     </div>
   );
