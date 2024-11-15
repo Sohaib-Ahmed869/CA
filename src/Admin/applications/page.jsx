@@ -38,7 +38,7 @@ const ExistingApplicationsAdmin = () => {
   const [submissionLoading, setSubmissionLoading] = useState(false);
   const [applications, setApplications] = useState([]);
   const statuses = [
-    "Student Intake Form ",
+    "Student Intake Form",
     "Upload Documents",
     "Sent to RTO",
     "Certificate Generated",
@@ -135,13 +135,11 @@ const ExistingApplicationsAdmin = () => {
               </p>
             </div>
           </div>
-          <div className="flex lg:items-center gap-5 mb-14 justify-between max-sm:flex-col max-sm:w-full">
+          <div className="flex lg:items-center gap-5 mb-14 max-sm:flex-col max-sm:w-full">
             <div className="flex items-center gap-2 ">
               <button
-                className={`px-8 py-2 w-full btn rounded-xl font-normal focus:bg-blue-900 focus:text-white hover:bg-blue-900 hover:text-white ${
-                  activeStatus === "All"
-                    ? "bg-blue-900 text-white"
-                    : "bg-gray-200"
+                className={`px-8 py-2 w-full btn rounded-xl font-normal  ${
+                  activeStatus === "All" ? "btn-primary" : "btn-secondary"
                 }`}
                 onClick={() => filterApplications("All")}
               >
@@ -151,10 +149,8 @@ const ExistingApplicationsAdmin = () => {
             {statuses.map((status) => (
               <div key={status} className="flex items-center gap-2">
                 <button
-                  className={`px-4 py-2 w-full rounded-xl font-normal btn focus:bg-blue-900 focus:text-white ${
-                    activeStatus === status
-                      ? "bg-blue-900 text-white"
-                      : "bg-gray-200"
+                  className={`px-4 py-2 w-full rounded-xl font-normal btn ${
+                    activeStatus === status ? "btn-primary" : "btn-secondary"
                   }`}
                   onClick={() => filterApplications(status)}
                 >
@@ -182,7 +178,11 @@ const ExistingApplicationsAdmin = () => {
                     key={application.id}
                     className="animate-fade-up items-center"
                   >
-                    <td className="p-5">{application.id}</td>
+                    <td className="p-5">
+                      {application.applicationId
+                        ? application.applicationId
+                        : application.id}
+                    </td>
                     <td>{application.status[0].time.split("T")[0]}</td>
                     <td>
                       {application.user.firstName +

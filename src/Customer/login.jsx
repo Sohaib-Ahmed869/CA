@@ -74,6 +74,7 @@ const Login = () => {
             src={certifcation}
             alt="certification"
             className="object-cover h-full w-full"
+            onClick={() => navigate("https://certifiedaustralia.com.au/")}
           />
         </div>
         <div className="p-5 lg:p-20 mx-auto lg:w-1/2 min-h-screen flex flex-col justify-center ">

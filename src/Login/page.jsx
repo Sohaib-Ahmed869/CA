@@ -24,6 +24,7 @@ const Login = () => {
   const handleLogin = async (e) => {
     e.preventDefault();
     setSubmissionLoading(true);
+
     setError(""); // Reset error
 
     signInWithEmailAndPassword(auth, email, password)
@@ -79,7 +80,10 @@ const Login = () => {
         <img
           src={certifiedAustralia}
           alt="Certified Australia"
-          className="h-24 mt-4"
+          className="h-24 mt-4 cursor-pointer"
+          onClick={() => {
+            window.location.href = "https://certifiedaustralia.com.au/";
+          }}
         />
         <Toaster />
         <div className="flex flex-col items-center justify-center lg:mt-20 bg-white p-8 rounded-lg shadow-xl md:w-1/2 lg:w-1/4 hover:scale-105 transition-transform duration-300">

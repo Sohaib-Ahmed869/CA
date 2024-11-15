@@ -10,10 +10,14 @@ import FinalScreen from "./screeningScreens/screen5";
 import certifiedAustralia from "../assets/certifiedAustraliaBlack.png";
 import { register } from "./Services/authService";
 import { doc, getDoc } from "firebase/firestore";
+import { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 import { db } from "../firebase";
 import { auth } from "../firebase";
 import SpinnerLoader from "./components/spinnerLoader";
 import { signInWithEmailAndPassword } from "firebase/auth";
+
+
 import "./stepper.css";
 
 const Stepper = ({ steps, currentStep }) => {
@@ -114,6 +118,8 @@ const ScreeningForm = () => {
     console.log(step);
   }, [step]);
 
+  const notifyError = (message) => toast.error(message);
+
   const navigate = useNavigate();
   const handleNext = () => {
     if ((step === 0 && industry === "") || qualification === "") {
@@ -147,8 +153,29 @@ const ScreeningForm = () => {
 
   const onClickSubmit = async (e) => {
     e.preventDefault();
+
     //send data to server
     setSubmissionLoading(true);
+    if (!email || !password) {
+      setSubmissionLoading(false);
+      return notifyError("Please fill in all fields");
+    }
+
+    if (!email.includes("@" || ".")) {
+      setSubmissionLoading(false);
+      return notifyError("Invalid email address");
+    }
+
+    if (!toc) {
+      setSubmissionLoading(false);
+      return notifyError("Please agree to the terms and conditions");
+    }
+
+    if (!firstName || !lastName || !phone || !country) {
+      setSubmissionLoading(false);
+      return notifyError("Please fill in all fields");
+    }
+
     try {
       const response = await register(
         industry,
@@ -171,7 +198,9 @@ const ScreeningForm = () => {
       );
       console.log(response);
       setSubmissionLoading(false);
-      setIsDialogOpen(true);
+      if (response) {
+        setIsDialogOpen(true);
+      }
     } catch (err) {
       setSubmissionLoading(false);
       alert("Error submitting application");
@@ -236,6 +265,7 @@ const ScreeningForm = () => {
     <div className="min-h-screen">
       {loading && <Loader />}
       {submissionLoading && <SpinnerLoader />}
+      <Toaster />
       <Navbar />
       <div className="flex flex-col items-center justify-center lg:p-16 p-4 mt-28">
         <img

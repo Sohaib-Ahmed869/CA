@@ -101,7 +101,6 @@ const StudentIntakeForm = () => {
       !contactInfo.contactNumber ||
       !contactInfo.email ||
       !personalInfo.dob ||
-      !personalInfo.USI ||
       !personalInfo.homeAddress ||
       !personalInfo.suburb ||
       !personalInfo.postcode ||
@@ -122,9 +121,6 @@ const StudentIntakeForm = () => {
       }
       if (!personalInfo.dob) {
         alert("Please enter your date of birth");
-      }
-      if (!personalInfo.USI) {
-        alert("Please enter your USI");
       }
       if (!personalInfo.homeAddress) {
         alert("Please enter your home address");
@@ -150,7 +146,7 @@ const StudentIntakeForm = () => {
       firstName: personalInfo.firstName,
       middleName: personalInfo.middleName,
       lastName: personalInfo.surname,
-      USI: personalInfo.USI,
+      USI: personalInfo.USI || "-",
       gender: personalInfo.gender,
       dob: personalInfo.dob,
       homeAddress: personalInfo.homeAddress,

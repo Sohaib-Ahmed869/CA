@@ -18,7 +18,7 @@ import { getApplications } from "../Services/customerApplication";
 import SpinnerLoader from "./spinnerLoader";
 
 const Timeline = ({ timeline, applicationId, applicationName, paid }) => (
-  <div className="p-3 lg:p-4 mt-28 md:mt-3 lg:mt-10 w-full border-b-2 border-t-2 lg:pl-10 lg:pr-10 max-sm:mt-5">
+  <div className="p-3 lg:p-4 mt-28 md:mt-3 lg:mt-20 w-full border-b-2 border-t-2 lg:pl-10 lg:pr-10 max-sm:mt-5">
     <div className="flex lg:flex-row flex-col justify-between lg:items-center items-center">
       <p className="text-md  text-left">
         Applicaiton ID: <span className="font-semibold">{applicationId}</span>
@@ -57,19 +57,24 @@ const Timeline = ({ timeline, applicationId, applicationName, paid }) => (
                 <div className="w-px bg-gray-300 h-full"></div>
               )}
             </div>
-            <div className="text-md ">
+            <div
+              className="text-md "
+              onClick={() => (window.location.href = "/existing-applications")}
+            >
               <p className="font-medium">
-                {item.statusname === "Waiting for Documents" ? "Evidence Submission" : null}
-                {item.statusname === "Student Intake Form"
-                  ? "Inquiry"
+                {item.statusname === "Waiting for Documents"
+                  ? "Evidence Submission"
                   : null}
+                {item.statusname === "Student Intake Form" ? "Inquiry" : null}
                 {item.statusname === "Payment Awaiting"
                   ? paid
                     ? "Payment Received"
                     : "Payment Awaiting"
                   : null}
                 {item.statusname === "Sent to RTO"
-                  ? (paid ? "Sent for RTO Assessment" : "Documents Uploaded")
+                  ? paid
+                    ? "Sent for RTO Assessment"
+                    : "Documents Uploaded"
                   : null}
                 {item.statusname === "Certificate Generated"
                   ? "Completed"
@@ -175,7 +180,7 @@ const CustomerDashboard = () => {
               paid={lastApplication.paid}
             />
           ) : (
-            <p className="">No applications found.</p>
+            <p className=""></p>
           )}
         </div>
         <div className="flex flex-col items-center lg:p-10 lg:w-full w-full mt-5 max-sm:p-5">

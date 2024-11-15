@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
+import Select from "react-select";
+import countryList from "react-select-country-list";
 
 const FinalScreen = ({
   firstName,
@@ -70,7 +72,6 @@ const FinalScreen = ({
             inputStyle={{
               width: "100%",
               borderRadius: "0.25rem",
-           
             }}
             placeholder="Enter phone number"
           />
@@ -89,12 +90,10 @@ const FinalScreen = ({
       <div className="flex items-center justify-between gap-4 mb-5 lg:flex-row flex-col">
         <div className="flex flex-col lg:w-1/2 w-full ">
           <label htmlFor="country">Country</label>
-          <input
-            id="country"
+          <Select
+            options={countryList().getData()}
             value={country}
-            className="input mt-2"
-            placeholder="Which country are you currently residing in?"
-            onChange={(e) => setCountry(e.target.value)}
+            onChange={(e) => setCountry(e)}
           />
         </div>
         <div className="flex flex-col lg:w-1/2 w-full">

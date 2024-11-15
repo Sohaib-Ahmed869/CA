@@ -49,7 +49,7 @@ export const register = async (
       lastName,
       phone,
       email,
-      country,
+      country: country.label,
       questions,
       toc,
       password,

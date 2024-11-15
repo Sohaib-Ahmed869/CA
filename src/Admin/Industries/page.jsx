@@ -262,15 +262,7 @@ const Industries = () => {
         </div>
       )}
 
-      {showModal && (
-        <div className="fixed min-h-screen bg-black bg-opacity-40 w-full top-0 left-0"></div>
-      )}
-      {showCertificateModal && (
-        <div className="fixed min-h-screen bg-black bg-opacity-40 w-full top-0 left-0"></div>
-      )}
-      {viewAllCertificates && (
-        <div className="fixed min-h-screen bg-black bg-opacity-40 w-full top-0 left-0"></div>
-      )}
+ 
     </div>
   );
 };

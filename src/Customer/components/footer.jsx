@@ -8,34 +8,32 @@ const Footer = () => {
   const navigate = useNavigate();
   return (
     <footer className="bg-gray-800 text-white py-2 fixed w-full bottom-0">
-      <div className="container mx-auto flex flex-col sm:flex-row items-center justify-between">
-        <div className="flex flex-col sm:flex-row items-center">
-          <p className="text-sm font-semibold mt-5 max-sm:mt-0 sm:ml-5">
-            &copy; 2024. All rights reserved.
-          </p>
-        </div>
-        <div className="flex items-center gap-5 mt-5 sm:mt-0 max-sm:hidden">
-          <Link to="/about" className="text-sm font-semibold">
+      <div className="container mx-auto flex flex-col sm:flex-row items-center justify-center">
+        <div className="flex items-center gap-5 mt-5 sm:mt-0">
+          <Link
+            to="https://certifiedaustralia.com.au/"
+            className="text-sm font-semibold"
+          >
+            Home
+          </Link>
+          <Link
+            to="https://certifiedaustralia.com.au/about-us/"
+            className="text-sm font-semibold"
+          >
             About Us
           </Link>
-          <Link to="/contact" className="text-sm font-semibold">
+          <Link
+            to="https://certifiedaustralia.com.au/industry/"
+            className="text-sm font-semibold"
+          >
+            Industry
+          </Link>
+          <Link
+            to="https://certifiedaustralia.com.au/contact-us/"
+            className="text-sm font-semibold"
+          >
             Contact Us
           </Link>
-          <Link to="/faq" className="text-sm font-semibold">
-            FAQ
-          </Link>
-          <Link to="/terms" className="text-sm font-semibold">
-            Terms & Conditions
-          </Link>
-          <Link to="/privacy" className="text-sm font-semibold">
-            Privacy Policy
-          </Link>
-        </div>
-        <div className="flex items-center gap-5 mt-5 sm:mt-0 max-sm:hidden">
-          <FaFacebook className="text-2xl" />
-          <FaTwitter className="text-2xl" />
-          <FaInstagram className="text-2xl" />
-          <FaLinkedin className="text-2xl" />
         </div>
       </div>
     </footer>

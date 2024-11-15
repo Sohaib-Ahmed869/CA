@@ -128,7 +128,7 @@ const Dashboard = () => {
           />
         </div>
       </div>
-      <div className="mt-10 grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <div className="mt-10 grid max-sm:grid-cols-1 grid-cols-3 gap-4">
         <DashboardCard />
         <UserStatsCard />
         <ApplicationStatusCard />

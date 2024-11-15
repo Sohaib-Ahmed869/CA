@@ -38,7 +38,7 @@ const PersonalInfo = ({ personalInfo, setPersonalInfo }) => {
           name="USI"
           type="text"
           id="USI"
-          label="USI"
+          label="USI (Only for people living in Australia)"
           value={personalInfo.USI}
           onChange={handleChange}
         />

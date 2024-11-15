@@ -83,7 +83,7 @@ const PaymentApproval = () => {
     <div className="flex flex-col animate-fade">
       {submissionLoading && <SpinnerLoader />}
       <Toaster position="bottom-right" reverseOrder={false} />
-      
+
       <div className="flex items-center gap-4 mb-5 lg:flex-row flex-col">
         <img src={paymentsimg} alt="Payments" className="h-36" />
         <div className="flex flex-col lg:w-1/2">
@@ -94,7 +94,7 @@ const PaymentApproval = () => {
           </p>
         </div>
       </div>
-      
+
       <div className="flex flex-row w-full gap-6 mb-10 max-sm:flex-col">
         {statuses.map((status) => (
           <button
@@ -131,7 +131,11 @@ const PaymentApproval = () => {
             )}
             {unpaidApplications.map((application) => (
               <tr key={application.id}>
-                <td>{application.id}</td>
+                <td>
+                  {application.applicationId
+                    ? application.applicationId
+                    : application.id}
+                </td>
                 <td>
                   {application.user.firstName + " " + application.user.lastName}
                 </td>
