@@ -133,3 +133,15 @@ export const getIndustries = async () => {
     return error.response.data;
   }
 };
+
+export const addNoteToApplication = async (applicationId, note) => {
+  try {
+    const response = await axios.put(
+      `${URL}/api/admin/addNoteToApplication/${applicationId}`,
+      { note }
+    );
+    return response.data;
+  } catch (error) {
+    return "error";
+  }
+};

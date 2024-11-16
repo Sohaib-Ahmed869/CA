@@ -4,7 +4,8 @@ import { FaTimesCircle } from "react-icons/fa";
 import { BsEye } from "react-icons/bs";
 import { BiDownload } from "react-icons/bi";
 import { BiEnvelopeOpen } from "react-icons/bi";
-
+import toast from "react-hot-toast";
+import { Toaster } from "react-hot-toast";
 import { BsArrowUpRight } from "react-icons/bs";
 import { BsClock } from "react-icons/bs";
 import { BiUser } from "react-icons/bi";
@@ -17,7 +18,7 @@ import { GrFormAdd } from "react-icons/gr";
 import { IoCall } from "react-icons/io5";
 import { MdPayment } from "react-icons/md";
 import SpinnerLoader from "../../Customer/components/spinnerLoader";
-
+import { BiPlus } from "react-icons/bi";
 import applicationsimg from "../../assets/applications.png";
 
 import Application from "./application";
@@ -31,6 +32,7 @@ import { useNavigate } from "react-router-dom";
 import {
   getApplications,
   verifyApplication,
+  addNoteToApplication,
 } from "../../Customer/Services/adminServices";
 
 const ExistingApplicationsAdmin = () => {
@@ -70,6 +72,8 @@ const ExistingApplicationsAdmin = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5; // Number of applications per page
 
+ 
+
   const [filteredApplications, setFilteredApplications] = useState([]);
 
   const [activeStatus, setActiveStatus] = useState("All");
@@ -102,18 +106,7 @@ const ExistingApplicationsAdmin = () => {
     }
   };
 
-  const filterApplications = (status) => {
-    setActiveStatus(status);
-    setCurrentPage(1);
-    if (status === "All") {
-      setFilteredApplications(applications);
-    } else {
-      const filtered = applications.filter(
-        (application) => application.currentStatus === status
-      );
-      setFilteredApplications(filtered);
-    }
-  };
+ 
 
   useEffect(() => {
     getApplicationsData();
@@ -140,6 +133,8 @@ const ExistingApplicationsAdmin = () => {
     }
   };
 
+ 
+  
   return (
     <div>
       {loading && <Loader />}
@@ -328,6 +323,8 @@ const ExistingApplicationsAdmin = () => {
           setSelectedApplication={setSelectedApplication}
         />
       )}
+
+     
     </div>
   );
 };

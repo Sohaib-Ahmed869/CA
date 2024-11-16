@@ -6,7 +6,7 @@ import { BiDownload } from "react-icons/bi";
 import { BiEnvelopeOpen } from "react-icons/bi";
 import { FaArrowRightLong } from "react-icons/fa6";
 import { FaTimes } from "react-icons/fa";
-
+import { BiPlus } from "react-icons/bi";
 import { BsArrowUpRight } from "react-icons/bs";
 import { BsClock } from "react-icons/bs";
 import { BiUser } from "react-icons/bi";
@@ -19,9 +19,10 @@ import { GrFormAdd } from "react-icons/gr";
 import { IoCall } from "react-icons/io5";
 import { MdPayment } from "react-icons/md";
 import SpinnerLoader from "../../Customer/components/spinnerLoader";
-
+import toast from "react-hot-toast";
+import { Toaster } from "react-hot-toast";
 import applicationsimg from "../../assets/applications.png";
-
+import { BiEdit } from "react-icons/bi";
 import Loader from "../../Customer/components/loader";
 
 import certificate from "../../assets/certificate.pdf";
@@ -31,6 +32,7 @@ import { useNavigate } from "react-router-dom";
 import {
   getApplications,
   verifyApplication,
+  addNoteToApplication,
 } from "../../Customer/Services/adminServices";
 
 import { initiateVerificationCall } from "../../Customer/Services/twilioService";
@@ -280,8 +282,10 @@ const CustomersInfo = () => {
     alert("Redirected to Payment Gateway");
   };
 
-  const onClickDownload = () => {
-    window.open(certificate);
+  const onClickDownload = (certificateURL) => {
+    console.log("Downloading certificate:", certificateURL);
+    // alert("Downloading certificate");
+    window.open(certificateURL, "_blank");
   };
 
   const onClickStudentForm = () => {
@@ -399,17 +403,65 @@ const CustomersInfo = () => {
     }
   };
 
+  const [addNoteModal, setAddNoteModal] = useState(false);
+  const [note, setNote] = useState("");
+
+  const noteAddedToast = () => {
+    toast.success("Note added successfully");
+  };
+
+  const noteErrorToast = () => {
+    toast.error("Failed to add note");
+  };
+
+  const filterApplications = (status) => {
+    setActiveStatus(status);
+    setCurrentPage(1);
+    if (status === "All") {
+      setFilteredApplications(applications);
+    } else {
+      const filtered = applications.filter(
+        (application) => application.currentStatus === status
+      );
+      setFilteredApplications(filtered);
+    }
+  };
+
+  const onClickAddNote = async () => {
+    setSubmissionLoading(true);
+    try {
+      const response = await addNoteToApplication(selectedApplicationId, note);
+      if (response === "error") {
+        noteErrorToast();
+        setSubmissionLoading(false);
+        return;
+      }
+      setSubmissionLoading(false);
+      setAddNoteModal(false);
+      noteAddedToast();
+      setNote("");
+      getApplicationsData();
+    } catch (error) {
+      console.error("Failed to add note:", error);
+      noteErrorToast();
+      setSubmissionLoading(false);
+    }
+  };
+
+  const [selectedApplicationId, setSelectedApplicationId] = useState(null);
+
   return (
     <div className="">
       {loading && <Loader />}
       {submissionLoading && <SpinnerLoader />}
+      <Toaster />
 
       {!selectedApplication && (
         <div className="p-3 overflow-x-auto">
           <div className="flex items-center gap-4 mb-5 lg:flex-row flex-col">
             <img src={applicationsimg} alt="Applications" className="h-36" />
             <div className="flex flex-col lg:w-1/2 w-full">
-              <h1 className="text-3xl font-bold">Applications</h1>
+              <h1 className="text-3xl font-bold">Customers</h1>
               <p className="text-sm mt-2">
                 Here you can view all the applications and their statuses.
               </p>
@@ -439,6 +491,7 @@ const CustomersInfo = () => {
                   <th className="font-semibold text-center">Certificate</th>
                   <th className="font-semibold text-center">Industry</th>
                   <th className="font-semibold text-center">Status</th>
+                  <th className="text-center w-52">Notes</th>
                   <th className="font-semibold text-center">Paid</th>
                   <th className="font-semibold">Actions</th>
                 </tr>
@@ -480,7 +533,7 @@ const CustomersInfo = () => {
                       {application.isf.lookingForWhatQualification}
                     </td>
                     <td className="text-center">{application.isf.industry}</td>
-                    <td className="p-2 flex items-center justify-center flex-col mt-5">
+                    <td className="p-2 flex items-center justify-center flex-col mt-5 w-60">
                       {application.currentStatus === "Sent to RTO" ? (
                         <div className="p-1 rounded-full bg-red-600 text-white flex items-center justify-center gap-2  max-sm:text-center">
                           <BsArrowUpRight className="text-white" />
@@ -529,13 +582,42 @@ const CustomersInfo = () => {
                         )
                       )}
                     </td>
-                    <td className="p-2 text-center">
+                    <td className="items-center justify-center relative">
+                      {application.note ? (
+                        <div className="flex items-center gap-2">
+                          <p className="text-sm text-center w-full">
+                            {application.note}
+                          </p>
+                          <p
+                            className="cursor-pointer bg-white border-0 btn-sm rounded absolute top-2 right-2 hover:bg-white"
+                            onClick={() => {
+                              setSelectedApplicationId(application.id);
+                              setAddNoteModal(true);
+                            }}
+                          >
+                            <BiEdit />
+                          </p>
+                        </div>
+                      ) : (
+                        <button
+                          className="btn bg-white border-0 btn-sm rounded w-full"
+                          onClick={() => {
+                            setSelectedApplicationId(application.id);
+                            setAddNoteModal(true);
+                          }}
+                        >
+                          <GrFormAdd />
+                        </button>
+                      )}
+                    </td>
+                    <td className=" text-center">
                       {application.paid ? (
                         <BiCheckCircle className="text-green-500 text-xl" />
                       ) : (
                         <FaTimesCircle className="text-red-500 text-xl" />
                       )}
                     </td>
+
                     <td className="flex items-center flex-col gap-2">
                       <button
                         className="btn btn-primary btn-sm w-full"
@@ -549,14 +631,15 @@ const CustomersInfo = () => {
                         <div className="flex items-center gap-2 w-full">
                           <button
                             className="btn bg-green-500 hover:bg-green-600 text-white btn-sm w-full"
-                            onClick={onClickDownload}
+                            onClick={() =>
+                              onClickDownload(application.certificateId)
+                            }
                           >
-                            <BiDownload className="text-white" />
                             Download
                           </button>
                         </div>
                       ) : (
-                        <div className="flex items-center gap-2 max-sm:text-sm w-full">
+                        <div className=" items-center gap-2 max-sm:text-sm w-full">
                           {application.verified ? null : (
                             <div className="flex items-center gap-2 max-sm:flex-col w-full">
                               <button
@@ -609,6 +692,31 @@ const CustomersInfo = () => {
           application={selectedApplication}
           setSelectedApplication={setSelectedApplication}
         />
+      )}
+
+      {addNoteModal && (
+        <dialog className="modal" open>
+          <div className="modal-box">
+            <div className="flex items-center justify-between">
+              <h1 className="text-2xl font-bold">Add Note</h1>
+              <button
+                className="btn btn-secondary"
+                onClick={() => setAddNoteModal(false)}
+              >
+                Close
+              </button>
+            </div>
+            <textarea
+              className="w-full p-3 border border-gray-300 rounded-md mt-5"
+              placeholder="Enter note here"
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+            ></textarea>
+            <button className="btn btn-primary mt-5" onClick={onClickAddNote}>
+              Add Note
+            </button>
+          </div>
+        </dialog>
       )}
     </div>
   );
