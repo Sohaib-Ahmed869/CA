@@ -43,7 +43,7 @@ const StudentAgreement = ({ studentAgreement, setStudentAgreement }) => {
                 rel="noreferrer"
                 className="text-md text-blue-500"
               >
-                Student Agreement
+                Student/Applicant Agreement
               </a>
             </span>
           </label>
@@ -66,7 +66,7 @@ const StudentAgreement = ({ studentAgreement, setStudentAgreement }) => {
                 rel="noreferrer"
                 className="text-md text-blue-500"
               >
-                Student Applicant Agreement
+                Student Privacy Contract
               </a>
             </span>
           </label>

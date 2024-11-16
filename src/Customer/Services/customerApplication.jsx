@@ -75,3 +75,4 @@ export const markApplicationAsPaid = async (applicationId) => {
     return error.response.data;
   }
 };
+

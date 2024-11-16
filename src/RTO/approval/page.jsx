@@ -6,9 +6,14 @@ import { BiCertification } from "react-icons/bi";
 import { FaTimes } from "react-icons/fa";
 import { BiUpload } from "react-icons/bi";
 import Sidebar from "../components/siderbar";
+import { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 import pending from "../../assets/pending.png";
 import { getApplications } from "../../Customer/Services/rtoservices";
-import { uploadCertificate } from "../../Customer/Services/adminServices";
+import {
+  uploadCertificate,
+  requestMoreDocuments,
+} from "../../Customer/Services/adminServices";
 import SpinnerLoader from "../../Customer/components/spinnerLoader";
 
 const Application = ({ application, setSelectedApplication }) => {
@@ -315,24 +320,34 @@ const Approval = () => {
   const [displayedApplications, setDisplayedApplications] = useState([]);
   const [dateFilter, setDateFilter] = useState("All");
 
-  useEffect(() => {
+  const getRTOApplications = async () => {
     const rtoType = localStorage.getItem("rtoType");
     const fetchApplications = async () => {
       setSubmissionLoading(true);
       const applicationsData = await getApplications();
       setApplications(
         applicationsData.filter(
-          (app) => app.type === rtoType && app.currentStatus === "Sent to RTO"
+          (app) =>
+            app.type === rtoType &&
+            app.currentStatus === "Sent to RTO" &&
+            app.paid === true
         )
       );
       setDisplayedApplications(
         applicationsData.filter(
-          (app) => app.type === rtoType && app.currentStatus === "Sent to RTO"
+          (app) =>
+            (app.type === rtoType || app.type === "default") &&
+            app.currentStatus === "Sent to RTO" &&
+            app.paid === true
         )
       );
       setSubmissionLoading(false);
     };
     fetchApplications();
+  };
+
+  useEffect(() => {
+    getRTOApplications();
   }, []);
 
   const donwloadAllDocsAsZip = async () => {
@@ -412,6 +427,40 @@ const Approval = () => {
     }
   };
 
+  const notify = (message) => toast.success(message);
+  const notifyError = (message) => toast.error(message);
+
+  const onClickRequestMoreDocuments = async () => {
+    if (!message) {
+      notifyError("Please type a message before sending.");
+      return;
+    }
+
+    try {
+      setSubmissionLoading(true);
+      const response = await requestMoreDocuments(
+        selectedApplicationId,
+        message
+      );
+      console.log("Request more documents response:", response);
+
+      notify("Request sent successfully.");
+      document.getElementById("moreDocumentsModal").close();
+
+      //get updated applications
+      getRTOApplications();
+
+      setSubmissionLoading(false);
+    } catch (err) {
+      console.error("Error requesting more documents:", err);
+      notifyError("Error sending request.");
+      setSubmissionLoading(false);
+    }
+  };
+
+  const [message, setMessage] = useState("");
+  const [showMoreDocuments, setShowMoreDocuments] = useState(false);
+
   return (
     <div className="">
       {submissionLoading && <SpinnerLoader />}
@@ -447,7 +496,7 @@ const Approval = () => {
                 <tr>
                   <th>Application Id</th>
                   <th>Customer Registered Name</th>
-                  <th>Payment Date</th>
+                  <th>Submitted date</th>
                   <th>Actions</th>
                 </tr>
               </thead>
@@ -461,7 +510,10 @@ const Approval = () => {
                 )}
                 {displayedApplications.map((application, index) =>
                   application.certficateIssued ? null : (
-                    <tr key={application.id} className="border-b overflow-x-auto">
+                    <tr
+                      key={application.id}
+                      className="border-b overflow-x-auto"
+                    >
                       <td className="flex items-center gap-2">
                         {application.applicationId
                           ? application.applicationId
@@ -474,11 +526,7 @@ const Approval = () => {
                       <td>
                         {application.user.firstName} {application.user.lastName}
                       </td>
-                      <td>
-                        {application.paymentDate
-                          ? application.paymentDate.toLocaleDateString()
-                          : "N/A"}
-                      </td>
+                      <td>{application.status[0].time.split("T")[0]}</td>
                       <td className="flex gap-2">
                         {application.currentStatus === "Sent to RTO" && (
                           <>
@@ -494,7 +542,7 @@ const Approval = () => {
                               className="bg-green-500 text-white px-2 py-1 rounded flex gap-1 items-center"
                             >
                               <BiCertification />
-                              Grant Certificate
+                              Issue Certificate
                             </button>
                             <button
                               onClick={() => handleReject(application.id)}
@@ -502,6 +550,17 @@ const Approval = () => {
                             >
                               <FaTimes />
                               Reject
+                            </button>
+                            <button
+                              className="bg-yellow-700 text-white px-2 py-1 rounded flex gap-1 items-center"
+                              onClick={() => {
+                                setSelectedApplicationId(application.id);
+                                document
+                                  .getElementById("moreDocumentsModal")
+                                  .showModal();
+                              }}
+                            >
+                              Request More Information
                             </button>
                           </>
                         )}
@@ -532,6 +591,34 @@ const Approval = () => {
           setSelectedApplication={setSelectedApplication}
         />
       )}
+
+      <dialog id="moreDocumentsModal" className="modal">
+        <div className="modal-box">
+          <button
+            className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
+            onClick={() =>
+              document.getElementById("moreDocumentsModal").close()
+            }
+          >
+            ✕
+          </button>
+          <h2 className="font-bold text-lg">More Documents Message</h2>
+          <p className="text-gray-500">Please type your message here:</p>
+          <textarea
+            className="border rounded-lg p-2 w-full"
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+          ></textarea>
+          <div className="modal-action">
+            <button
+              onClick={onClickRequestMoreDocuments}
+              className="btn btn-outline btn-sm"
+            >
+              Send
+            </button>
+          </div>
+        </div>
+      </dialog>
 
       {/* DaisyUI Modal with showModal() */}
       <dialog id="uploadCertificateModal" className="modal">

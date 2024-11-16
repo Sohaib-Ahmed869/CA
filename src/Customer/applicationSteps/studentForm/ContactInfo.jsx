@@ -12,6 +12,10 @@ const ContactInfo = ({ contactInfo, setContactInfo }) => {
     console.log(contactInfo.phone);
   }, [contactInfo.phone]);
 
+  useEffect(() => {
+    console.log(contactInfo);
+  }, [contactInfo]);
+
   return (
     <div className="mb-10">
       <h2 className="text-2xl font-semibold mb-5">Contact Information</h2>
@@ -97,14 +101,24 @@ const ContactInfo = ({ contactInfo, setContactInfo }) => {
           value={contactInfo.previousQualifications}
           onChange={handleChange}
         />
-        <FloatingLabelInput
+        <select
           name="employmentStatus"
           type="text"
           id="employmentStatus"
-          label="Employment Status"
           value={contactInfo.employmentStatus}
-          onChange={handleChange}
-        />
+          className="input p-0 mt-2"
+          onChange={(e) =>
+            setContactInfo({
+              ...contactInfo,
+              employmentStatus: e.target.value,
+            })
+          }
+        >
+          <option value="">Employment Status</option>
+          <option value="Employed">Employed</option>
+          <option value="Unemployed">Unemployed</option>
+          <option value="Self-Employed">Self-Employed</option>
+        </select>
       </div>
       <div className="flex flex-col">
         <label htmlFor="questions">Do you have a disability?</label>

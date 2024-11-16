@@ -72,9 +72,7 @@ const PaymentApproval = () => {
     }
     if (activeFilter === "Waiting for Payment") {
       setUnpaidApplications(
-        applications.filter(
-          (application) => application.currentStatus === "Waiting for Payment"
-        )
+        applications.filter((application) => application.paid === false)
       );
     }
   }, [activeFilter, applications]);

@@ -48,10 +48,10 @@ const ApplicationStatusCard = () => {
       <div className="flex justify-between items-center mb-4">
         <div className="flex-col">
           <h5 className="text-xl font-bold leading-none text-gray-900">
-            Application Statuses
+            Application Status
           </h5>
           <p className="text-sm text-gray-500">
-            Overview of application statuses
+            Overview of application status
           </p>
         </div>
       </div>

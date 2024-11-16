@@ -25,6 +25,8 @@ const UploadDocuments = () => {
     referenceTwo: "",
   });
 
+  const [applicationIndustry, setApplicationIndustry] = useState("");
+
   const [employmentLetter, setEmploymentLetter] = useState("");
   const [payslip, setPayslip] = useState("");
 
@@ -216,6 +218,7 @@ const UploadDocuments = () => {
     employmentLetter,
     payslip,
   ]);
+
   return (
     <div>
       <Navbar />
@@ -231,7 +234,7 @@ const UploadDocuments = () => {
         <div className="grid grid-cols-1 gap-5 md:grid-cols-1 bg-white p-5 rounded-lg shadow-lg">
           <p className="text-md text-red-500 mb-3">
             Please ensure all documents are clear and legible. All documents
-            must be in PDF format. Maximum file size is 5MB.
+            must be in PDF or PNG format. Maximum file size is 5MB.
           </p>
           <div>
             <h3 className="file-lg font-semibold mb-3">100 Points of ID</h3>

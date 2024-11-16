@@ -56,10 +56,18 @@ const Completed = () => {
           (app) => app.currentStatus === "Certificate Generated"
         );
         setApplications(
-          filteredApplications.filter((app) => app.type === rtoType)
+          filteredApplications.filter(
+            (app) =>
+              (app.type === rtoType || app.type === "default") &&
+              app.paid === true
+          )
         );
         setDisplayedApplications(
-          filteredApplications.filter((app) => app.type === rtoType)
+          filteredApplications.filter(
+            (app) =>
+              (app.type === rtoType || app.type === "default") &&
+              app.paid === true
+          )
         );
         setSubmissionLoading(false);
       } catch (error) {
@@ -144,7 +152,11 @@ const Completed = () => {
             {displayedApplications.map((application, index) =>
               application.certficateIssued ? null : (
                 <tr key={application.id}>
-                  <td>{application.id}</td>
+                  <td>
+                    {application.applicationId
+                      ? application.applicationId
+                      : application.id}
+                  </td>
                   <td>
                     {application.user.firstName} {application.user.lastName}
                   </td>

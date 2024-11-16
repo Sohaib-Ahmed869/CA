@@ -17,7 +17,6 @@ import { auth } from "../firebase";
 import SpinnerLoader from "./components/spinnerLoader";
 import { signInWithEmailAndPassword } from "firebase/auth";
 
-
 import "./stepper.css";
 
 const Stepper = ({ steps, currentStep }) => {
@@ -369,9 +368,11 @@ const ScreeningForm = () => {
       {isDialogOpen && (
         <dialog className="modal" open>
           <div className="modal-box">
-            <h3 className="font-bold text-lg">Form Submitted Successfully!</h3>
+            <h3 className="font-bold text-lg">
+              Assessment Submitted Successfully!
+            </h3>
             <p className="py-4">
-              Your Initial Screening Form has been submitted successfully.
+              Your fast skills assessment has been submitted successfully.
               Please visit the dashboard to verify your application via call.
             </p>
             <div className="modal-action">

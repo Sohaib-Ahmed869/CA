@@ -144,7 +144,7 @@ const ExistingApplicationsbyAgent = () => {
                   Date Created
                 </div>
                 <div className="table-cell font-semibold w-52 text-center">
-                  Certification
+                  Certificate
                 </div>
                 <div className="table-cell font-semibold min-w-40 text-center">
                   Industry

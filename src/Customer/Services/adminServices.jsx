@@ -67,6 +67,18 @@ export const uploadCertificate = async (applicationId, data) => {
   }
 };
 
+export const requestMoreDocuments = async (applicationId, message) => {
+  try {
+    const response = await axios.put(
+      `${URL}/api/applications/requestMoreDocuments/${applicationId}`,
+      { message }
+    );
+    return response.data;
+  } catch (error) {
+    return error.response.data;
+  }
+};
+
 export const getDashboardStats = async () => {
   try {
     const response = await axios.get(`${URL}/api/admin/dashboardStats`);

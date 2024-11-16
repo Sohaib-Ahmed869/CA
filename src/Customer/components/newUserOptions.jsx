@@ -83,7 +83,7 @@ const CustomerDashboardSignup = () => {
       date: "20/01/2024",
     },
     {
-      status: "Certification Generated",
+      status: "Certificate Generated",
       date: null,
     },
     {
@@ -133,7 +133,7 @@ const CustomerDashboardSignup = () => {
                 Hello and Welcome to Certified Australia!
               </h1>
               <p className="text-md text-gray-600 mb-3 lg:mb-8  ">
-                We are here to help you with your certification needs. Please
+                We are here to help you with your cerificate needs. Please
                 select from the following options to get started.
               </p>
             </div>

@@ -109,7 +109,7 @@ const Industries = () => {
               Description
             </th>
             <th className="table-cell font-semibold p-5 max-sm:min-w-40">
-              Certifications
+              Certificate
             </th>
           </tr>
         </thead>
@@ -128,7 +128,7 @@ const Industries = () => {
                   }}
                   className="text-blue-700 underline"
                 >
-                  View Certifications
+                  View Certificates
                 </button>
               </td>
             </tr>

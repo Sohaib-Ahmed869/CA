@@ -122,6 +122,9 @@ const StudentIntakeForm = () => {
       if (!personalInfo.dob) {
         alert("Please enter your date of birth");
       }
+      if (!personalInfo.dob > new Date().toISOString().split("T")[0]) {
+        alert("Please enter a valid date of birth");
+      }
       if (!personalInfo.homeAddress) {
         alert("Please enter your home address");
       }
