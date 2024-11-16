@@ -32,6 +32,14 @@ const UploadDocuments = () => {
 
   const [score, setScore] = useState(0);
 
+  const [image1, setImage1] = useState("");
+  const [image2, setImage2] = useState("");
+  const [image3, setImage3] = useState("");
+  const [image4, setImage4] = useState("");
+
+  const [video1, setVideo1] = useState("");
+  const [video2, setVideo2] = useState("");
+
   const handleChange = (e) => {
     //if file size is greater than 5MB
     if (e.target.files[0].size > 5000000) {
@@ -120,6 +128,16 @@ const UploadDocuments = () => {
   }, [hundredPointsOfID]);
   const navigate = useNavigate();
 
+  const getApplicationIndustry = async () => {
+    //from local storage
+    const industry = localStorage.getItem("applicationIndustry");
+    setApplicationIndustry(industry);
+  };
+
+  useEffect(() => {
+    getApplicationIndustry();
+  }, []);
+
   const successToast = () => toast.success("Documents uploaded successfully");
   const errorToast = () => toast.error("Please fill in all the fields");
   const errorToast2 = () =>
@@ -144,6 +162,13 @@ const UploadDocuments = () => {
     if (score < 100) {
       errorToast2();
       return;
+    }
+
+    if (applicationIndustry === "Automotive") {
+      if (!image1 || !image2 || !image3 || !image4 || !video1 || !video2) {
+        errorToast();
+        return;
+      }
     }
 
     setSubmissionLoading(true);
@@ -187,11 +212,23 @@ const UploadDocuments = () => {
 
     if (payslip) formData.append("payslip", payslip);
 
+    if (image1) formData.append("image1", image1);
+    if (image2) formData.append("image2", image2);
+    if (image3) formData.append("image3", image3);
+    if (image4) formData.append("image4", image4);
+    if (video1) formData.append("video1", video1);
+    if (video2) formData.append("video2", video2);
+
     try {
       const id = window.location.pathname.split("/")[2];
       const applicationId = id;
-      const response = await documentsUpload(formData, applicationId);
+      const response = await documentsUpload(
+        formData,
+        applicationId,
+        applicationIndustry
+      );
       console.log(response);
+      
       setSubmissionLoading(false);
       successToast();
 
@@ -417,6 +454,82 @@ const UploadDocuments = () => {
               className="border border-gray-300 max-sm:p-0 w-full"
             />
           </div>
+          {/* if the industry is automotive ask for videos and images */}
+          {applicationIndustry === "Automotive" && (
+            <>
+              <h3 className="file-lg font-semibold mb-3">
+                Images and Videos <span className="text-red-500">*</span>
+              </h3>
+              <div className="grid grid-cols-1 gap-5 md:grid-cols-2 bg-white p-5 rounded-lg">
+                <div className="gap-1 flex flex-col">
+                  <label className="text-md text-gray-600">
+                    Image 1 <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="file"
+                    onChange={(e) => setImage1(e.target.files[0])}
+                    placeholder="Image 1"
+                    className="border border-gray-300 max-sm:p-0 w-full"
+                  />
+                </div>
+                <div className="gap-1 flex flex-col">
+                  <label className="text-md text-gray-600">
+                    Image 2 <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="file"
+                    onChange={(e) => setImage2(e.target.files[0])}
+                    placeholder="Image 2"
+                    className="border border-gray-300 max-sm:p-0 w-full"
+                  />
+                </div>
+                <div className="gap-1 flex flex-col">
+                  <label className="text-md text-gray-600">
+                    Image 3 <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="file"
+                    onChange={(e) => setImage3(e.target.files[0])}
+                    placeholder="Image 3"
+                    className="border border-gray-300 max-sm:p-0 w-full"
+                  />
+                </div>
+                <div className="gap-1 flex flex-col">
+                  <label className="text-md text-gray-600">
+                    Image 4 <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="file"
+                    onChange={(e) => setImage4(e.target.files[0])}
+                    placeholder="Image 4"
+                    className="border border-gray-300 max-sm:p-0 w-full"
+                  />
+                </div>
+                <div className="gap-1 flex flex-col">
+                  <label className="text-md text-gray-600">
+                    Video 1 <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="file"
+                    onChange={(e) => setVideo1(e.target.files[0])}
+                    placeholder="Video 1"
+                    className="border border-gray-300 max-sm:p-0 w-full"
+                  />
+                </div>
+                <div className="gap-1 flex flex-col">
+                  <label className="text-md text-gray-600">
+                    Video 2 <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="file"
+                    onChange={(e) => setVideo2(e.target.files[0])}
+                    placeholder="Video 2"
+                    className="border border-gray-300 max-sm:p-0 w-full"
+                  />
+                </div>
+              </div>
+            </>
+          )}
         </div>
         <button
           className="btn btn-primary text-white p-2 max-sm:p-0 rounded mt-5 w-full"

@@ -67,6 +67,9 @@ const ExistingApplicationsAdmin = () => {
     navigate("/upload-documents");
   };
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5; // Number of applications per page
+
   const [filteredApplications, setFilteredApplications] = useState([]);
 
   const [activeStatus, setActiveStatus] = useState("All");
@@ -101,6 +104,7 @@ const ExistingApplicationsAdmin = () => {
 
   const filterApplications = (status) => {
     setActiveStatus(status);
+    setCurrentPage(1);
     if (status === "All") {
       setFilteredApplications(applications);
     } else {
@@ -115,9 +119,26 @@ const ExistingApplicationsAdmin = () => {
     getApplicationsData();
   }, []);
 
-  useEffect(() => {
-    console.log(selectedApplication);
-  }, [selectedApplication]);
+  // Calculate pagination
+  const totalItems = filteredApplications.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const currentItems = filteredApplications.slice(
+    startIndex,
+    startIndex + itemsPerPage
+  );
+
+  const goToNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage((prev) => prev + 1);
+    }
+  };
+
+  const goToPreviousPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage((prev) => prev - 1);
+    }
+  };
 
   return (
     <div>
@@ -173,7 +194,7 @@ const ExistingApplicationsAdmin = () => {
                 </tr>
               </thead>
               <tbody>
-                {filteredApplications.map((application) => (
+                {currentItems.map((application) => (
                   <tr
                     key={application.id}
                     className="animate-fade-up items-center"
@@ -273,6 +294,29 @@ const ExistingApplicationsAdmin = () => {
                   </tr>
                 ))}
               </tbody>
+              <tfoot>
+                <tr>
+                  <td colSpan="7" className="p-5">
+                    <div className="flex items-center justify-between">
+                      <button
+                        className="btn btn-secondary btn-sm"
+                        onClick={goToPreviousPage}
+                      >
+                        Previous
+                      </button>
+                      <div>
+                        Page {currentPage} of {totalPages}
+                      </div>
+                      <button
+                        className="btn btn-secondary btn-sm"
+                        onClick={goToNextPage}
+                      >
+                        Next
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              </tfoot>
             </table>
           </div>
         </div>

@@ -1,23 +1,29 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { signInWithEmailAndPassword } from "firebase/auth";
+import {
+  signInWithEmailAndPassword,
+  sendPasswordResetEmail,
+} from "firebase/auth";
 import { auth, db } from "../firebase";
-import toast from "react-hot-toast";
-import { doc, getDoc } from "firebase/firestore";
-import SpinnerLoader from "../Customer/components/spinnerLoader";
-import { Toaster } from "react-hot-toast";
+import toast, { Toaster } from "react-hot-toast";
 import login from "../assets/login.png";
+import { doc, getDoc } from "firebase/firestore";
 import { MdEmail } from "react-icons/md";
 import { BiLock } from "react-icons/bi";
 import { FaSpinner } from "react-icons/fa";
 import certifiedAustralia from "../assets/certifiedAustraliaBlack.png";
 import Footer from "../Customer/components/footer";
+
 const Login = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [submissionLoading, setSubmissionLoading] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [resetEmail, setResetEmail] = useState("");
+  const [resetLoading, setResetLoading] = useState(false);
+
   const notify = () => toast.success("Login Successful");
   const notifyError = (message) => toast.error(message);
 
@@ -73,10 +79,27 @@ const Login = () => {
         notifyError("Invalid email or password");
       });
   };
+  const handlePasswordReset = async (e) => {
+    e.preventDefault();
+    setResetLoading(true);
+
+    sendPasswordResetEmail(auth, resetEmail)
+      .then(() => {
+        toast.success("Password reset email sent!");
+        setResetLoading(false);
+        setIsDialogOpen(false);
+      })
+      .catch((err) => {
+        toast.error("Error sending reset email");
+        setResetLoading(false);
+        console.error(err);
+      });
+  };
 
   return (
     <div>
-      <div className="flex flex-col items-center  h-screen">
+      <Toaster />
+      <div className="flex flex-col items-center h-screen">
         <img
           src={certifiedAustralia}
           alt="Certified Australia"
@@ -85,11 +108,9 @@ const Login = () => {
             window.location.href = "https://certifiedaustralia.com.au/";
           }}
         />
-        <Toaster />
-        <div className="flex flex-col items-center justify-center lg:mt-20 bg-white p-8 rounded-lg shadow-xl md:w-1/2 lg:w-1/4 hover:scale-105 transition-transform duration-300">
+        <div className="flex flex-col items-center justify-center lg:mt-20 bg-white p-8 rounded-lg shadow-xl md:w-1/2 lg:w-1/4">
           <img src={login} alt="Login" className="w-24 h-24 mb-4" />
           <h1 className="text-2xl font-bold text-gray-800 mb-2">Login</h1>
-          <p className="text-gray-500 mb-4">Login today to get certified</p>
           <form onSubmit={handleLogin} className="flex flex-col w-full">
             <div className="flex items-center border p-2 rounded-lg mb-4">
               <MdEmail className="text-gray-500" />
@@ -106,11 +127,17 @@ const Login = () => {
               <input
                 type="password"
                 placeholder="Password"
-                className="w-full ml-2 focus:border-none border-none"
+                className="w-full ml-2 border-none"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
             </div>
+            <p
+              className="text-right cursor-pointer text-gray-500 text-sm mb-4 w-full"
+              onClick={() => setIsDialogOpen(true)}
+            >
+              Forgot password?
+            </p>
             <button
               type="submit"
               className="btn btn-primary text-white p-2 rounded-lg font-semibold"
@@ -130,6 +157,42 @@ const Login = () => {
           </form>
         </div>
       </div>
+
+      {/* Forgot Password Dialog */}
+      {isDialogOpen && (
+        <div className="fixed inset-0 bg-gray-800 bg-opacity-50 flex justify-center items-center">
+          <div className="bg-white p-6 rounded-lg shadow-lg">
+            <h2 className="text-xl font-semibold mb-4">Reset Password</h2>
+            <form onSubmit={handlePasswordReset} className="flex flex-col">
+              <input
+                type="email"
+                placeholder="Enter your email"
+                className="input input-bordered w-full mb-4"
+                value={resetEmail}
+                onChange={(e) => setResetEmail(e.target.value)}
+              />
+              <button
+                type="submit"
+                className="btn btn-primary text-white"
+                disabled={resetLoading}
+              >
+                {resetLoading ? (
+                  <FaSpinner className="animate-spin text-white text-2xl" />
+                ) : (
+                  "Send Reset Link"
+                )}
+              </button>
+            </form>
+            <button
+              className="btn btn-secondary mt-4"
+              onClick={() => setIsDialogOpen(false)}
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
+
       <Footer />
     </div>
   );

@@ -10,6 +10,8 @@ import { MdDashboard } from "react-icons/md";
 import { FaCheckSquare } from "react-icons/fa";
 import { BsClock } from "react-icons/bs";
 import { BiLogOut } from "react-icons/bi";
+import ChangePassword from "../../Admin/ChangePassword/page";
+import { CgPassword } from "react-icons/cg";
 const Sidebar = () => {
   const navigate = useNavigate();
 
@@ -77,6 +79,20 @@ const Sidebar = () => {
               >
                 <BsClock className="text-xl" />
                 <button className="font-medium">Completed Applications</button>
+              </li>
+              <li
+                className={`cursor-pointer p-3 flex items-center gap-2 ${
+                  active === "Change Password"
+                    ? "bg-gray-100 bg-opacity-15 rounded-xl"
+                    : ""
+                }`}
+                onClick={() => {
+                  setActive("Change Password");
+                  setIsOpen(false);
+                }}
+              >
+                <CgPassword className="text-xl" />
+                <button className="font-medium">Change Password</button>
               </li>
               <li
                 className="cursor-pointer p-3 flex items-center gap-2"
@@ -148,6 +164,20 @@ const Sidebar = () => {
             <button className="font-medium">Completed Applications</button>
           </li>
           <li
+            className={`cursor-pointer p-3 flex items-center gap-2 ${
+              active === "Change Password"
+                ? "bg-gray-100 bg-opacity-15 rounded-xl"
+                : ""
+            }`}
+            onClick={() => {
+              setActive("Change Password");
+              setIsOpen(false);
+            }}
+          >
+            <CgPassword className="text-xl" />
+            <button className="font-medium">Change Password</button>
+          </li>
+          <li
             className=" bottom-3 cursor-pointer p-3 flex items-center gap-2"
             onClick={() => {
               onClickLogout();
@@ -164,6 +194,7 @@ const Sidebar = () => {
             Dashboard: <Dashboard />,
             Approvals: <Approval />,
             "Completed Applications": <Completed />,
+            "Change Password": <ChangePassword />,
           }[active]
         }
       </div>

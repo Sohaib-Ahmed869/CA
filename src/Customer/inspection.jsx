@@ -207,13 +207,8 @@ const ScreeningForm = () => {
     }
   };
 
-  const [loading, setLoading] = React.useState(true);
+  const [loading, setLoading] = React.useState(false);
 
-  React.useEffect(() => {
-    setTimeout(() => {
-      setLoading(false);
-    }, 2000);
-  }, []);
 
   const steps = [
     "Industry & Qualification",

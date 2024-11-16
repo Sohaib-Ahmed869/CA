@@ -23,7 +23,7 @@ export const studentIntakeForm = async (data, applicationId) => {
   }
 };
 
-export const documentsUpload = async (data, applicationId) => {
+export const documentsUpload = async (data, applicationId, industry) => {
   try {
     const response = await axios.put(
       `${URL}/api/users/documentUpload/${applicationId}`,
@@ -75,4 +75,3 @@ export const markApplicationAsPaid = async (applicationId) => {
     return error.response.data;
   }
 };
-

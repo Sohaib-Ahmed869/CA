@@ -14,6 +14,8 @@ import { GiHamburgerMenu } from "react-icons/gi";
 import { FaMoneyBill1Wave } from "react-icons/fa6";
 import { getAuth, signOut } from "firebase/auth";
 import { FaIndustry } from "react-icons/fa";
+import ChangePassword from "../ChangePassword/page";
+import { CgPassword } from "react-icons/cg";
 import { getDashboardStats } from "../../Customer/Services/adminServices";
 const AdminSidebar = () => {
   const navigate = useNavigate();
@@ -117,6 +119,20 @@ const AdminSidebar = () => {
                 <FaIndustry className="text-xl" />
                 <button className="font-medium">Industries</button>
               </li>
+              <li
+                className={`cursor-pointer p-3 flex items-center gap-2 ${
+                  active === "Change Password"
+                    ? "bg-gray-100 bg-opacity-15 rounded-xl"
+                    : ""
+                }`}
+                onClick={() => {
+                  setActive("Change Password");
+                  setIsOpen(false);
+                }}
+              >
+                <CgPassword className="text-xl" />
+                <button className="font-medium">Change Password</button>
+              </li>
 
               <li
                 className="cursor-pointer p-3 flex items-center gap-2"
@@ -216,6 +232,21 @@ const AdminSidebar = () => {
             <button className="font-medium">Industries</button>
           </li>
           <li
+            className={`border-b border-base-300 cursor-pointer p-3 flex items-center gap-2 ${
+              active === "Change Password"
+                ? "bg-gray-100 bg-opacity-15 rounded-xl"
+                : ""
+            }`}
+            onClick={() => {
+              setActive("Change Password");
+              setIsOpen(false);
+            }}
+          >
+            <CgPassword className="text-xl" />
+            <button className="font-medium">Change Password</button>
+          </li>
+
+          <li
             className="border-b border-base-300 cursor-pointer p-3 flex items-center gap-2"
             onClick={() => {
               onClickLogout();
@@ -237,6 +268,7 @@ const AdminSidebar = () => {
         {active === "Applications" && <ExistingApplicationsAdmin />}
         {active === "Payments" && <PaymentApproval />}
         {active === "Industries" && <Industries />}
+        {active === "Change Password" && <ChangePassword />}
       </div>
 
       {isOpen && (

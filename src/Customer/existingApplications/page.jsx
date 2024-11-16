@@ -73,7 +73,8 @@ const ExistingApplications = () => {
     navigate("/student-intake-form/" + id);
   };
 
-  const onClickUpload = (id) => {
+  const onClickUpload = (id, industry) => {
+    localStorage.setItem("applicationIndustry", industry);
     navigate("/upload-documents/" + id);
   };
 
@@ -326,7 +327,12 @@ const ExistingApplications = () => {
                     ) : application.currentStatus === "Upload Documents" ? (
                       <button
                         className="btn btn-sm text-white btn-primary"
-                        onClick={() => onClickUpload(application.id)}
+                        onClick={() =>
+                          onClickUpload(
+                            application.id,
+                            application.initialForm.industry
+                          )
+                        }
                       >
                         <BiUpload className="max-sm:hidden" /> Upload
                       </button>

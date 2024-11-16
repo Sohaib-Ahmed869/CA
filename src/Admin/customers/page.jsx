@@ -58,6 +58,12 @@ const Application = ({ application, setSelectedApplication }) => {
       "payslip",
       "idCard",
       "australian_citizenship",
+      "image1",
+      "image2",
+      "image3",
+      "image4",
+      "video1",
+      "video2",
     ];
 
     // Loop through each document key, open the link if it's not null
@@ -123,13 +129,13 @@ const Application = ({ application, setSelectedApplication }) => {
             <div className="text-sm text-gray-500 flex justify-end">
               <button
                 onClick={onClickViewDocuments}
-                className="btn-sm rounded-xl flex items-center gap-2 bg-gray-200 px-4 py-2 m-2"
+                className="btn-sm btn-primary rounded-xl flex items-center gap-2 text-white bg-primary px-4 py-2 m-2"
               >
                 View Documents
               </button>
               <button
                 onClick={() => setViewIntakeForm(true)}
-                className="btn-sm rounded-xl flex items-center gap-2 bg-gray-200 px-4 py-2 m-2"
+                className="btn-sm rounded-xl flex items-center gap-2 btn-primary text-white bg-primary px-4 py-2 m-2"
               >
                 View Intake Form
               </button>
@@ -261,6 +267,9 @@ const CustomersInfo = () => {
   const [search, setSearch] = useState("");
   const [loading, setLoading] = React.useState(true);
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5; // Number of items per page
+
   React.useEffect(() => {
     setTimeout(() => {
       setLoading(false);
@@ -352,6 +361,7 @@ const CustomersInfo = () => {
         app.user?.lastName?.toLowerCase().includes(searchValue)
     );
     setFilteredApplications(filtered);
+    setCurrentPage(1);
   };
   useEffect(() => {
     //search applications by ID or Name
@@ -366,6 +376,26 @@ const CustomersInfo = () => {
     } catch (error) {
       console.error("Error initiating verification call:", error);
       setSubmissionLoading(false);
+    }
+  };
+
+  const totalItems = filteredApplications.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const currentItems = filteredApplications.slice(
+    startIndex,
+    startIndex + itemsPerPage
+  );
+
+  const goToNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage((prev) => prev + 1);
+    }
+  };
+
+  const goToPreviousPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage((prev) => prev - 1);
     }
   };
 
@@ -424,7 +454,7 @@ const CustomersInfo = () => {
                     </tr>
                   )
                 }
-                {filteredApplications.map((application) => (
+                {currentItems.map((application) => (
                   <tr
                     key={application.id}
                     className="animate-fade-up items-center overflow-auto"
@@ -556,6 +586,20 @@ const CustomersInfo = () => {
                   </tr>
                 ))}
               </tbody>
+            </div>
+            <div className="flex items-center justify-between gap-4 p-4">
+              <button
+                onClick={goToPreviousPage}
+                className="btn btn-primary btn-sm"
+              >
+                Previous
+              </button>
+              <div>
+                Page {currentPage} of {totalPages}
+              </div>
+              <button onClick={goToNextPage} className="btn btn-primary btn-sm">
+                Next
+              </button>
             </div>
           </div>
         </div>

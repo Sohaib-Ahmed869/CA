@@ -104,13 +104,13 @@ const Application = ({ application, setSelectedApplication }) => {
             <div className="text-sm text-gray-500 flex justify-end">
               <button
                 onClick={onClickViewDocuments}
-                className="btn-sm rounded-xl flex items-center gap-2 bg-gray-200 px-4 py-2 m-2"
+                className="btn-sm rounded-xl flex items-center gap-2 btn-primary bg-primary text-white px-4 py-2 m-2"
               >
                 View Documents
               </button>
               <button
                 onClick={() => setViewIntakeForm(true)}
-                className="btn-sm rounded-xl flex items-center gap-2 bg-gray-200 px-4 py-2 m-2"
+                className="btn-sm rounded-xl flex items-center gap-2 btn-primary bg-primary text-white px-4 py-2 m-2"
               >
                 View Intake Form
               </button>
