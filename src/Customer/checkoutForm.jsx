@@ -13,9 +13,8 @@ import {
 import toast from "react-hot-toast";
 import { Toaster } from "react-hot-toast";
 
-const stripePromise = loadStripe(
-  "pk_test_51OpbgVEUOaf2osppFuZpU9bkzw5Lml8DnipRkYfyRwXkyCubUe6gdvAjHvtMRLN8KLBI11eCDqk36ScyDj1kdfCI002FULOKh8"
-);
+const stripePublicKey = import.meta.env.VITE_REACT_STRIPE_PUBLIC_KEY;
+const stripePromise = loadStripe(stripePublicKey);
 
 const cardStyle = {
   style: {

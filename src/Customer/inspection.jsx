@@ -368,7 +368,7 @@ const ScreeningForm = () => {
             </h3>
             <p className="py-4">
               Your fast skills assessment has been submitted successfully.
-              Please visit the dashboard to verify your application via call.
+              Please visit the dashboard to view your application.
             </p>
             <div className="modal-action">
               <button

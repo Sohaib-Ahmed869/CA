@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import Navbar from "../components/navbar";
 import { useNavigate } from "react-router-dom";
 import { documentsUpload } from "../Services/customerApplication";
+import { BsCheck } from "react-icons/bs";
+import { CgLock } from "react-icons/cg";
 import SpinnerLoader from "../components/spinnerLoader";
 import { Toaster } from "react-hot-toast";
 import toast from "react-hot-toast";
@@ -150,7 +152,6 @@ const UploadDocuments = () => {
       !resume ||
       !previousQualifications ||
       !twoReferences.referenceOne ||
-      !twoReferences.referenceTwo ||
       !employmentLetter ||
       !payslip
     ) {
@@ -228,7 +229,7 @@ const UploadDocuments = () => {
         applicationIndustry
       );
       console.log(response);
-      
+
       setSubmissionLoading(false);
       successToast();
 
@@ -274,12 +275,25 @@ const UploadDocuments = () => {
             must be in PDF or PNG format. Maximum file size is 5MB.
           </p>
           <div>
-            <h3 className="file-lg font-semibold mb-3">100 Points of ID</h3>
-            <p className="text-md">Score: {score}</p>
+            <h3 className="file-lg font-semibold mb-3">
+              100 Points of ID<span className="text-red-500">*</span>
+            </h3>
+            <div
+              className={`flex items-center gap-2 border border-gray-300 p-2 rounded-lg mb-3 ${
+                score > 100 ? "bg-green-100" : "bg-red-100"
+              }`}
+            >
+              {score > 100 ? (
+                <BsCheck className="text-green-400 text-2xl" />
+              ) : (
+                <p className="text-red-800 text-xl">X</p>
+              )}
+              <p className="text-md">Score: {score}/100</p>
+            </div>
             <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
               <div className="gap-1 flex flex-col">
                 <label className="text-md text-gray-600">
-                  Driver's License <span className="text-red-500">*</span>
+                  Driver's License
                 </label>
                 <input
                   type="file"
@@ -291,9 +305,7 @@ const UploadDocuments = () => {
                 />
               </div>
               <div className="gap-1 flex flex-col">
-                <label className="text-md text-gray-600">
-                  ID Card <span className="text-red-500">*</span>
-                </label>
+                <label className="text-md text-gray-600">ID Card</label>
                 <input
                   type="file"
                   name="idCard"
@@ -305,9 +317,7 @@ const UploadDocuments = () => {
               </div>
 
               <div className="gap-1 flex flex-col">
-                <label className="text-md text-gray-600">
-                  Passport <span className="text-red-500">*</span>
-                </label>
+                <label className="text-md text-gray-600">Passport</label>
                 <input
                   type="file"
                   name="passport"
@@ -320,7 +330,7 @@ const UploadDocuments = () => {
 
               <div className="gap-1 flex flex-col">
                 <label className="text-md text-gray-600">
-                  Australian Citizenship <span className="text-red-500">*</span>
+                  Australian Citizenship
                 </label>
                 <input
                   type="file"
@@ -333,7 +343,7 @@ const UploadDocuments = () => {
               </div>
               <div className="gap-1 flex flex-col">
                 <label className="text-md text-gray-600">
-                  Birth Certificate <span className="text-red-500">*</span>
+                  Birth Certificate
                 </label>
                 <input
                   type="file"
@@ -345,9 +355,7 @@ const UploadDocuments = () => {
                 />
               </div>
               <div className="gap-1 flex flex-col">
-                <label className="text-md text-gray-600">
-                  Medicare Card <span className="text-red-500">*</span>
-                </label>
+                <label className="text-md text-gray-600">Medicare Card</label>
                 <input
                   type="file"
                   name="medicareCard"
@@ -415,9 +423,7 @@ const UploadDocuments = () => {
               />
             </div>
             <div className="gap-1 flex flex-col">
-              <label className="text-md text-gray-600">
-                Reference Two <span className="text-red-500">*</span>
-              </label>
+              <label className="text-md text-gray-600">Reference Two</label>
               <input
                 type="file"
                 name="referenceTwo"
@@ -445,7 +451,7 @@ const UploadDocuments = () => {
           </div>
           <div className="gap-1 flex flex-col">
             <label className="text-md text-gray-600">
-              Payslip <span className="text-red-500">*</span>
+              Payslip/Invoice <span className="text-red-500">*</span>
             </label>
             <input
               type="file"
@@ -532,10 +538,18 @@ const UploadDocuments = () => {
           )}
         </div>
         <button
-          className="btn btn-primary text-white p-2 max-sm:p-0 rounded mt-5 w-full"
+          className={`btn btn-primary text-white p-2 max-sm:p-0 rounded mt-5 w-full ${
+            score >= 100 ? "bg-primary" : "disabled bg-gray-500"
+          }`}
           onClick={handleSubmit}
         >
-          Submit
+          {score < 100 ? (
+            <div className="flex items-center justify-center gap-2">
+              <CgLock /> Submit
+            </div>
+          ) : (
+            "Submit"
+          )}
         </button>
       </div>
     </div>

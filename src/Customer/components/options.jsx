@@ -63,13 +63,13 @@ const Timeline = ({ timeline, applicationId, applicationName, paid }) => (
             >
               <p className="font-medium">
                 {item.statusname === "Waiting for Documents"
-                  ? "Evidence Submission"
+                  ? "Student Intake Form"
                   : null}
-                {item.statusname === "Student Intake Form" ? "Inquiry" : null}
+                {item.statusname === "Student Intake Form" ? "Skills Assessment" : null}
                 {item.statusname === "Payment Awaiting"
                   ? paid
-                    ? "Payment Received"
-                    : "Payment Awaiting"
+                    ? "Payment"
+                    : "Payment"
                   : null}
                 {item.statusname === "Sent to RTO"
                   ? paid
@@ -117,8 +117,8 @@ const CustomerDashboard = () => {
   }, [navigate]);
 
   const statuses = [
-    "Payment Awaiting",
     "Student Intake Form",
+    "Payment Awaiting",
     "Waiting for Documents",
     "Sent to RTO",
     "Certificate Generated",

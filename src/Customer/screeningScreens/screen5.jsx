@@ -48,7 +48,7 @@ const FinalScreen = ({
       </div>
       <div className="flex items-center justify-between gap-4 mb-5 lg:flex-row flex-col">
         <div className="flex flex-col w-full">
-          <label htmlFor="password">Password</label>
+          <label htmlFor="password">Create Password</label>
           <input
             type="password"
             id="password"
@@ -64,7 +64,7 @@ const FinalScreen = ({
         <div className="flex flex-col lg:w-1/2 w-full">
           <label htmlFor="phone">Phone</label>
           <PhoneInput
-            country={"us"} // Default country
+            country={"au"} // Default country
             value={phone}
             dashes={false}
             onChange={(phone) => setPhone(phone)}

@@ -19,6 +19,7 @@ const CreditsTransfer = ({ creditsTransfer, setCreditsTransfer }) => {
           className=" text-sm input input-sm border-none rounded-md"
           value={creditsTransfer.creditsTransfer}
           onChange={handleChange}
+          
         >
           <option value="Yes">Yes</option>
           <option value="No">No</option>
@@ -31,6 +32,7 @@ const CreditsTransfer = ({ creditsTransfer, setCreditsTransfer }) => {
           label="Name of Qualification"
           value={creditsTransfer.nameOfQualification}
           onChange={handleChange}
+          required={false}
         />
         <FloatingLabelInput
           name="YearCompleted"
@@ -39,6 +41,7 @@ const CreditsTransfer = ({ creditsTransfer, setCreditsTransfer }) => {
           label="Year Completed"
           value={creditsTransfer.YearCompleted}
           onChange={handleChange}
+          required={false}
         />
       </div>
     </div>

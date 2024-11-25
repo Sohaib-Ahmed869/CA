@@ -108,6 +108,7 @@ const Application = ({ application, setSelectedApplication }) => {
               </h2>
               <p>First Name: {application.user.firstName}</p>
               <p>Last Name: {application.user.lastName}</p>
+              <p>Phone: +{application.user.phone}</p>
               <p>Email: {application.user.email}</p>
               <p>Country: {application.user.country}</p>
               <p>State: {application.isf.state}</p>
@@ -195,7 +196,7 @@ const Application = ({ application, setSelectedApplication }) => {
                   </h2>
                   <div className="text-md text-gray-500 grid grid-cols-2">
                     <p>Email: {application.user.email}</p>
-                    <p>Phone: {application.sif.contactNumber}</p>
+                    <p>Phone: {application.user.phone}</p>
                   </div>
 
                   <h2 className="text-lg font-semibold text-gray-800 mt-4">
@@ -306,6 +307,10 @@ const CustomersInfo = () => {
     try {
       setSubmissionLoading(true);
       let applicationsData = await getApplications();
+
+      applicationsData.sort(
+        (a, b) => new Date(b.status[0].time) - new Date(a.status[0].time)
+      );
       //filter applications based on status which are not in Waiting for Verification
       setApplications(applicationsData);
       setFilteredApplications(applicationsData);
@@ -374,8 +379,11 @@ const CustomersInfo = () => {
 
   const onClickInitiateCall = async (applicationId) => {
     try {
+      const userId = applications.find(
+        (application) => application.id === applicationId
+      ).userId;
       setSubmissionLoading(true);
-      await initiateVerificationCall(applicationId);
+      await initiateVerificationCall(applicationId, userId);
       setSubmissionLoading(false);
     } catch (error) {
       console.error("Error initiating verification call:", error);
