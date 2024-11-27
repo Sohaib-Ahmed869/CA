@@ -124,6 +124,17 @@ export const addCertificateToIndustry = async ({
   }
 };
 
+export const deleteCertificate = async (name) => {
+  try {
+    const response = await axios.delete(`${URL}/api/industry/certification/`, {
+      params: { name },
+    });
+    return response.data;
+  } catch {
+    return "error";
+  }
+};
+
 export const getIndustries = async () => {
   try {
     const response = await axios.get(`${URL}/api/industry`);
@@ -142,6 +153,72 @@ export const addNoteToApplication = async (applicationId, note) => {
     );
     return response.data;
   } catch (error) {
+    return "error";
+  }
+};
+
+export const resendEmail = async (userId) => {
+  try {
+    const response = await axios.post(`${URL}/api/admin/resend/${userId}`);
+    return response.data;
+  } catch (error) {
+    return "error";
+  }
+};
+
+export const updatePrice = async (certificationName, updatedPrice) => {
+  try {
+    const response = await axios.put(`${URL}/api/industry/updatePrice`, {
+      newPrice: updatedPrice,
+      certificationName: certificationName,
+    });
+    return response.data;
+  } catch (error) {
+    return "error";
+  }
+};
+
+export const addColorToApplication = async (applicationId, color) => {
+  try {
+    const response = await axios.put(
+      `${URL}/api/admin/colorToApplication/${applicationId}`,
+      { colorToBeAdded: color }
+    );
+    return response.data;
+  } catch {
+    return "error";
+  }
+};
+
+export const deleteApplication = async (applicationId) => {
+  try {
+    const response = await axios.delete(
+      `${URL}/api/applications/deleteApplication/${applicationId}`
+    );
+    return response.data;
+  } catch {
+    return "error";
+  }
+};
+
+export const updatePhone = async (userId, phone) => {
+  try {
+    const response = await axios.put(`${URL}/api/users/phonenumber/${userId}`, {
+      phone: phone,
+    });
+    return response.data;
+  } catch {
+    return "error";
+  }
+};
+
+export const updateEmail = async (userId, email) => {
+  try {
+    const response = await axios.put(`${URL}/api/users/email/${userId}`, {
+      email: email,
+    });
+    return response.data;
+  } catch {
     return "error";
   }
 };

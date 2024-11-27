@@ -32,7 +32,7 @@ import { useNavigate } from "react-router-dom";
 import {
   getApplications,
   verifyApplication,
-  addNoteToApplication,
+  deleteApplication,
 } from "../../Customer/Services/adminServices";
 
 const ExistingApplicationsAdmin = () => {
@@ -43,8 +43,9 @@ const ExistingApplicationsAdmin = () => {
     "Student Intake Form",
     "Upload Documents",
     "Sent to RTO",
-    "Certificate Generated",
+    "Certificate Issued",
   ];
+
   const [loading, setLoading] = React.useState(true);
 
   React.useEffect(() => {
@@ -72,8 +73,6 @@ const ExistingApplicationsAdmin = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5; // Number of applications per page
 
- 
-
   const [filteredApplications, setFilteredApplications] = useState([]);
 
   const [activeStatus, setActiveStatus] = useState("All");
@@ -94,6 +93,24 @@ const ExistingApplicationsAdmin = () => {
     }
   };
 
+  const handleDeleteApplication = async (applicationId) => {
+    try {
+      setSubmissionLoading(true);
+      const result = await deleteApplication(applicationId);
+      if (result.message) {
+        toast.success(result.message);
+        getApplicationsData(); // Refresh the application list
+      } else {
+        toast.error("Failed to delete application");
+      }
+      setSubmissionLoading(false);
+    } catch (error) {
+      setSubmissionLoading(false);
+      toast.error("Error deleting application");
+      console.error("Error:", error);
+    }
+  };
+
   const onVerifyApplication = async (applicationId) => {
     try {
       setSubmissionLoading(true);
@@ -105,8 +122,6 @@ const ExistingApplicationsAdmin = () => {
       setSubmissionLoading(false);
     }
   };
-
- 
 
   useEffect(() => {
     getApplicationsData();
@@ -133,8 +148,34 @@ const ExistingApplicationsAdmin = () => {
     }
   };
 
- 
-  
+  const filterApplications = (status) => {
+    setActiveStatus(status);
+
+    if (status === "All") {
+      setFilteredApplications(applications);
+    } else if (status === "Student Intake Form") {
+      setFilteredApplications(
+        applications.filter(
+          (app) => app.currentStatus === "Student Intake Form"
+        )
+      );
+    } else if (status === "Upload Documents") {
+      setFilteredApplications(
+        applications.filter((app) => app.currentStatus === "Upload Documents")
+      );
+    } else if (status === "Sent to RTO") {
+      setFilteredApplications(
+        applications.filter((app) => app.currentStatus === "Sent to RTO")
+      );
+    } else if (status === "Certificate Issued") {
+      setFilteredApplications(
+        applications.filter(
+          (app) => app.currentStatus === "Certificate Generated"
+        )
+      );
+    }
+  };
+
   return (
     <div>
       {loading && <Loader />}
@@ -264,7 +305,13 @@ const ExistingApplicationsAdmin = () => {
                         <FaTimesCircle className="text-red-500 text-xl" />
                       )}
                     </td>
-                    <td>
+                    <td className="flex flex-col items-center">
+                      <button
+                        className="btn bg-red-500 hover:bg-red-600 text-white btn-sm"
+                        onClick={() => handleDeleteApplication(application.id)}
+                      >
+                        Delete
+                      </button>
                       {application.currentStatus === "Completed" ||
                       application.currentStatus === "Dispatched" ||
                       application.currentStatus === "Certificate Generated" ? (
@@ -323,8 +370,6 @@ const ExistingApplicationsAdmin = () => {
           setSelectedApplication={setSelectedApplication}
         />
       )}
-
-     
     </div>
   );
 };

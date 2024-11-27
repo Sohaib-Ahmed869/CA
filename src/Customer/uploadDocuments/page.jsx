@@ -165,7 +165,10 @@ const UploadDocuments = () => {
       return;
     }
 
-    if (applicationIndustry === "Automotive") {
+    if (
+      applicationIndustry === "Automotive" ||
+      applicationIndustry === "Building & Construction"
+    ) {
       if (!image1 || !image2 || !image3 || !image4 || !video1 || !video2) {
         errorToast();
         return;
@@ -461,7 +464,8 @@ const UploadDocuments = () => {
             />
           </div>
           {/* if the industry is automotive ask for videos and images */}
-          {applicationIndustry === "Automotive" && (
+          {(applicationIndustry === "Automotive" ||
+            applicationIndustry === "Building & Construction") && (
             <>
               <h3 className="file-lg font-semibold mb-3">
                 Images and Videos <span className="text-red-500">*</span>

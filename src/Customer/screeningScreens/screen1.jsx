@@ -1,5 +1,6 @@
-import React, { useState } from "react";
-import certificates from "../../certificate";
+import React, { useState, useEffect } from "react";
+import { getIndustries } from "../Services/adminServices";
+import SpinnerLoader from "../components/spinnerLoader";
 
 const Screen1 = ({
   industry,
@@ -11,40 +12,71 @@ const Screen1 = ({
   price,
   setPrice,
 }) => {
-  const industryOptions = [
-    "Community Services",
-    "Finance & Accounting",
-    "Building & Construction",
-    "Business",
-    "Automotive",
-    "Real Estate",
-    "Information & Communications Technology",
-    "Beauty Therapy & Hairdressing",
-    "Training & Education",
-    "Hospitality",
-    "Security Management",
-    "Fitness & Allied Health",
-    "Electrical",
-    "Travel and Tourism",
-  ];
+  const [submissionLoading, setSubmissionLoading] = useState(false);
+  const [industries, setIndustries] = useState([]);
+  const [qualificationOptions, setQualificationOptions] = useState([]);
 
-  const [qualificationOptions, setQualificationOptions] =
-    useState(certificates);
+  // Store the selected industry ID
+  const [selectedIndustryId, setSelectedIndustryId] = useState(null);
 
   const onChangeCertificate = (e) => {
     setQualification(e.target.value);
-    //find the selected certificate
+
+    // Find the selected certificate
     const selectedCertificate = qualificationOptions.find(
       (certificate) => certificate.qualification === e.target.value
     );
-    //set the type of the certificate
-    setType(selectedCertificate.type);
-    //set the price of the certificate
-    setPrice(selectedCertificate.price);
+
+    // Set the type and price of the certificate
+    if (selectedCertificate) {
+      setType(selectedCertificate.type);
+      setPrice(selectedCertificate.price);
+    }
+  };
+
+  const fetchIndustries = async () => {
+    setSubmissionLoading(true);
+    try {
+      const response = await getIndustries();
+      console.log("Industries:", response.industries);
+
+      // Set industries and extract all certifications
+      setIndustries(response.industries);
+      const updatedQualifications = response.industries.flatMap(
+        (industry) => industry.certifications || []
+      );
+      setQualificationOptions(updatedQualifications);
+      console.log("Certifications:", updatedQualifications);
+      setSubmissionLoading(false);
+    } catch (err) {
+      console.log(err);
+      setSubmissionLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchIndustries();
+  }, []);
+
+  const handleIndustryChange = (e) => {
+    const selectedIndustryName = e.target.value;
+    setIndustry(selectedIndustryName);
+
+    // Find the selected industry's ID
+    const selectedIndustry = industries.find(
+      (industry) => industry.name === selectedIndustryName
+    );
+
+    if (selectedIndustry) {
+      setSelectedIndustryId(selectedIndustry.id);
+    } else {
+      setSelectedIndustryId(null);
+    }
   };
 
   return (
     <div className="flex flex-col items-center animate-fade w-full">
+      {submissionLoading && <SpinnerLoader />}
       <div className="flex flex-col items-center">
         <div className="mb-4 flex flex-col gap-4 text-center mt-4">
           <label htmlFor="industry">What industry is your experience in?</label>
@@ -52,12 +84,12 @@ const Screen1 = ({
             id="industry"
             className="input lg:w-96 max-sm:w-full"
             value={industry}
-            onChange={(e) => setIndustry(e.target.value)}
+            onChange={handleIndustryChange}
           >
             <option value="">Select an option</option>
-            {industryOptions.map((option) => (
-              <option key={option} value={option}>
-                {option}
+            {industries.map((option) => (
+              <option key={option.id} value={option.name}>
+                {option.name}
               </option>
             ))}
           </select>
@@ -74,15 +106,14 @@ const Screen1 = ({
             value={qualification}
             onChange={onChangeCertificate}
           >
-            <option value="">Select an option</option>[
+            <option value="">Select an option</option>
             {qualificationOptions
-              .filter((option) => option.industry === industry)
+              .filter((option) => option.industryId === selectedIndustryId)
               .map((option) => (
                 <option key={option.qualification} value={option.qualification}>
                   {option.qualification}
                 </option>
               ))}
-            ]
           </select>
         </div>
       </div>

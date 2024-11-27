@@ -66,8 +66,9 @@ const FinalScreen = ({
           <PhoneInput
             country={"au"} // Default country
             value={phone}
-            dashes={false}
             onChange={(phone) => setPhone(phone)}
+            autoFormat={false}
+            disableCountryCode={false}
             inputClass="input mt-2 p-2" // Apply custom input class if necessary
             inputStyle={{
               width: "100%",

@@ -1,8 +1,13 @@
 import React, { useState, useEffect } from "react";
+import { BiEdit } from "react-icons/bi";
+import { FiDelete } from "react-icons/fi";
 import {
   createIndustry,
   addCertificateToIndustry,
   getIndustries,
+  updatePrice,
+  deleteApplication,
+  deleteCertificate,
 } from "../../Customer/Services/adminServices";
 import cert from "../../assets/cert.png";
 import { Table } from "flowbite-react";
@@ -70,6 +75,10 @@ const Industries = () => {
       setShowCertificateModal(false);
     }
   };
+
+  const [editPriceModal, setEditPriceModal] = useState(false);
+  const [updatedPrice, setUpdatedPrice] = useState(0);
+  const [selectedCertificateId, setSelectedCertificateId] = useState("");
 
   return (
     <div className="p-10">
@@ -237,6 +246,7 @@ const Industries = () => {
                   <th>Qualification</th>
                   <th>Price</th>
                   <th>Type</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -246,6 +256,25 @@ const Industries = () => {
                       <td>{certificate.qualification}</td>
                       <td>{certificate.price}</td>
                       <td>{certificate.type}</td>
+                      <td>
+                        <button
+                          className="btn btn-sm btn-outline btn-warning"
+                          onClick={() => {
+                            setSelectedCertificateId(certificate.qualification);
+                            setEditPriceModal(true);
+                          }}
+                        >
+                          <BiEdit />
+                        </button>
+                        {/* <button
+                          className="btn btn-sm btn-outline btn-warning"
+                          onClick={() => {
+                            deleteCertificate(certificate.qualification);
+                          }}
+                        >
+                          <FiDelete />
+                        </button> */}
+                      </td>
                     </tr>
                   ))}
               </tbody>
@@ -261,8 +290,42 @@ const Industries = () => {
           </div>
         </div>
       )}
-
- 
+      {/* Edit Price Modal */}
+      {editPriceModal && (
+        <div className="modal modal-open">
+          <div className="modal-box">
+            <h3 className="font-bold text-lg">Update Certification Price</h3>
+            <input
+              type="number"
+              placeholder="New Price"
+              className="input input-bordered w-full mb-4"
+              value={updatedPrice}
+              onChange={(e) => setUpdatedPrice(e.target.value)}
+            />
+            <div className="modal-action">
+              <button className="btn" onClick={() => setEditPriceModal(false)}>
+                Cancel
+              </button>
+              <button
+                className="btn btn-primary"
+                onClick={async () => {
+                  try {
+                    await updatePrice(selectedCertificateId, updatedPrice); // API call to update price
+                    setEditPriceModal(false);
+                    setViewAllCertificates(false);
+                    setUpdatedPrice(0);
+                    fetchIndustries(); // Refresh the industries data
+                  } catch (err) {
+                    console.error("Error updating price:", err);
+                  }
+                }}
+              >
+                Update Price
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -127,6 +127,7 @@ const PaymentPage = ({
   useEffect(() => {
     console.log("Price: ", price);
     console.log("Application ID: ", applicationId);
+    console.log(userId);
   }, [price, applicationId]),
   (
     <Elements stripe={stripePromise}>

@@ -23,6 +23,7 @@ import toast from "react-hot-toast";
 import { Toaster } from "react-hot-toast";
 import applicationsimg from "../../assets/applications.png";
 import { BiEdit } from "react-icons/bi";
+import PaymentPage from "../../Customer/checkoutForm";
 import Loader from "../../Customer/components/loader";
 
 import certificate from "../../assets/certificate.pdf";
@@ -33,14 +34,33 @@ import {
   getApplications,
   verifyApplication,
   addNoteToApplication,
+  resendEmail,
+  addColorToApplication,
+  updateEmail,
+  updatePhone,
 } from "../../Customer/Services/adminServices";
 
 import { initiateVerificationCall } from "../../Customer/Services/twilioService";
 
-const Application = ({ application, setSelectedApplication }) => {
+const Application = ({
+  application,
+  setSelectedApplication,
+  getApplicationsData,
+}) => {
+  const [submissionLoading, setSubmissionLoading] = useState(false);
   const [viewIntakeForm, setViewIntakeForm] = useState(false);
   const [viewDocuments, setViewDocuments] = useState(false);
   const [documentLinks, setDocumentLinks] = useState([]);
+  const [color, setColor] = useState("");
+  const [isColorModalOpen, setIsColorModalOpen] = useState(false);
+  const [isUpdateEmailOpen, setIsUpdateEmailOpen] = useState(false);
+  const [isUpdatePhoneOpen, setIsupdatePhoneOpen] = useState(false);
+  const [updatedPhone, setUpdatedPhone] = useState(
+    application.user.phone || ""
+  );
+  const [updatedEmail, setUpdatedEmail] = useState(
+    application.user.email || ""
+  );
 
   const onClickViewDocuments = async () => {
     console.log("Viewing documents for application with ID:", application);
@@ -80,8 +100,70 @@ const Application = ({ application, setSelectedApplication }) => {
     setViewDocuments(true);
   };
 
+  const handleAddColor = async () => {
+    try {
+      setSubmissionLoading(true);
+      const response = await addColorToApplication(application.id, color);
+      if (response.message === "Color updated successfully") {
+        toast.success("Color updated successfully!");
+        setColor("");
+        setIsColorModalOpen(false);
+        setSubmissionLoading(false);
+        await getApplicationsData();
+      } else {
+        toast.error("Failed to update color.");
+        setSubmissionLoading(false);
+      }
+    } catch (err) {
+      console.error("Error updating color:", err);
+      toast.error("An error occurred while updating the color.");
+      setSubmissionLoading(false);
+    }
+  };
+
+  const handlePhoneUpdate = async () => {
+    try {
+      setSubmissionLoading(true);
+      const response = await updatePhone(application.user.id, updatedPhone);
+      if (response === "error") {
+        toast.error("Failed to update phone number.");
+      } else {
+        toast.success("Phone number updated successfully!");
+      }
+      setSubmissionLoading(false);
+      setIsupdatePhoneOpen(false);
+      setSelectedApplication(null);
+      await getApplicationsData();
+    } catch (error) {
+      console.error("Error updating phone:", error);
+      toast.error("An error occurred while updating the phone number.");
+      setSubmissionLoading(false);
+    }
+  };
+
+  const handleEmailUpdate = async () => {
+    try {
+      setSubmissionLoading(true);
+      const response = await updateEmail(application.user.id, updatedEmail);
+      if (response === "error") {
+        toast.error("Failed to update email.");
+      } else {
+        toast.success("Email updated successfully!");
+      }
+      setSubmissionLoading(false);
+      setIsUpdateEmailOpen(false);
+      setSelectedApplication(null);
+      await getApplicationsData();
+    } catch (error) {
+      console.error("Error updating email:", error);
+      toast.error("An error occurred while updating the email.");
+      setSubmissionLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen">
+      {submissionLoading && <SpinnerLoader />}
       <button onClick={() => setSelectedApplication(null)} className="btn-sm">
         Back
       </button>
@@ -108,10 +190,28 @@ const Application = ({ application, setSelectedApplication }) => {
               </h2>
               <p>First Name: {application.user.firstName}</p>
               <p>Last Name: {application.user.lastName}</p>
-              <p>Phone: +{application.user.phone}</p>
-              <p>Email: {application.user.email}</p>
-              <p>Country: {application.user.country}</p>
-              <p>State: {application.isf.state}</p>
+              <div>
+                <h2 className="text-lg font-semibold">Contact Information</h2>
+                <p className="flex items-center">
+                  Phone: +{application.user.phone}{" "}
+                  <button
+                    className="btn-sm btn-secondary ml-2"
+                    onClick={() => setIsupdatePhoneOpen(true)}
+                  >
+                    Update Phone
+                  </button>
+                </p>
+                <p className="flex item-center">
+                  Email: {application.user.email}{" "}
+                  <button
+                    className="btn-sm btn-secondary ml-2"
+                    onClick={() => setIsUpdateEmailOpen(true)}
+                  >
+                    Update Email
+                  </button>
+                </p>
+              </div>
+
               <p>Industry: {application.isf.industry}</p>
               <p>Qualification: {application.isf.qualification || "N/A"}</p>
               <p>Years of Experience: {application.isf.yearsOfExperience}</p>
@@ -129,18 +229,24 @@ const Application = ({ application, setSelectedApplication }) => {
                 {application.user.toc ? "Agreed" : "Not Agreed"}
               </p>
             </div>
-            <div className="text-sm text-gray-500 flex justify-end">
+            <div className="text-sm text-gray-500 flex justify-end gap-2">
               <button
                 onClick={onClickViewDocuments}
-                className="btn-sm btn-primary rounded-xl flex items-center gap-2 text-white bg-primary px-4 py-2 m-2"
+                className="btn-sm btn-primary rounded-xl flex items-center justify-center gap-2 text-white bg-primary px-4 py-5 w-64"
               >
                 View Documents
               </button>
               <button
                 onClick={() => setViewIntakeForm(true)}
-                className="btn-sm rounded-xl flex items-center gap-2 btn-primary text-white bg-primary px-4 py-2 m-2"
+                className="btn-sm rounded-xl flex items-center gap-2 btn-primary justify-center text-white bg-primary px-4 py-5 w-64"
               >
                 View Intake Form
+              </button>
+              <button
+                onClick={() => setIsColorModalOpen(true)}
+                className="btn-sm btn-warning rounded-xl flex items-center justify-center gap-2 text-white bg-primary px-4 py-5 w-64"
+              >
+                Add/Update Color
               </button>
             </div>
           </div>
@@ -257,6 +363,97 @@ const Application = ({ application, setSelectedApplication }) => {
             </div>
           </dialog>
         )}
+        {isColorModalOpen && (
+          <dialog className="modal modal-open">
+            <div className="col-span-4 bg-white p-4 rounded-lg shadow-lg">
+              <button
+                onClick={() => setIsColorModalOpen(false)}
+                className="mt-4 mr-4 float-right"
+              >
+                <FaTimes className="text-lg" />
+              </button>
+              <h2 className="text-lg font-semibold text-gray-800">
+                Add/Update Application Color
+              </h2>
+              <label htmlFor="color-select" className="block text-gray-700">
+                Select Color:
+              </label>
+              <select
+                id="color-select"
+                className="select select-bordered w-full mb-4"
+                value={color}
+                onChange={(e) => setColor(e.target.value)}
+              >
+                <option value="white">White (Default)</option>
+                <option value="red">Red</option>
+                <option value="yellow">Yellow</option>
+                <option value="gray">Gray</option>
+              </select>
+              <div className="flex justify-end">
+                <button
+                  onClick={handleAddColor}
+                  className="btn btn-primary text-white"
+                >
+                  Update Color
+                </button>
+              </div>
+            </div>
+          </dialog>
+        )}
+
+        {/* Update Phone Modal */}
+        {isUpdatePhoneOpen && (
+          <dialog className="modal modal-open">
+            <div className="modal-box">
+              <button
+                className="btn btn-secondary float-right"
+                onClick={() => setIsupdatePhoneOpen(false)}
+              >
+                Close
+              </button>
+              <h3 className="font-bold text-lg">Update Phone</h3>
+              <input
+                className="input input-bordered w-full mt-4"
+                value={updatedPhone}
+                onChange={(e) => setUpdatedPhone(e.target.value)}
+                placeholder="Enter new phone number"
+              />
+              <button
+                className="btn btn-primary mt-4 w-full"
+                onClick={handlePhoneUpdate}
+              >
+                Update Phone
+              </button>
+            </div>
+          </dialog>
+        )}
+
+        {/* Update Email Modal */}
+        {isUpdateEmailOpen && (
+          <dialog className="modal modal-open">
+            <div className="modal-box">
+              <button
+                className="btn btn-secondary float-right"
+                onClick={() => setIsUpdateEmailOpen(false)}
+              >
+                Close
+              </button>
+              <h3 className="font-bold text-lg">Update Email</h3>
+              <input
+                className="input input-bordered w-full mt-4"
+                value={updatedEmail}
+                onChange={(e) => setUpdatedEmail(e.target.value)}
+                placeholder="Enter new email address"
+              />
+              <button
+                className="btn btn-primary mt-4 w-full"
+                onClick={handleEmailUpdate}
+              >
+                Update Email
+              </button>
+            </div>
+          </dialog>
+        )}
       </div>
     </div>
   );
@@ -265,7 +462,10 @@ const Application = ({ application, setSelectedApplication }) => {
 const CustomersInfo = () => {
   const navigate = useNavigate();
   const [submissionLoading, setSubmissionLoading] = useState(false);
+  const [applicationId, setApplicationId] = useState("");
+
   const [applications, setApplications] = useState([]);
+  const [showCheckoutModal, setShowCheckoutModal] = useState(false);
 
   const [search, setSearch] = useState("");
   const [loading, setLoading] = React.useState(true);
@@ -273,15 +473,39 @@ const CustomersInfo = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5; // Number of items per page
 
+  const [price, setPrice] = useState(0);
+  const [userId, setUserId] = useState(null);
+  const getUserApplications = async (userId) => {
+    setSubmissionLoading(true);
+    try {
+      const response = await getApplications(userId);
+      console.log("application", response);
+      setApplications(response);
+      setSubmissionLoading(false);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const [selectedApplication, setSelectedApplication] = useState(null);
+  useEffect(() => {
+    if (userId) {
+      getUserApplications(userId);
+    }
+  }, [userId, selectedApplication]);
+
+  const onClickPayment = (price, applicationId, userId) => {
+    setUserId(userId);
+    setPrice(price);
+    setApplicationId(applicationId);
+    setShowCheckoutModal(true);
+  };
+
   React.useEffect(() => {
     setTimeout(() => {
       setLoading(false);
     }, 0);
   }, []);
-
-  const onClickPayment = () => {
-    alert("Redirected to Payment Gateway");
-  };
 
   const onClickDownload = (certificateURL) => {
     console.log("Downloading certificate:", certificateURL);
@@ -300,8 +524,6 @@ const CustomersInfo = () => {
   const [filteredApplications, setFilteredApplications] = useState([]);
 
   const [activeStatus, setActiveStatus] = useState("Unverified");
-
-  const [selectedApplication, setSelectedApplication] = useState(null);
 
   const getApplicationsData = async () => {
     try {
@@ -415,11 +637,11 @@ const CustomersInfo = () => {
   const [note, setNote] = useState("");
 
   const noteAddedToast = () => {
-    toast.success("Note added successfully");
+    toast.success("Successful");
   };
 
   const noteErrorToast = () => {
-    toast.error("Failed to add note");
+    toast.error("Failed");
   };
 
   const filterApplications = (status) => {
@@ -451,6 +673,23 @@ const CustomersInfo = () => {
       getApplicationsData();
     } catch (error) {
       console.error("Failed to add note:", error);
+      noteErrorToast();
+      setSubmissionLoading(false);
+    }
+  };
+
+  const resendEmailFunc = async (userId) => {
+    setSubmissionLoading(true);
+    try {
+      const response = await resendEmail(userId);
+      if (response === "error") {
+        noteErrorToast();
+        setSubmissionLoading(false);
+        return;
+      }
+      setSubmissionLoading(false);
+    } catch (error) {
+      console.error("Failed", error);
       noteErrorToast();
       setSubmissionLoading(false);
     }
@@ -518,9 +757,9 @@ const CustomersInfo = () => {
                 {currentItems.map((application) => (
                   <tr
                     key={application.id}
-                    className="animate-fade-up items-center overflow-auto"
+                    className={`animate-fade-up items-center overflow-auto `}
                   >
-                    <td className="p-5 flex items-center">
+                    <td className={`p-5 flex items-center`}>
                       {application.applicationId
                         ? application.applicationId
                         : application.id}
@@ -532,7 +771,7 @@ const CustomersInfo = () => {
                     <td className="">
                       {application.status[0].time.split("T")[0]}
                     </td>
-                    <td>
+                    <td style={{ backgroundColor: application.color }}>
                       {application.user.firstName +
                         " " +
                         application.user.lastName}
@@ -600,6 +839,7 @@ const CustomersInfo = () => {
                             className="cursor-pointer bg-white border-0 btn-sm rounded absolute top-2 right-2 hover:bg-white"
                             onClick={() => {
                               setSelectedApplicationId(application.id);
+                              setNote(application.note);
                               setAddNoteModal(true);
                             }}
                           >
@@ -628,10 +868,30 @@ const CustomersInfo = () => {
 
                     <td className="flex items-center flex-col gap-2">
                       <button
-                        className="btn btn-primary btn-sm w-full"
+                        className="btn btn-primary btn-sm w-full text-white"
                         onClick={() => onClickInitiateCall(application.id)}
                       >
                         Call Now
+                      </button>
+                      {!application.paid && (
+                        <button
+                          className="btn btn-primary btn-sm w-full text-white"
+                          onClick={() =>
+                            onClickPayment(
+                              application.price,
+                              application.id,
+                              application.userId
+                            )
+                          }
+                        >
+                          Pay Now
+                        </button>
+                      )}
+                      <button
+                        className="btn btn-primary btn-sm w-full text-white"
+                        onClick={() => resendEmailFunc(application.userId)}
+                      >
+                        Resend Email
                       </button>
                       {application.currentStatus === "Completed" ||
                       application.currentStatus === "Dispatched" ||
@@ -699,7 +959,32 @@ const CustomersInfo = () => {
         <Application
           application={selectedApplication}
           setSelectedApplication={setSelectedApplication}
+          getApplicationsData={getApplicationsData}
         />
+      )}
+
+      {showCheckoutModal && (
+        <div className="modal modal-open">
+          <div className="modal-box">
+            <h3 className="font-bold text-lg">Payment Details</h3>
+            <div className="py-4">
+              <PaymentPage
+                price={price}
+                applicationId={applicationId}
+                setShowCheckoutModal={setShowCheckoutModal}
+                getUserApplications={getUserApplications}
+                userId={userId}
+              />
+              <button
+                className="btn bg-red-500 hover:bg-red-600 btn-primary w-full mt-4"
+                onClick={() => setShowCheckoutModal(false)}
+              >
+                Close
+              </button>
+            </div>
+            <div className="modal-action"></div>
+          </div>
+        </div>
       )}
 
       {addNoteModal && (
