@@ -33,6 +33,7 @@ const cardStyle = {
 };
 
 const CheckoutForm = ({
+  full_paid,
   price,
   applicationId,
   setShowCheckoutModal,
@@ -98,6 +99,12 @@ const CheckoutForm = ({
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-4 w-full">
       <p className="text-sm text-gray-700">Card Information</p>
+      <p className="text-sm text-gray-700">
+        {full_paid
+          ? "You have paid half of the application fee. Please pay the remaining half to complete the application"
+          : "Please enter your card details to pay for the application"}
+      </p>
+
       <CardElement options={cardStyle} />
 
       <button
@@ -123,25 +130,48 @@ const PaymentPage = ({
   setShowCheckoutModal,
   getUserApplications,
   userId,
-}) => (
+  partialScheme,
+  paid,
+  payment1,
+  payment2,
+  full_paid,
+}) => {
   useEffect(() => {
     console.log("Price: ", price);
     console.log("Application ID: ", applicationId);
     console.log(userId);
-  }, [price, applicationId]),
-  (
+    console.log(partialScheme);
+    console.log(paid);
+    console.log(payment1);
+    console.log(payment2);
+    console.log(full_paid);
+  }, [price, applicationId]);
+
+  let pricetoPay = 0;
+  if (partialScheme) {
+    if (paid) {
+      pricetoPay = payment2;
+    } else {
+      pricetoPay = payment1;
+    }
+  } else {
+    pricetoPay = price;
+  }
+
+  return (
     <Elements stripe={stripePromise}>
       <Toaster />
 
       <CheckoutForm
-        price={price}
+        full_paid={full_paid}
+        price={pricetoPay}
         applicationId={applicationId}
         setShowCheckoutModal={setShowCheckoutModal}
         getUserApplications={getUserApplications}
         userId={userId}
       />
     </Elements>
-  )
-);
+  );
+};
 
 export default PaymentPage;

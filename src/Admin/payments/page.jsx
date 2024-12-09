@@ -115,6 +115,7 @@ const PaymentApproval = () => {
               <th>ID</th>
               <th>Customer Name</th>
               <th>Date Created</th>
+              <th>Payment Amount</th>
               <th>Status</th>
               <th>Payment Status</th>
             </tr>
@@ -138,6 +139,7 @@ const PaymentApproval = () => {
                   {application.user.firstName + " " + application.user.lastName}
                 </td>
                 <td>{application.status[0].time.split("T")[0]}</td>
+                <td>{application.price}</td>
                 <td>{application.currentStatus}</td>
                 <td>{application.paid ? "Paid" : "N/A"}</td>
               </tr>

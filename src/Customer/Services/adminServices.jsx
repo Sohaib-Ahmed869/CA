@@ -222,3 +222,15 @@ export const updateEmail = async (userId, email) => {
     return "error";
   }
 };
+
+export const dividePayment = async (applicationId, payment1, payment2) => {
+  try {
+    const response = await axios.put(
+      `${URL}/api/applications/dividePayment/${applicationId}`,
+      { payment1, payment2 }
+    );
+    return response.data;
+  } catch {
+    return "error";
+  }
+};

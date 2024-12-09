@@ -52,15 +52,36 @@ const ExistingApplications = () => {
   const [price, setPrice] = useState(0);
   const [applicationId, setApplicationId] = useState("");
 
+  const [partialScheme, setPartialScheme] = useState(false);
+  const [paid, setPaid] = useState(false);
+  const [payment1, setPayment1] = useState(0);
+  const [payment2, setPayment2] = useState(0);
+  const [full_paid, setFullPaid] = useState(false);
+
   React.useEffect(() => {
     setTimeout(() => {
       setLoading(false);
     }, 0);
   }, []);
 
-  const onClickPayment = (price, applicationId) => {
+  const onClickPayment = (
+    price,
+    applicationId,
+    userId,
+    partialScheme,
+    paid,
+    payment1,
+    payment2,
+    full_paid
+  ) => {
     setPrice(price);
     setApplicationId(applicationId);
+    setPartialScheme(partialScheme);
+    setPaid(paid);
+    setPayment1(payment1);
+    setPayment2(payment2);
+    setFullPaid(full_paid);
+
     setShowCheckoutModal(true);
   };
 
@@ -295,7 +316,16 @@ const ExistingApplications = () => {
                         <button
                           className="btn btn-sm text-white btn-primary"
                           onClick={() =>
-                            onClickPayment(application.price, application.id)
+                            onClickPayment(
+                              application.price,
+                              application.id,
+                              application.userId,
+                              application.partialScheme,
+                              application.paid,
+                              application.payment1,
+                              application.payment2,
+                              application.full_paid
+                            )
                           }
                         >
                           Pay Now
@@ -308,7 +338,16 @@ const ExistingApplications = () => {
                       <button
                         className="btn btn-sm text-white btn-primary"
                         onClick={() =>
-                          onClickPayment(application.price, application.id)
+                          onClickPayment(
+                            application.price,
+                            application.id,
+                            application.userId,
+                            application.partialScheme,
+                            application.paid,
+                            application.payment1,
+                            application.payment2,
+                            application.full_paid
+                          )
                         }
                       >
                         Pay Now
@@ -387,6 +426,10 @@ const ExistingApplications = () => {
               <PaymentPage
                 price={price}
                 applicationId={applicationId}
+                partialScheme={partialScheme}
+                paid={paid}
+                payment1={payment1}
+                payment2={payment2}
                 setShowCheckoutModal={setShowCheckoutModal}
                 getUserApplications={getUserApplications}
                 userId={userId}

@@ -25,6 +25,7 @@ import applicationsimg from "../../assets/applications.png";
 import { BiEdit } from "react-icons/bi";
 import PaymentPage from "../../Customer/checkoutForm";
 import Loader from "../../Customer/components/loader";
+import { getAuth } from "firebase/auth";
 
 import certificate from "../../assets/certificate.pdf";
 
@@ -38,6 +39,7 @@ import {
   addColorToApplication,
   updateEmail,
   updatePhone,
+  dividePayment,
 } from "../../Customer/Services/adminServices";
 
 import { initiateVerificationCall } from "../../Customer/Services/twilioService";
@@ -55,6 +57,10 @@ const Application = ({
   const [isColorModalOpen, setIsColorModalOpen] = useState(false);
   const [isUpdateEmailOpen, setIsUpdateEmailOpen] = useState(false);
   const [isUpdatePhoneOpen, setIsupdatePhoneOpen] = useState(false);
+
+  const [payment1, setPayment1] = useState("");
+  const [payment2, setPayment2] = useState("");
+  const [openPaymentModal, setOpenPaymentModal] = useState(false);
   const [updatedPhone, setUpdatedPhone] = useState(
     application.user.phone || ""
   );
@@ -161,6 +167,26 @@ const Application = ({
     }
   };
 
+  const handlePaymentUpdate = async () => {
+    try {
+      setSubmissionLoading(true);
+      const response = await dividePayment(application.id, payment1, payment2);
+      if (response === "error") {
+        toast.error("Failed to divide payment.");
+      } else {
+        toast.success("Payment divided successfully!");
+      }
+      setSubmissionLoading(false);
+      setOpenPaymentModal(false);
+      setSelectedApplication(null);
+      await getApplicationsData();
+    } catch (error) {
+      console.error("Error dividing payment:", error);
+      toast.error("An error occurred while dividing the payment.");
+      setSubmissionLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen">
       {submissionLoading && <SpinnerLoader />}
@@ -241,6 +267,12 @@ const Application = ({
                 className="btn-sm rounded-xl flex items-center gap-2 btn-primary justify-center text-white bg-primary px-4 py-5 w-64"
               >
                 View Intake Form
+              </button>
+              <button
+                onClick={() => setOpenPaymentModal(true)}
+                className="btn-sm btn-primary rounded-xl flex items-center justify-center gap-2 text-white bg-primary px-4 py-5 w-64"
+              >
+                Divide Payment
               </button>
               <button
                 onClick={() => setIsColorModalOpen(true)}
@@ -454,6 +486,44 @@ const Application = ({
             </div>
           </dialog>
         )}
+
+        {openPaymentModal && (
+          <dialog className="modal modal-open">
+            <div className="modal-box">
+              <button
+                className="btn btn-secondary float-right"
+                onClick={() => setOpenPaymentModal(false)}
+              >
+                Close
+              </button>
+              <h3 className="font-bold text-lg">Divide Payment</h3>
+              <p className="text-sm mt-4">
+                {application.user.firstName} {application.user.lastName} has
+                applied for {application.isf.qualification} in{" "}
+                {application.isf.industry}. The total payment amount is{" "}
+                {application.price}.
+              </p>
+              <input
+                className="input input-bordered w-full mt-4"
+                value={payment1}
+                onChange={(e) => setPayment1(e.target.value)}
+                placeholder="Enter first payment amount"
+              />
+              <input
+                className="input input-bordered w-full mt-4"
+                value={payment2}
+                onChange={(e) => setPayment2(e.target.value)}
+                placeholder="Enter second payment amount"
+              />
+              <button
+                className="btn btn-primary mt-4 w-full"
+                onClick={handlePaymentUpdate}
+              >
+                Divide Payment
+              </button>
+            </div>
+          </dialog>
+        )}
       </div>
     </div>
   );
@@ -474,6 +544,7 @@ const CustomersInfo = () => {
   const itemsPerPage = 5; // Number of items per page
 
   const [price, setPrice] = useState(0);
+
   const [userId, setUserId] = useState(null);
   const getUserApplications = async (userId) => {
     setSubmissionLoading(true);
@@ -494,10 +565,32 @@ const CustomersInfo = () => {
     }
   }, [userId, selectedApplication]);
 
-  const onClickPayment = (price, applicationId, userId) => {
+  const [partialScheme, setPartialScheme] = useState(false);
+  const [paid, setPaid] = useState(false);
+  const [payment1, setPayment1] = useState(0);
+  const [payment2, setPayment2] = useState(0);
+  const [full_paid, setFullPaid] = useState(false);
+
+  const onClickPayment = (
+    price,
+    applicationId,
+    userId,
+    partialScheme,
+    paid,
+    payment1,
+    payment2,
+    full_paid
+  ) => {
     setUserId(userId);
     setPrice(price);
     setApplicationId(applicationId);
+    setPartialScheme(partialScheme);
+    setPaid(paid);
+    setFullPaid(full_paid);
+    setPayment1(payment1);
+    setPayment2(payment2);
+    setFullPaid(full_paid);
+
     setShowCheckoutModal(true);
   };
 
@@ -601,11 +694,14 @@ const CustomersInfo = () => {
 
   const onClickInitiateCall = async (applicationId) => {
     try {
+      const auth = getAuth();
+      const adminUserId = auth.currentUser.uid;
+
       const userId = applications.find(
         (application) => application.id === applicationId
       ).userId;
       setSubmissionLoading(true);
-      await initiateVerificationCall(applicationId, userId);
+      await initiateVerificationCall(applicationId, userId, adminUserId);
       setSubmissionLoading(false);
     } catch (error) {
       console.error("Error initiating verification call:", error);
@@ -859,7 +955,7 @@ const CustomersInfo = () => {
                       )}
                     </td>
                     <td className=" text-center">
-                      {application.paid ? (
+                      {application.full_paid ? (
                         <BiCheckCircle className="text-green-500 text-xl" />
                       ) : (
                         <FaTimesCircle className="text-red-500 text-xl" />
@@ -880,7 +976,12 @@ const CustomersInfo = () => {
                             onClickPayment(
                               application.price,
                               application.id,
-                              application.userId
+                              application.userId,
+                              application.partialScheme,
+                              application.paid,
+                              application.payment1,
+                              application.payment2,
+                              application.full_paid
                             )
                           }
                         >
@@ -971,6 +1072,10 @@ const CustomersInfo = () => {
               <PaymentPage
                 price={price}
                 applicationId={applicationId}
+                partialScheme={partialScheme}
+                paid={paid}
+                payment1={payment1}
+                payment2={payment2}
                 setShowCheckoutModal={setShowCheckoutModal}
                 getUserApplications={getUserApplications}
                 userId={userId}

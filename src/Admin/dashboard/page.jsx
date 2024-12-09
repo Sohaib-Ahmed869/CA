@@ -13,7 +13,10 @@ import { BiCheck } from "react-icons/bi";
 import { BiTimeFive } from "react-icons/bi";
 import { BiUserCheck } from "react-icons/bi";
 import { MdPending } from "react-icons/md";
-import { getDashboardStats } from "../../Customer/Services/adminServices";
+import {
+  getDashboardStats,
+  getApplications,
+} from "../../Customer/Services/adminServices";
 import SpinnerLoader from "../../Customer/components/spinnerLoader";
 
 const Dashboard = () => {
@@ -26,6 +29,8 @@ const Dashboard = () => {
     paidApplications: 0,
     rtoApplications: 0,
   });
+
+  const [applications, setApplications] = useState([]);
 
   const [submissionLoading, setSubmissionLoading] = useState(false);
 
@@ -43,6 +48,24 @@ const Dashboard = () => {
       }
     };
     fetchStats();
+  }, []);
+
+  const getApplicationsData = async () => {
+    try {
+      setSubmissionLoading(true);
+      const response = await getApplications();
+      setApplications(response);
+      console.log(applications);
+      setSubmissionLoading(false);
+    } catch (error) {
+      console.log("Error occured while fetching applications");
+      setSubmissionLoading(false);
+      return;
+    }
+  };
+
+  useEffect(() => {
+    getApplicationsData();
   }, []);
 
   return (
