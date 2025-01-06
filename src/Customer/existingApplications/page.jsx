@@ -420,8 +420,17 @@ const ExistingApplications = () => {
       </div>
       {showCheckoutModal && (
         <div className="modal modal-open">
-          <div className="modal-box">
-            <h3 className="font-bold text-lg">Payment Details</h3>
+          <div className="modal-box max-w-lg">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="font-bold text-lg">Payment Details</h3>
+              <button
+                onClick={() => setShowCheckoutModal(false)}
+                className="btn btn-sm btn-circle"
+              >
+                ✕
+              </button>
+            </div>
+
             <div className="py-4">
               <PaymentPage
                 price={price}
@@ -434,14 +443,7 @@ const ExistingApplications = () => {
                 getUserApplications={getUserApplications}
                 userId={userId}
               />
-              <button
-                className="btn bg-red-500 hover:bg-red-600 btn-primary w-full mt-4"
-                onClick={() => setShowCheckoutModal(false)}
-              >
-                Close
-              </button>
             </div>
-            <div className="modal-action"></div>
           </div>
         </div>
       )}

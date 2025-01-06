@@ -1,120 +1,150 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import ApexCharts from "react-apexcharts";
-import { useState } from "react";
-
-import { BiChevronDown } from "react-icons/bi";
 import { BsArrowRight } from "react-icons/bs";
 
-const options = {
-  colors: ["#089C34", "#142E1D"],
-  series: [
-    {
-      name: "Completed",
-      color: "#089C34",
-      data: [
-        { x: "Mon", y: 231 },
-        { x: "Tue", y: 122 },
-        { x: "Wed", y: 63 },
-        { x: "Thu", y: 421 },
-        { x: "Fri", y: 122 },
-        { x: "Sat", y: 323 },
-        { x: "Sun", y: 111 },
-      ],
+// Applications by Status Chart (Pie Chart)
+const ApplicationStatusChart = ({ applications }) => {
+  const getStatusCounts = () => {
+    const counts = {
+      "Waiting for Verification": 0,
+      "Sent to RTO": 0,
+      "Certificate Generated": 0,
+      "Student Intake Form": 0,
+      "Upload Documents": 0,
+    };
+
+    applications.forEach((app) => {
+      counts[app.currentStatus] = (counts[app.currentStatus] || 0) + 1;
+    });
+
+    return counts;
+  };
+
+  const statusCounts = getStatusCounts();
+
+  const chartOptions = {
+    series: Object.values(statusCounts),
+    colors: ["#089C34", "#142E1D", "#10B981", "#3B82F6", "#8B5CF6"],
+    chart: {
+      height: 320,
+      type: "pie",
     },
-    {
-      name: "Pending",
-      color: "#142E1D",
-      data: [
-        { x: "Mon", y: 232 },
-        { x: "Tue", y: 113 },
-        { x: "Wed", y: 341 },
-        { x: "Thu", y: 224 },
-        { x: "Fri", y: 522 },
-        { x: "Sat", y: 411 },
-        { x: "Sun", y: 243 },
-      ],
-    },
-  ],
-  chart: {
-    type: "bar",
-    height: 320,
-    toolbar: { show: false },
-  },
-  plotOptions: {
-    bar: { horizontal: false, columnWidth: "70%", borderRadius: 8 },
-  },
-  tooltip: {
-    shared: true,
-    intersect: false,
-  },
-  dataLabels: {
-    enabled: false, // Hide data values on the chart
-  },
-  xaxis: {
-    labels: {
+    labels: Object.keys(statusCounts),
+    dataLabels: {
+      enabled: true,
       style: {
         fontFamily: "Inter, sans-serif",
         fontSize: "12px",
-        color: "#A0AEC0",
       },
-      colors: "#A0AEC0",
     },
-    axisBorder: { show: false },
-    axisTicks: { show: false },
-  },
-  yaxis: { show: false },
-  fill: { opacity: 1 },
-};
-
-const DashboardCard = () => {
-  const [dropdownOpen, setDropdownOpen] = useState(false);
+    legend: {
+      position: "bottom",
+      fontFamily: "Inter, sans-serif",
+    },
+  };
 
   return (
-    <div className="max-w-sm w-full bg-white rounded-lg shadow  p-4 md:p-6">
-      <div className="flex justify-between pb-4 mb-4 border-b border-gray-200 ">
+    <div className="max-w-sm w-full bg-white rounded-lg shadow p-4 md:p-6">
+      <div className="flex justify-between items-center mb-4">
+        <div className="flex-col">
+          <h5 className="text-xl font-bold leading-none text-gray-900">
+            Application Status
+          </h5>
+          <p className="text-sm text-gray-500">
+            Distribution of applications by status
+          </p>
+        </div>
+      </div>
+      <div id="pie-chart">
+        <ApexCharts
+          options={chartOptions}
+          series={chartOptions.series}
+          type="pie"
+          height={320}
+        />
+      </div>
+    </div>
+  );
+};
+
+// Weekly Applications Chart (Bar Chart)
+const WeeklyApplicationsChart = ({ applications }) => {
+  const getWeeklyData = () => {
+    const weekDays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+    const completed = Array(7).fill(0);
+    const pending = Array(7).fill(0);
+
+    applications.forEach((app) => {
+      const date = new Date(app.status[0].time);
+      const dayIndex = date.getDay();
+      if (app.paid) {
+        completed[dayIndex]++;
+      } else {
+        pending[dayIndex]++;
+      }
+    });
+
+    return { completed, pending };
+  };
+
+  const weeklyData = getWeeklyData();
+
+  const chartOptions = {
+    colors: ["#089C34", "#142E1D"],
+    series: [
+      {
+        name: "Paid",
+        color: "#089C34",
+        data: weeklyData.completed,
+      },
+      {
+        name: "Pending Payment",
+        color: "#142E1D",
+        data: weeklyData.pending,
+      },
+    ],
+    chart: {
+      type: "bar",
+      height: 320,
+      toolbar: { show: false },
+    },
+    plotOptions: {
+      bar: { horizontal: false, columnWidth: "70%", borderRadius: 8 },
+    },
+    tooltip: {
+      shared: true,
+      intersect: false,
+    },
+    xaxis: {
+      categories: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+      labels: {
+        style: {
+          fontFamily: "Inter, sans-serif",
+          fontSize: "12px",
+        },
+      },
+    },
+    yaxis: { show: true },
+  };
+
+  return (
+    <div className="max-w-sm w-full bg-white rounded-lg shadow p-4 md:p-6">
+      <div className="flex justify-between pb-4 mb-4 border-b border-gray-200">
         <div className="flex items-center">
-          <div className="w-12 h-12 rounded-lg bg-gray-100  flex items-center justify-center me-3">
-            <svg
-              className="w-6 h-6 text-gray-500 dark:text-gray-400"
-              aria-hidden="true"
-              xmlns="http://www.w3.org/2000/svg"
-              fill="currentColor"
-              viewBox="0 0 20 19"
-            >
-              <path d="M14.5 0A3.987 3.987 0 0 0 11 2.1a4.977 4.977 0 0 1 3.9 5.858A3.989 3.989 0 0 0 14.5 0ZM9 13h2a4 4 0 0 1 4 4v2H5v-2a4 4 0 0 1 4-4Z" />
-              <path d="M5 19h10v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2ZM5 7a5.008 5.008 0 0 1 4-4.9 3.988 3.988 0 1 0-3.9 5.859A4.974 4.974 0 0 1 5 7Zm5 3a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm5-1h-.424a5.016 5.016 0 0 1-1.942 2.232A6.007 6.007 0 0 1 17 17h2a1 1 0 0 0 1-1v-2a5.006 5.006 0 0 0-5-5ZM5.424 9H5a5.006 5.006 0 0 0-5 5v2a1 1 0 0 0 1 1h2a6.007 6.007 0 0 1 4.366-5.768A5.016 5.016 0 0 1 5.424 9Z" />
-            </svg>
-          </div>
           <div>
-            <h5 className="leading-none text-2xl font-bold text-gray-900  pb-1">
-              3.4k
+            <h5 className="leading-none text-2xl font-bold text-gray-900 pb-1">
+              {applications.length}
             </h5>
             <p className="text-sm font-normal text-gray-500">
-              Leads generated per week
+              Applications this week
             </p>
           </div>
         </div>
-        <span className="bg-green-100 text-green-800 text-xs font-medium inline-flex items-center px-2.5 py-1 rounded-md">
-          <BsArrowRight className="w-2.5 h-2.5 me-1.5" />
-          42.5%
-        </span>
       </div>
-
-      <div className="grid grid-cols-2">
-        <dl className="flex items-center">
-          <dt className="text-gray-500 dark:text-gray-400 text-sm font-normal me-1">
-            Money spent:
-          </dt>
-          <dd className="text-gray-900 text-sm dark:text-white font-semibold">
-            $3,232
-          </dd>
-        </dl>
-      </div>
-
       <div id="column-chart">
         <ApexCharts
-          options={options}
-          series={options.series}
+          options={chartOptions}
+          series={chartOptions.series}
           type="bar"
           height={320}
         />
@@ -123,4 +153,127 @@ const DashboardCard = () => {
   );
 };
 
-export default DashboardCard;
+// Payment Trends Chart (Area Chart)
+const PaymentTrendsChart = ({ applications }) => {
+  const getPaymentTrends = () => {
+    const last7Days = Array(7).fill(0);
+    const dates = [];
+
+    // Get last 7 dates
+    for (let i = 6; i >= 0; i--) {
+      const date = new Date();
+      date.setDate(date.getDate() - i);
+      dates.push(date.toISOString().split("T")[0]);
+    }
+
+    applications.forEach((app) => {
+      if (app.paid) {
+        const paymentDate = new Date(app.paymentCompletedAt)
+          .toISOString()
+          .split("T")[0];
+        const dayIndex = dates.indexOf(paymentDate);
+        if (dayIndex !== -1) {
+          last7Days[dayIndex] += parseFloat(app.price);
+        }
+      }
+    });
+
+    return { dates, payments: last7Days };
+  };
+
+  const trends = getPaymentTrends();
+
+  const chartOptions = {
+    chart: {
+      height: 320,
+      type: "area",
+      toolbar: { show: false },
+    },
+    series: [
+      {
+        name: "Daily Payments",
+        data: trends.payments,
+      },
+    ],
+    xaxis: {
+      categories: trends.dates,
+      labels: { show: true },
+    },
+    stroke: { curve: "smooth", width: 2 },
+    fill: {
+      type: "gradient",
+      gradient: {
+        shadeIntensity: 1,
+        opacityFrom: 0.7,
+        opacityTo: 0.3,
+      },
+    },
+    dataLabels: { enabled: false },
+    colors: ["#089C34"],
+  };
+
+  const totalPayments = trends.payments.reduce((a, b) => a + b, 0);
+
+  return (
+    <div className="max-w-sm w-full bg-white rounded-lg shadow p-4 md:p-6">
+      <div className="flex justify-between">
+        <div>
+          <h5 className="leading-none text-3xl font-bold text-gray-900 pb-2">
+            ${totalPayments.toLocaleString()}
+          </h5>
+          <p className="text-base font-normal text-gray-500">
+            Payments this week
+          </p>
+        </div>
+      </div>
+      <div id="area-chart">
+        <ApexCharts
+          options={chartOptions}
+          series={chartOptions.series}
+          type="area"
+          height={320}
+        />
+      </div>
+    </div>
+  );
+};
+
+// KPI Cards Component
+const KPICards = ({ stats }) => {
+  const kpis = [
+    { label: "Total Applications", value: stats.totalApplications, icon: "📝" },
+    { label: "Total Payments", value: stats.totalPayments, icon: "💰" },
+    { label: "Payments Completed", value: stats.paidApplications, icon: "✅" },
+    {
+      label: "Certificates Generated",
+      value: stats.certificatesGenerated,
+      icon: "🎓",
+    },
+    { label: "Sent to RTO", value: stats.rtoApplications, icon: "📤" },
+    { label: "Payments Pending", value: stats.pendingPayments, icon: "⏳" },
+    { label: "Total Customers", value: stats.totalCustomers, icon: "👥" },
+    { label: "Total Agents", value: stats.totalAgents, icon: "👨‍💼" },
+  ];
+
+  return (
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      {kpis.map((kpi, index) => (
+        <div
+          key={index}
+          className="flex flex-col w-full shadow-md p-5 rounded-xl relative"
+        >
+          <label className="text-sm">{kpi.label}</label>
+          <h1 className="text-xl font-bold mt-2">{kpi.value}</h1>
+          <span className="text-4xl absolute right-5 bottom-5">{kpi.icon}</span>
+        </div>
+      ))}
+    </div>
+  );
+};
+
+export {
+  ApplicationStatusChart,
+  WeeklyApplicationsChart,
+  PaymentTrendsChart,
+  KPICards,
+};

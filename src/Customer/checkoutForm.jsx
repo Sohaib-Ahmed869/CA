@@ -1,128 +1,7 @@
-import React, { useEffect, useState } from "react";
-import { loadStripe } from "@stripe/stripe-js";
-import {
-  Elements,
-  useStripe,
-  useElements,
-  CardElement,
-} from "@stripe/react-stripe-js";
-import {
-  paymentProcessing,
-  markApplicationAsPaid,
-} from "./Services/customerApplication";
+import React, { useState, useEffect } from "react";
+import { paymentProcessing } from "./Services/customerApplication";
 import toast from "react-hot-toast";
 import { Toaster } from "react-hot-toast";
-
-const stripePublicKey = import.meta.env.VITE_REACT_STRIPE_PUBLIC_KEY;
-const stripePromise = loadStripe(stripePublicKey);
-
-const cardStyle = {
-  style: {
-    base: {
-      color: "#32325d",
-      fontFamily: "Arial, sans-serif",
-      fontSize: "16px",
-      "::placeholder": {
-        color: "#aab7c4",
-      },
-    },
-    invalid: {
-      color: "#fa755a",
-    },
-  },
-};
-
-const CheckoutForm = ({
-  full_paid,
-  price,
-  applicationId,
-  setShowCheckoutModal,
-  getUserApplications,
-  userId,
-}) => {
-  const notify = () => toast.success("Payment successful!");
-  const [paid, setPaid] = useState(false);
-  const notifyError = () => toast.error("Payment failed!");
-  const notifyErro2 = (message) => toast.error(message);
-  const stripe = useStripe();
-  const elements = useElements();
-  const [loading, setLoading] = useState(false);
-
-  const handleSubmit = async (event) => {
-    event.preventDefault();
-    setLoading(true);
-
-    // Step 1: Get client secret for Stripe payment
-
-    const clientSecret = await paymentProcessing(applicationId, price);
-    if (!clientSecret) {
-      console.log("Failed to initiate payment.");
-
-      setLoading(false);
-      return;
-    }
-
-    try {
-      // Step 2: Confirm the payment with Stripe
-      const result = await stripe.confirmCardPayment(clientSecret, {
-        payment_method: {
-          card: elements.getElement(CardElement),
-          billing_details: { name: applicationId },
-        },
-      });
-
-      if (result.error) {
-        console.log(result.error.message);
-      } else if (result.paymentIntent.status === "succeeded") {
-        console.log("Payment successful!");
-
-        // Step 3: Mark application as paid
-        await markApplicationAsPaid(applicationId);
-        notify();
-        //close the modal
-        setShowCheckoutModal(false);
-        getUserApplications(userId);
-        setPaid(true);
-      } else {
-        console.log("Payment failed.");
-        alert("Payment failed.");
-        notifyErro2("Payment failed due to" + result.error.message);
-      }
-    } catch (error) {
-      console.error("Failed to process payment:", error);
-      notifyErro2("Payment failed due to Invalid card details");
-    }
-
-    setLoading(false);
-  };
-
-  return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-4 w-full">
-      <p className="text-sm text-gray-700">Card Information</p>
-      <p className="text-sm text-gray-700">
-        {full_paid
-          ? "You have paid half of the application fee. Please pay the remaining half to complete the application"
-          : "Please enter your card details to pay for the application"}
-      </p>
-
-      <CardElement options={cardStyle} />
-
-      <button
-        type="submit"
-        disabled={!stripe || loading || paid}
-        className={`btn mt-4 ${
-          loading
-            ? "bg-green-800 text-white"
-            : { paid }
-            ? "bg-green-500"
-            : "bg-blue-500"
-        }`}
-      >
-        {loading ? "Processing..." : paid ? "Paid" : `Pay $${price}.00`}
-      </button>
-    </form>
-  );
-};
 
 const PaymentPage = ({
   price,
@@ -136,41 +15,144 @@ const PaymentPage = ({
   payment2,
   full_paid,
 }) => {
-  useEffect(() => {
-    console.log("Price: ", price);
-    console.log("Application ID: ", applicationId);
-    console.log(userId);
-    console.log(partialScheme);
-    console.log(paid);
-    console.log(payment1);
-    console.log(payment2);
-    console.log(full_paid);
-  }, [price, applicationId]);
+  const [loading, setLoading] = useState(false);
+  const [card, setCard] = useState(null);
 
-  let pricetoPay = 0;
-  if (partialScheme) {
-    if (paid) {
-      pricetoPay = payment2;
-    } else {
-      pricetoPay = payment1;
+  // Calculate price to pay based on payment scheme
+  const pricetoPay = partialScheme ? (paid ? payment2 : payment1) : price;
+
+  useEffect(() => {
+    // Initialize Square
+    const initializeSquare = async () => {
+      if (!window.Square) {
+        const script = document.createElement("script");
+        script.src = "https://web.squarecdn.com/v1/square.js";
+        script.async = true;
+        document.body.appendChild(script);
+
+        script.onload = async () => {
+          if (window.Square) {
+            try {
+              const payments = window.Square.payments(
+                import.meta.env.VITE_SQUARE_APPLICATION_ID,
+                import.meta.env.VITE_SQUARE_LOCATION_ID
+              );
+              const card = await payments.card();
+              await card.attach("#card-container");
+              setCard(card);
+            } catch (error) {
+              console.error("Failed to load Square:", error);
+              toast.error("Failed to initialize payment form");
+            }
+          }
+        };
+      }
+    };
+
+    initializeSquare();
+
+    // Cleanup on unmount
+    return () => {
+      if (card) {
+        card.destroy();
+      }
+    };
+  }, []);
+
+  const handlePayment = async (event) => {
+    event.preventDefault();
+    setLoading(true);
+
+    try {
+      if (!card) {
+        throw new Error("Payment form not initialized");
+      }
+
+      // Get payment token
+      const result = await card.tokenize();
+      if (result.status === "OK") {
+        // Process payment with token
+        const response = await fetch(
+          `${
+            import.meta.env.VITE_REACT_BACKEND_URL
+          }/api/applications/processPayment/${applicationId}`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              sourceId: result.token,
+              price: pricetoPay,
+              applicationId,
+            }),
+          }
+        );
+
+        const data = await response.json();
+
+        if (data.success) {
+          toast.success("Payment successful!");
+          await getUserApplications(userId);
+          setShowCheckoutModal(false);
+        } else {
+          throw new Error(data.message || "Payment failed");
+        }
+      } else {
+        throw new Error(result.errors[0].message);
+      }
+    } catch (error) {
+      console.error("Payment Error:", error);
+      toast.error(error.message || "Payment failed");
+    } finally {
+      setLoading(false);
     }
-  } else {
-    pricetoPay = price;
-  }
+  };
 
   return (
-    <Elements stripe={stripePromise}>
-      <Toaster />
+    <div className="w-full max-w-md mx-auto p-4">
+      <Toaster position="top-right" />
 
-      <CheckoutForm
-        full_paid={full_paid}
-        price={pricetoPay}
-        applicationId={applicationId}
-        setShowCheckoutModal={setShowCheckoutModal}
-        getUserApplications={getUserApplications}
-        userId={userId}
-      />
-    </Elements>
+      <div className="bg-white rounded-lg shadow-md p-6">
+        <h2 className="text-xl font-semibold mb-4">Complete Payment</h2>
+
+        <div className="mb-6">
+          <p className="text-gray-600">Amount to Pay:</p>
+          <p className="text-3xl font-bold">${pricetoPay}</p>
+          {partialScheme && (
+            <p className="text-sm text-gray-500 mt-1">
+              {paid ? "Final payment" : "Initial payment"}
+            </p>
+          )}
+        </div>
+
+        <form onSubmit={handlePayment}>
+          {/* Square Card Input */}
+          <div
+            id="card-container"
+            className="mb-6 border rounded-md p-4 min-h-[100px] bg-gray-50"
+          ></div>
+
+          <button
+            type="submit"
+            disabled={loading || !card}
+            className={`w-full py-2 px-4 rounded ${
+              loading || !card
+                ? "bg-gray-400 cursor-not-allowed"
+                : "bg-blue-600 hover:bg-blue-700"
+            } text-white font-medium`}
+          >
+            {loading ? "Processing..." : `Pay $${pricetoPay}`}
+          </button>
+        </form>
+
+        <div className="mt-4 text-sm text-gray-500">
+          <p>• Secure payment processed by Square</p>
+          <p>• Your payment information is encrypted</p>
+          <p>• Enter your card details above to complete payment</p>
+        </div>
+      </div>
+    </div>
   );
 };
 

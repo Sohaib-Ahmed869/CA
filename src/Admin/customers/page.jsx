@@ -26,6 +26,8 @@ import { BiEdit } from "react-icons/bi";
 import PaymentPage from "../../Customer/checkoutForm";
 import Loader from "../../Customer/components/loader";
 import { getAuth } from "firebase/auth";
+import Papa from "papaparse";
+const URL = import.meta.env.VITE_REACT_BACKEND_URL;
 
 import certificate from "../../assets/certificate.pdf";
 
@@ -187,6 +189,47 @@ const Application = ({
     }
   };
 
+  const [discountModalOpen, setDiscountModalOpen] = useState(false);
+  const [discount, setDiscount] = useState("");
+
+  const handleDiscountUpdate = async () => {
+    try {
+      setSubmissionLoading(true);
+      const response = await fetch(
+        `${URL}/api/applications/discount/${application.id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ discount: parseFloat(discount) }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to update discount");
+      }
+
+      const data = await response.json();
+      toast.success("Discount applied successfully!");
+      setDiscountModalOpen(false);
+      setDiscount("");
+      // go back to applications page
+      setSelectedApplication(null);
+    } catch (error) {
+      console.error("Error updating discount:", error);
+      toast.error("Failed to apply discount");
+    } finally {
+      setSubmissionLoading(false);
+    }
+  };
+
+  const calculateDiscountedPrice = (price) => {
+    // Remove commas and convert to number
+    const cleanPrice = parseFloat(price.toString().replace(/,/g, ""));
+    const discountAmount = (application.discount / 100) * cleanPrice;
+    return (cleanPrice - discountAmount).toFixed(2);
+  };
   return (
     <div className="min-h-screen">
       {submissionLoading && <SpinnerLoader />}
@@ -206,6 +249,21 @@ const Application = ({
           <h1 className="text-lg font-semibold text-gray-800 mt-4">
             {application.isf.lookingForWhatQualification}
           </h1>
+        </div>
+
+        <div className="col-span-4 bg-white p-4 rounded-lg shadow-lg w-full">
+          <h1 className="text-lg font-semibold text-gray-800">Discount</h1>
+          <div className="grid grid-cols-2 gap-4">
+            {application.discount ? (
+              <p>
+                Discount: {application.discount}% applied from original price: $
+                {application.price} so the final price is: ${" "}
+                {calculateDiscountedPrice(application.price)}
+              </p>
+            ) : (
+              <p>No discount applied</p>
+            )}
+          </div>
         </div>
 
         <div className="col-span-4 bg-white p-4 rounded-lg shadow-lg w-full">
@@ -280,9 +338,50 @@ const Application = ({
               >
                 Add/Update Color
               </button>
+              <button
+                onClick={() => setDiscountModalOpen(true)}
+                className="btn-sm btn-primary rounded-xl flex items-center justify-center gap-2 text-white bg-primary px-4 py-5 w-64"
+              >
+                Add Discount
+              </button>
             </div>
           </div>
         </div>
+
+        {discountModalOpen && (
+          <dialog className="modal modal-open">
+            <div className="modal-box">
+              <button
+                className="btn btn-secondary float-right"
+                onClick={() => setDiscountModalOpen(false)}
+              >
+                Close
+              </button>
+              <h3 className="font-bold text-lg">Add Discount</h3>
+              <p className="text-sm mt-4">
+                Current Price: ${application.price}
+                {application.discount &&
+                  ` (${application.discount}% discount applied from original price: $${application.originalPrice})`}
+              </p>
+              <input
+                type="number"
+                className="input input-bordered w-full mt-4"
+                value={discount}
+                onChange={(e) => setDiscount(e.target.value)}
+                placeholder="Enter discount percentage (0-100)"
+                min="0"
+                max="100"
+              />
+              <button
+                className="btn btn-primary mt-4 w-full"
+                onClick={handleDiscountUpdate}
+                disabled={!discount || discount < 0 || discount > 100}
+              >
+                Apply Discount
+              </button>
+            </div>
+          </dialog>
+        )}
 
         {viewIntakeForm && (
           <dialog className="modal modal-open">
@@ -420,6 +519,8 @@ const Application = ({
                 <option value="red">Red</option>
                 <option value="yellow">Yellow</option>
                 <option value="gray">Gray</option>
+                <option value="lightblue">Blue</option>
+                <option value="green">Green</option>
               </select>
               <div className="flex justify-end">
                 <button
@@ -648,6 +749,67 @@ const CustomersInfo = () => {
     }
   };
 
+  const ExportButton = () => {
+    const [isExporting, setIsExporting] = useState(false);
+
+    const handleExport = async () => {
+      try {
+        setIsExporting(true);
+
+        // Fetch data from backend
+        const response = await fetch(`${URL}/api/applications/export`);
+        if (!response.ok) {
+          throw new Error("Failed to fetch data");
+        }
+
+        const { applications } = await response.json();
+
+        // Generate CSV using Papa Parse
+        const csv = Papa.unparse(applications, {
+          quotes: true,
+          header: true,
+        });
+
+        // Create and download the file
+        const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `applications_${
+          new Date().toISOString().split("T")[0]
+        }.csv`;
+        document.body.appendChild(link);
+        link.click();
+
+        // Cleanup
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(link);
+
+        toast.success("Applications exported successfully");
+      } catch (error) {
+        console.error("Error exporting applications:", error);
+        toast.error("Failed to export applications");
+      } finally {
+        setIsExporting(false);
+      }
+    };
+
+    return (
+      <button
+        onClick={handleExport}
+        className="btn btn-primary text-white flex items-center gap-2"
+        disabled={isExporting}
+      >
+        {isExporting ? (
+          <span className="loading loading-spinner"></span>
+        ) : (
+          <BiDownload className="text-xl" />
+        )}
+        {isExporting ? "Exporting..." : "Export to CSV"}
+      </button>
+    );
+  };
+
   useEffect(() => {
     getApplicationsData();
   }, []);
@@ -812,16 +974,21 @@ const CustomersInfo = () => {
           </div>
 
           <div className="flex items-start flex-col mb-4 gap-2">
-            <label htmlFor="search" className="text-sm">
-              Search by ID or Name
-            </label>
-            <input
-              type="text"
-              id="search"
-              className="input input-bordered w-full"
-              placeholder="Search"
-              onChange={(e) => setSearch(e.target.value)}
-            />
+            <div className="flex justify-between w-full">
+              <div>
+                <label htmlFor="search" className="text-sm">
+                  Search by ID or Name
+                </label>
+                <input
+                  type="text"
+                  id="search"
+                  className="input input-bordered w-full"
+                  placeholder="Search"
+                  onChange={(e) => setSearch(e.target.value)}
+                />
+              </div>
+              <ExportButton />
+            </div>
           </div>
 
           <div className=" overflow-x-auto border border-gray-300 rounded-md">

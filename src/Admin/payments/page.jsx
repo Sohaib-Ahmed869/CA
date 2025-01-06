@@ -77,6 +77,15 @@ const PaymentApproval = () => {
     }
   }, [activeFilter, applications]);
 
+  const calculateDiscountedPrice = (price, discount) => {
+    // Remove commas and convert to number
+    if(!price) return 0;
+    if(!discount) return "N/A";
+    const cleanPrice = parseFloat(price.toString().replace(/,/g, ""));
+    const discountAmount = (discount / 100) * cleanPrice;
+    return (cleanPrice - discountAmount).toFixed(2);
+  };
+
   return (
     <div className="flex flex-col animate-fade">
       {submissionLoading && <SpinnerLoader />}
@@ -116,6 +125,8 @@ const PaymentApproval = () => {
               <th>Customer Name</th>
               <th>Date Created</th>
               <th>Payment Amount</th>
+              <th>Discounted Price</th>
+              <th>Amount Paid</th>
               <th>Status</th>
               <th>Payment Status</th>
             </tr>
@@ -140,8 +151,23 @@ const PaymentApproval = () => {
                 </td>
                 <td>{application.status[0].time.split("T")[0]}</td>
                 <td>{application.price}</td>
+                <td>
+                  {calculateDiscountedPrice(
+                    application.price,
+                    application.discount
+                  )}
+                </td>
+                <td>{application.amount_paid}</td>
                 <td>{application.currentStatus}</td>
-                <td>{application.paid ? "Paid" : "N/A"}</td>
+                <td>
+                  {application.paid
+                    ? application.amount_paid
+                      ? application.full_paid
+                        ? "Full Paid"
+                        : "Partial Paid"
+                      : "Paid"
+                    : "Not Paid"}
+                </td>
               </tr>
             ))}
           </tbody>
