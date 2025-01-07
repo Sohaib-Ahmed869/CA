@@ -79,9 +79,10 @@ export const requestMoreDocuments = async (applicationId, message) => {
   }
 };
 
-export const getDashboardStats = async () => {
+export const getDashboardStats = async ({ id }) => {
   try {
-    const response = await axios.get(`${URL}/api/admin/dashboardStats`);
+    console.log("ID:", id);
+    const response = await axios.get(`${URL}/api/admin/dashboardStats/${id}`);
     return response.data;
   } catch (error) {
     return error.response.data;

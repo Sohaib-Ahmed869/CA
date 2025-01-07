@@ -6,6 +6,7 @@ import { GoVerified } from "react-icons/go";
 import { BiCheck } from "react-icons/bi";
 import { BiTimeFive } from "react-icons/bi";
 import { BiUserCheck } from "react-icons/bi";
+import { getAuth } from "firebase/auth";
 import { MdPending } from "react-icons/md";
 import {
   getDashboardStats,
@@ -116,7 +117,7 @@ const StatusChart = ({ applications }) => {
 
   const chartOptions = {
     labels: data.labels,
-    colors: ["#142E1D","#089C34",  "#FFA000", "#1976D2", "#6D4C41", "#8E24AA"],
+    colors: ["#142E1D", "#089C34", "#FFA000", "#1976D2", "#6D4C41", "#8E24AA"],
     chart: {
       type: "pie",
     },
@@ -226,11 +227,21 @@ const Dashboard = () => {
   const [applications, setApplications] = useState([]);
   const [submissionLoading, setSubmissionLoading] = useState(false);
 
+  const [userId, setUserId] = useState(null);
+  
+  const auth = getAuth();
   useEffect(() => {
     const fetchStats = async () => {
       try {
+        if (!auth.currentUser) return;
         setSubmissionLoading(true);
-        const stats = await getDashboardStats();
+        //get logged in user id using auth of firebase
+        const user = auth.currentUser;
+        setUserId(user.uid);
+
+       
+
+        const stats = await getDashboardStats({ id: user.uid });
         setStats(stats);
         const apps = await getApplications();
         setApplications(apps);
@@ -241,7 +252,7 @@ const Dashboard = () => {
       }
     };
     fetchStats();
-  }, []);
+  }, [auth.currentUser]);
 
   const kpiData = [
     {
