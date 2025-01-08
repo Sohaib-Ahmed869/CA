@@ -66,6 +66,7 @@ const ExistingApplications = () => {
 
   const onClickPayment = (
     price,
+    discount,
     applicationId,
     userId,
     partialScheme,
@@ -74,7 +75,11 @@ const ExistingApplications = () => {
     payment2,
     full_paid
   ) => {
-    setPrice(price);
+    if (!discount) {
+      setPrice(price);
+    } else {
+      setPrice(calculateDiscountedPrice(price, discount));
+    }
     setApplicationId(applicationId);
     setPartialScheme(partialScheme);
     setPaid(paid);
@@ -161,6 +166,16 @@ const ExistingApplications = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const calculateDiscountedPrice = (price, discount) => {
+    // Remove commas and convert to number
+    console.log(price);
+    if (!price) return 0;
+    if (!discount) return price;
+    const cleanPrice = parseFloat(price.toString().replace(/,/g, ""));
+    console.log("ok", cleanPrice, discount);
+    return cleanPrice - discount;
   };
 
   return (
@@ -254,7 +269,11 @@ const ExistingApplications = () => {
                         <div
                           className="p-1 rounded-full bg-red-700 text-white flex items-center justify-center w-2/3 gap-2"
                           onClick={() =>
-                            onClickPayment(application.price, application.id)
+                            onClickPayment(
+                              application.price,
+                              application.discount,
+                              application.id
+                            )
                           }
                         >
                           <MdPayment className="text-white" />
@@ -318,6 +337,7 @@ const ExistingApplications = () => {
                           onClick={() =>
                             onClickPayment(
                               application.price,
+                              application.discount,
                               application.id,
                               application.userId,
                               application.partialScheme,
@@ -340,6 +360,7 @@ const ExistingApplications = () => {
                         onClick={() =>
                           onClickPayment(
                             application.price,
+                            application.discount,
                             application.id,
                             application.userId,
                             application.partialScheme,

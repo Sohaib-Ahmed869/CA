@@ -79,11 +79,11 @@ const PaymentApproval = () => {
 
   const calculateDiscountedPrice = (price, discount) => {
     // Remove commas and convert to number
-    if(!price) return 0;
-    if(!discount) return "N/A";
+    if (!price) return 0;
+    if (!discount) return "N/A";
     const cleanPrice = parseFloat(price.toString().replace(/,/g, ""));
-    const discountAmount = (discount / 100) * cleanPrice;
-    return (cleanPrice - discountAmount).toFixed(2);
+
+    return cleanPrice - discount;
   };
 
   return (

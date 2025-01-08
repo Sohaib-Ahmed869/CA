@@ -214,6 +214,8 @@ const Application = ({
       toast.success("Discount applied successfully!");
       setDiscountModalOpen(false);
       setDiscount("");
+      //fetch updated applications
+      await getApplicationsData();
       // go back to applications page
       setSelectedApplication(null);
     } catch (error) {
@@ -227,8 +229,7 @@ const Application = ({
   const calculateDiscountedPrice = (price) => {
     // Remove commas and convert to number
     const cleanPrice = parseFloat(price.toString().replace(/,/g, ""));
-    const discountAmount = (application.discount / 100) * cleanPrice;
-    return (cleanPrice - discountAmount).toFixed(2);
+    return (cleanPrice - application.discount).toFixed(2);
   };
   return (
     <div className="min-h-screen">
@@ -256,8 +257,8 @@ const Application = ({
           <div className="grid grid-cols-2 gap-4">
             {application.discount ? (
               <p>
-                Discount: {application.discount}% applied from original price: $
-                {application.price} so the final price is: ${" "}
+                Discount: {application.discount}/- applied from original price:
+                ${application.price} so the final price is: ${" "}
                 {calculateDiscountedPrice(application.price)}
               </p>
             ) : (
@@ -360,22 +361,19 @@ const Application = ({
               <h3 className="font-bold text-lg">Add Discount</h3>
               <p className="text-sm mt-4">
                 Current Price: ${application.price}
-                {application.discount &&
-                  ` (${application.discount}% discount applied from original price: $${application.originalPrice})`}
               </p>
               <input
                 type="number"
                 className="input input-bordered w-full mt-4"
                 value={discount}
                 onChange={(e) => setDiscount(e.target.value)}
-                placeholder="Enter discount percentage (0-100)"
+                placeholder="Enter discount amount"
                 min="0"
-                max="100"
               />
               <button
                 className="btn btn-primary mt-4 w-full"
                 onClick={handleDiscountUpdate}
-                disabled={!discount || discount < 0 || discount > 100}
+                disabled={!discount || discount < 0}
               >
                 Apply Discount
               </button>
@@ -516,11 +514,11 @@ const Application = ({
                 onChange={(e) => setColor(e.target.value)}
               >
                 <option value="white">White (Default)</option>
-                <option value="red">Red</option>
-                <option value="yellow">Yellow</option>
-                <option value="gray">Gray</option>
-                <option value="lightblue">Blue</option>
-                <option value="green">Green</option>
+                <option value="red">Hot Enquiry</option>
+                <option value="yellow">Proceeded With Payment</option>
+                <option value="gray">Cold Enquiry </option>
+                <option value="lightblue">Impacted Student</option>
+                <option value="green">Completed</option>
               </select>
               <div className="flex justify-end">
                 <button
@@ -1025,7 +1023,24 @@ const CustomersInfo = () => {
                     <td className={`p-5 flex items-center`}>
                       {application.applicationId
                         ? application.applicationId
-                        : application.id}
+                        : application.id}{" "}<br></br>
+                      {application.color && (
+                        <>
+                          (
+                          {application.color === "red"
+                            ? "Hot Enquiry"
+                            : application.color === "yellow"
+                            ? "Proceeded With Payment"
+                            : application.color === "gray"
+                            ? "Cold Enquiry"
+                            : application.color === "lightblue"
+                            ? "Impacted Student"
+                            : application.color === "green"
+                            ? "Completed"
+                            : "N/A"}
+                          )
+                        </>
+                      )}
                       <BsEye
                         className="text-blue-500 ml-2 cursor-pointer"
                         onClick={() => setSelectedApplication(application)}
