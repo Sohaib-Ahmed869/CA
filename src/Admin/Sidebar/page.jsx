@@ -4,6 +4,9 @@ import certifiedAustralia from "../../assets/certifiedAustralia.png";
 import CustomersInfo from "../customers/page";
 import ExistingApplicationsAdmin from "../applications/page";
 import PaymentApproval from "../payments/page";
+import FinanceManagement from "../FinanceModule/viewApplicationsFM";
+import ExpensesDashboard from "../FinanceModule/ExpenseView";
+import Analytics from "../FinanceModule/Analytics";
 import Dashboard from "../dashboard/page";
 import Industries from "../Industries/page";
 import { MdDashboard } from "react-icons/md";
@@ -14,24 +17,122 @@ import { GiHamburgerMenu } from "react-icons/gi";
 import { FaMoneyBill1Wave } from "react-icons/fa6";
 import { getAuth, signOut } from "firebase/auth";
 import { FaIndustry } from "react-icons/fa";
+import { RiMoneyDollarCircleLine } from "react-icons/ri";
+import { MdKeyboardArrowDown } from "react-icons/md";
+
 import ChangePassword from "../ChangePassword/page";
 import { CgPassword } from "react-icons/cg";
 import { getDashboardStats } from "../../Customer/Services/adminServices";
 const AdminSidebar = () => {
   const navigate = useNavigate();
-
+  const [currentUserId, setCurrentUserId] = useState(null);
   const [active, setActive] = useState("Dashboard");
-  const [isOpen, setIsOpen] = useState(false); // State for mobile menu toggle
-
+  const [activeFinance, setActiveFinance] = useState("");
+  const [isOpen, setIsOpen] = useState(false);
+  const [isFinanceOpen, setIsFinanceOpen] = useState(false);
   const auth = getAuth();
   const onClickLogout = async () => {
     await signOut(auth);
     navigate("/login");
   };
 
+  const hasFinanceAccess = () => {
+    const allowedUserIds = [
+      "SE6BCPgaNzOFAD3N181iia2iCUG2",
+      "wJ1LPS7YLDMpGzKY6HHVm9na9wA2",
+    ];
+    return allowedUserIds.includes(currentUserId);
+  };
+
+  useEffect(() => {
+    const auth = getAuth();
+    const unsubscribe = auth.onAuthStateChanged((user) => {
+      if (user) {
+        setCurrentUserId(user.uid);
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
+  const handleFinanceClick = (option) => {
+    setActive("Finances");
+    setActiveFinance(option);
+    setIsOpen(false);
+  };
+
   useEffect(() => {
     console.log(isOpen);
   }, [isOpen]);
+
+  const renderFinanceDropdown = () => (
+    <div
+      className={`ml-8 overflow-hidden transition-all duration-300 ease-in-out ${
+        isFinanceOpen ? "max-h-40" : "max-h-0"
+      }`}
+    >
+      <div className="py-2">
+        <button
+          className={`w-full text-left p-2 rounded-lg transition-colors duration-200 flex items-center gap-2 ${
+            activeFinance === "Management"
+              ? "bg-gray-100 bg-opacity-15"
+              : "hover:bg-gray-100 hover:bg-opacity-10"
+          }`}
+          onClick={() => handleFinanceClick("Management")}
+        >
+          <div className="w-1 h-1 rounded-full bg-white"></div>
+          Finance Management
+        </button>
+        <button
+          className={`w-full text-left p-2 rounded-lg transition-colors duration-200 flex items-center gap-2 ${
+            activeFinance === "Expenses"
+              ? "bg-gray-100 bg-opacity-15"
+              : "hover:bg-gray-100 hover:bg-opacity-10"
+          }`}
+          onClick={() => handleFinanceClick("Expenses")}
+        >
+          <div className="w-1 h-1 rounded-full bg-white"></div>
+          View Expenses
+        </button>
+        <button
+          className={`w-full text-left p-2 rounded-lg transition-colors duration-200 flex items-center gap-2 ${
+            activeFinance === "Analytics"
+              ? "bg-gray-100 bg-opacity-15"
+              : "hover:bg-gray-100 hover:bg-opacity-10"
+          }`}
+          onClick={() => handleFinanceClick("Analytics")}
+        >
+          <div className="w-1 h-1 rounded-full bg-white"></div>
+          View Analytics
+        </button>
+      </div>
+    </div>
+  );
+
+  const renderFinanceSection = () => {
+    if (!hasFinanceAccess()) return null;
+
+    return (
+      <li className="border-b border-base-300">
+        <button
+          className={`w-full cursor-pointer p-3 flex items-center justify-between ${
+            active === "Finances" ? "bg-gray-100 bg-opacity-15 rounded-xl" : ""
+          }`}
+          onClick={() => setIsFinanceOpen(!isFinanceOpen)}
+        >
+          <div className="flex items-center gap-2">
+            <RiMoneyDollarCircleLine className="text-xl" />
+            <span className="font-medium">Finances</span>
+          </div>
+          <MdKeyboardArrowDown
+            className={`transform transition-transform duration-200 ${
+              isFinanceOpen ? "rotate-180" : ""
+            }`}
+          />
+        </button>
+        {renderFinanceDropdown()}
+      </li>
+    );
+  };
   return (
     <div className="flex animate-fade-right">
       {/*hambuger menu button */}
@@ -105,6 +206,8 @@ const AdminSidebar = () => {
                 <FaMoneyBill1Wave className="text-xl" />
                 <button className="font-medium">Payments</button>
               </li>
+              {renderFinanceSection()}
+
               <li
                 className={`cursor-pointer p-3 flex items-center gap-2 ${
                   active === "Industries"
@@ -217,6 +320,8 @@ const AdminSidebar = () => {
             <FaMoneyBill1Wave className="text-xl" />
             <button className="font-medium">Payments</button>
           </li>
+          {renderFinanceSection()}
+
           <li
             className={`border-b border-base-300 cursor-pointer p-3 flex items-center gap-2 ${
               active === "Industries"
@@ -231,6 +336,7 @@ const AdminSidebar = () => {
             <FaIndustry className="text-xl" />
             <button className="font-medium">Industries</button>
           </li>
+
           <li
             className={`border-b border-base-300 cursor-pointer p-3 flex items-center gap-2 ${
               active === "Change Password"
@@ -269,6 +375,15 @@ const AdminSidebar = () => {
         {active === "Payments" && <PaymentApproval />}
         {active === "Industries" && <Industries />}
         {active === "Change Password" && <ChangePassword />}
+        {active === "Finances" && activeFinance === "Management" && (
+          <FinanceManagement />
+        )}
+        {active === "Finances" && activeFinance === "Expenses" && (
+          <ExpensesDashboard />
+        )}
+        {active === "Finances" && activeFinance === "Analytics" && (
+          <Analytics />
+        )}
       </div>
 
       {isOpen && (

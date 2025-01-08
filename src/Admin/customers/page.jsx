@@ -1023,7 +1023,8 @@ const CustomersInfo = () => {
                     <td className={`p-5 flex items-center`}>
                       {application.applicationId
                         ? application.applicationId
-                        : application.id}{" "}<br></br>
+                        : application.id}{" "}
+                      <br></br>
                       {application.color && (
                         <>
                           (

@@ -228,31 +228,44 @@ const Dashboard = () => {
   const [submissionLoading, setSubmissionLoading] = useState(false);
 
   const [userId, setUserId] = useState(null);
-  
+
   const auth = getAuth();
+
+  useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged((user) => {
+      if (user) {
+        setUserId(user.uid);
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
+
   useEffect(() => {
     const fetchStats = async () => {
+      if (!userId) return;
+
       try {
-        if (!auth.currentUser) return;
         setSubmissionLoading(true);
-        //get logged in user id using auth of firebase
-        const user = auth.currentUser;
-        setUserId(user.uid);
 
-       
+        // Fetch data in parallel using Promise.all
+        const [statsData, appsData] = await Promise.all([
+          getDashboardStats({ id: userId }),
+          getApplications(),
+        ]);
 
-        const stats = await getDashboardStats({ id: user.uid });
-        setStats(stats);
-        const apps = await getApplications();
-        setApplications(apps);
-        setSubmissionLoading(false);
+        setStats(statsData);
+        setApplications(appsData);
       } catch (err) {
-        console.error(err);
+        console.error("Error fetching dashboard data:", err);
+        // You might want to show an error toast here
+      } finally {
         setSubmissionLoading(false);
       }
     };
+
     fetchStats();
-  }, [auth.currentUser]);
+  }, [userId]);
 
   const kpiData = [
     {
