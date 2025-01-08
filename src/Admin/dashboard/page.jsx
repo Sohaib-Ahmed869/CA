@@ -278,24 +278,34 @@ const Dashboard = () => {
       value: `$${stats.totalPayments}`,
       Icon: FaMoneyBillWave,
     },
+
+    {
+      label: "Total Payments on Payment Plans",
+      value: `$${stats.totalPaymentsWithPartial}`,
+      Icon: BiUser,
+    },
+    {
+      label: "Total Outstandings of Payment Plans",
+      value: `$${stats.totalPaymentsWithoutPartial}`,
+      Icon: BiUserCheck,
+    },
     {
       label: "Payments Completed",
       value: stats.paidApplications,
       Icon: BiCheck,
     },
     {
+      label: "Payments Pending",
+      value: stats.pendingPayments,
+      Icon: MdPending,
+    },
+
+    {
       label: "Certificates Generated",
       value: stats.certificatesGenerated,
       Icon: GoVerified,
     },
     { label: "Sent to RTO", value: stats.rtoApplications, Icon: BiTimeFive },
-    {
-      label: "Payments Pending",
-      value: stats.pendingPayments,
-      Icon: MdPending,
-    },
-    { label: "Total Customers", value: stats.totalCustomers, Icon: BiUser },
-    { label: "Total Agents", value: stats.totalAgents, Icon: BiUserCheck },
   ];
 
   return (

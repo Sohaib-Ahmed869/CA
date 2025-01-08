@@ -230,7 +230,7 @@ const FinanceManagement = () => {
     setViewExpensesModal(true);
   };
 
-  const itemsPerPage = 5;
+  const itemsPerPage = 10;
 
   const getFinancialApplications = async () => {
     try {

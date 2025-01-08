@@ -244,6 +244,8 @@ const Approval = () => {
   const [certificateFile, setCertificateFile] = useState(null);
   const [selectedApplication, setSelectedApplication] = useState(null);
 
+  const [totalPages, setTotalPages] = useState(0);
+
   const handleReject = (id) => {
     const newApplications = applications.map((application) => {
       if (application.id === id) {
@@ -316,6 +318,7 @@ const Approval = () => {
     document.getElementById("documentLinksModal").showModal();
   };
 
+
   // Separate displayed applications from full applications list
   const [displayedApplications, setDisplayedApplications] = useState([]);
   const [dateFilter, setDateFilter] = useState("All");
@@ -325,22 +328,26 @@ const Approval = () => {
     const fetchApplications = async () => {
       setSubmissionLoading(true);
       const applicationsData = await getApplications();
-      setApplications(
-        applicationsData.filter(
-          (app) =>
-            app.type === rtoType &&
-            app.currentStatus === "Sent to RTO" &&
-            app.paid === true
-        )
+      const filteredApplications = applicationsData.filter(
+        (app) => app.currentStatus === "Sent to RTO"
       );
-      setDisplayedApplications(
-        applicationsData.filter(
-          (app) =>
-            (app.type === rtoType || app.type === "default") &&
-            app.currentStatus === "Sent to RTO" &&
-            app.paid === true
-        )
-      );
+      const finalFilteredApplications = filteredApplications.filter((app) => {
+        // Always check if payment is completed
+        const isPaymentComplete = app.paid === true;
+
+        // If rtoType is 'all', don't filter by type
+        if (rtoType.toLowerCase() === "all") {
+          return isPaymentComplete;
+        }
+
+        // Otherwise, filter by matching type or default
+        return (
+          (app.type === rtoType || app.type === "default") && isPaymentComplete
+        );
+      });
+
+      setApplications(finalFilteredApplications);
+      setDisplayedApplications(finalFilteredApplications);
       setSubmissionLoading(false);
     };
     fetchApplications();

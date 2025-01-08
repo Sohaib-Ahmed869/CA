@@ -22,14 +22,19 @@ const PaymentApproval = () => {
   const [applications, setApplications] = useState([]);
   const [unpaidApplications, setUnpaidApplications] = useState([]);
   const [submissionLoading, setSubmissionLoading] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
 
   const fetchApplications = async () => {
     setSubmissionLoading(true);
     try {
       const applicationsData = await getApplications();
-      setApplications(applicationsData);
+      // Sort applications by date in descending order (most recent first)
+      const sortedApplications = applicationsData.sort((a, b) => {
+        return new Date(b.status[0].time) - new Date(a.status[0].time);
+      });
+      setApplications(sortedApplications);
       setUnpaidApplications(
-        applicationsData.filter(
+        sortedApplications.filter(
           (application) => application.currentStatus === "Waiting for Payment"
         )
       );
@@ -62,27 +67,32 @@ const PaymentApproval = () => {
   };
 
   useEffect(() => {
-    if (activeFilter === "All Payments") {
-      setUnpaidApplications(applications);
-    }
+    let filtered = [...applications];
+
+    // Apply status filter
     if (activeFilter === "Payments Completed") {
-      setUnpaidApplications(
-        applications.filter((application) => application.paid === true)
+      filtered = filtered.filter((application) => application.paid === true);
+    } else if (activeFilter === "Waiting for Payment") {
+      filtered = filtered.filter((application) => application.paid === false);
+    }
+
+    // Apply search filter
+    if (searchTerm.trim()) {
+      const searchLower = searchTerm.toLowerCase();
+      filtered = filtered.filter((application) =>
+        (application.user.firstName + " " + application.user.lastName)
+          .toLowerCase()
+          .includes(searchLower)
       );
     }
-    if (activeFilter === "Waiting for Payment") {
-      setUnpaidApplications(
-        applications.filter((application) => application.paid === false)
-      );
-    }
-  }, [activeFilter, applications]);
+
+    setUnpaidApplications(filtered);
+  }, [activeFilter, applications, searchTerm]);
 
   const calculateDiscountedPrice = (price, discount) => {
-    // Remove commas and convert to number
     if (!price) return 0;
     if (!discount) return "N/A";
     const cleanPrice = parseFloat(price.toString().replace(/,/g, ""));
-
     return cleanPrice - discount;
   };
 
@@ -102,21 +112,32 @@ const PaymentApproval = () => {
         </div>
       </div>
 
-      <div className="flex flex-row w-full gap-6 mb-10 max-sm:flex-col">
-        {statuses.map((status) => (
-          <button
-            key={status}
-            onClick={() => setActiveFilter(status)}
-            className={`btn ${
-              activeFilter === status ? "btn-primary" : "btn-secondary"
-            }`}
-          >
-            {status}
-          </button>
-        ))}
+      <div className="flex flex-col gap-4 mb-10">
+        <div className="flex flex-row w-full gap-6 max-sm:flex-col">
+          {statuses.map((status) => (
+            <button
+              key={status}
+              onClick={() => setActiveFilter(status)}
+              className={`btn ${
+                activeFilter === status ? "btn-primary" : "btn-secondary"
+              }`}
+            >
+              {status}
+            </button>
+          ))}
+        </div>
+
+        <div className="w-full">
+          <input
+            type="text"
+            placeholder="Search by customer name..."
+            className="input input-bordered w-full max-w-full mt-5"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
       </div>
 
-      {/* Horizontal Scrollable Table */}
       <div className="overflow-x-auto max-sm:border">
         <table className="table">
           <thead className="sticky top-0 bg-gray-200">

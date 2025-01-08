@@ -43,38 +43,43 @@ const Completed = () => {
   // Separate displayed applications from full applications list
   const [displayedApplications, setDisplayedApplications] = useState([]);
   const [dateFilter, setDateFilter] = useState("All");
+  const getApplicationsData = async () => {
+    try {
+      const rtoType = localStorage.getItem("rtoType");
+      console.log("RTO Type:", rtoType);
+      setSubmissionLoading(true);
+      const applicationsData = await getApplications();
+      console.log("Applications Data:", applicationsData);
+      setApplications(applicationsData);
+      //filter the applications where the current status is certificate generated
+      const filteredApplications = applicationsData.filter(
+        (app) => app.currentStatus === "Certificate Generated"
+      );
+      const finalFilteredApplications = filteredApplications.filter((app) => {
+        // Always check if payment is completed
+        const isPaymentComplete = app.paid === true;
 
+        // If rtoType is 'all', don't filter by type
+        if (rtoType.toLowerCase() === "all") {
+          return isPaymentComplete;
+        }
+
+        // Otherwise, filter by matching type or default
+        return (
+          (app.type === rtoType || app.type === "default") && isPaymentComplete
+        );
+      });
+
+      setApplications(finalFilteredApplications);
+      setDisplayedApplications(finalFilteredApplications);
+      setSubmissionLoading(false);
+      console.log("Applications:", finalFilteredApplications);
+    } catch (error) {
+      setSubmissionLoading(false);
+      console.error("Failed to fetch applications:", error);
+    }
+  };
   useEffect(() => {
-    const getApplicationsData = async () => {
-      try {
-        const rtoType = localStorage.getItem("rtoType");
-        setSubmissionLoading(true);
-        const applicationsData = await getApplications();
-        setApplications(applicationsData);
-        //filter the applications where the current status is certificate generated
-        const filteredApplications = applicationsData.filter(
-          (app) => app.currentStatus === "Certificate Generated"
-        );
-        setApplications(
-          filteredApplications.filter(
-            (app) =>
-              (app.type === rtoType || app.type === "default") &&
-              app.paid === true
-          )
-        );
-        setDisplayedApplications(
-          filteredApplications.filter(
-            (app) =>
-              (app.type === rtoType || app.type === "default") &&
-              app.paid === true
-          )
-        );
-        setSubmissionLoading(false);
-      } catch (error) {
-        setSubmissionLoading(false);
-        console.error("Failed to fetch applications:", error);
-      }
-    };
     getApplicationsData();
   }, []);
 
@@ -149,7 +154,7 @@ const Completed = () => {
             </tr>
           </thead>
           <tbody>
-            {displayedApplications.map((application, index) =>
+            {displayedApplications.map((application) =>
               application.certficateIssued ? null : (
                 <tr key={application.id}>
                   <td>
