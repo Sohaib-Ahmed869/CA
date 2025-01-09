@@ -32,7 +32,9 @@ const Dashboard = () => {
         const stats = await getDashboardStats();
         setTotalApplications(stats.totalApplications);
         setApplicationsPending(stats.applicationsPending);
-        setApplicationsCompletedThisMonth(stats.applicationsCompletedInLastMonth);
+        setApplicationsCompletedThisMonth(
+          stats.applicationsCompletedInLastMonth
+        );
         setApplicationsCompletedThisWeek(stats.applicationsCompletedInLastWeek);
         setTotalRTOs(stats.totalRTOs);
         setRejectedApplications(stats.rejectedApplications);
@@ -103,16 +105,11 @@ const Dashboard = () => {
         <div className="flex flex-col w-full shadow-md p-5 rounded-xl relative">
           <label className="text-sm">Rejected Applications</label>
           <h1 className="text-xl font-bold mt-2">{rejectedApplications}</h1>
-          <FaTimes  
+          <FaTimes
             alt="Applications"
             className="text-4xl absolute right-5 bottom-5"
           />
         </div>
-      </div>
-      <div className="mt-10 grid grid-cols-3 max-sm:grid-cols-1 gap-4">
-        <DashboardCard />
-        <UserStatsCard />
-        <ApplicationStatusCard />
       </div>
     </div>
   );

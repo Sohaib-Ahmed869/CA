@@ -31,6 +31,16 @@ export const getApplications = async () => {
   }
 };
 
+export const getAdminApplications = async (userId) => {
+  try {
+    const response = await axios.get(`${URL}/api/admin/applications/${userId}`);
+    console.log(response.data);
+    return response.data;
+  } catch (error) {
+    return error.response.data;
+  }
+};
+
 export const verifyApplication = async (applicationId) => {
   try {
     const response = await axios.put(
@@ -229,6 +239,18 @@ export const dividePayment = async (applicationId, payment1, payment2) => {
     const response = await axios.put(
       `${URL}/api/applications/dividePayment/${applicationId}`,
       { payment1, payment2 }
+    );
+    return response.data;
+  } catch {
+    return "error";
+  }
+};
+
+export const assignApplicationToAdmin = async (applicationId, adminName) => {
+  try {
+    const response = await axios.put(
+      `${URL}/api/applications/assign/${applicationId}`,
+      { adminName }
     );
     return response.data;
   } catch {

@@ -42,22 +42,9 @@ import {
   updateEmail,
   updatePhone,
   dividePayment,
-  assignApplicationToAdmin,
-  getAdminApplications,
 } from "../../Customer/Services/adminServices";
 
 import { initiateVerificationCall } from "../../Customer/Services/twilioService";
-
-const hasChangeAccess = () => {
-  const auth = getAuth();
-  const currentUserId = auth.currentUser.uid;
-
-  const allowedUserIds = [
-    "SE6BCPgaNzOFAD3N181iia2iCUG2",
-    "wJ1LPS7YLDMpGzKY6HHVm9na9wA2",
-  ];
-  return allowedUserIds.includes(currentUserId);
-};
 
 const Application = ({
   application,
@@ -72,11 +59,6 @@ const Application = ({
   const [isColorModalOpen, setIsColorModalOpen] = useState(false);
   const [isUpdateEmailOpen, setIsUpdateEmailOpen] = useState(false);
   const [isUpdatePhoneOpen, setIsupdatePhoneOpen] = useState(false);
-
-  //self-note: add possible admins to the state
-  const [possibleAdmins, setPossibleAdmins] = useState(["Gabi", "Ehsan"]);
-  const [selectedAdmin, setSelectedAdmin] = useState("");
-  const [assignAdminModal, setAssignAdminModal] = useState(false);
 
   const [payment1, setPayment1] = useState("");
   const [payment2, setPayment2] = useState("");
@@ -207,30 +189,6 @@ const Application = ({
     }
   };
 
-  const handleAssignAdmin = async () => {
-    try {
-      setSubmissionLoading(true);
-      const response = await assignApplicationToAdmin(
-        application.id,
-        selectedAdmin
-      );
-      if (response === "error") {
-        toast.error("Failed to assign admin.");
-      } else {
-        toast.success("Admin assigned successfully!");
-      }
-      setSubmissionLoading(false);
-      setAssignAdminModal(false);
-      setSelectedApplication(null);
-      await getApplicationsData();
-    } catch (error) {
-      console.error("Error assigning admin:", error);
-
-      toast.error("An error occurred while assigning the admin.");
-      setSubmissionLoading(false);
-    }
-  };
-
   const [discountModalOpen, setDiscountModalOpen] = useState(false);
   const [discount, setDiscount] = useState("");
 
@@ -284,13 +242,6 @@ const Application = ({
           <h1 className="text-2xl font-bold text-gray-800">
             Application# {application.applicationId}
           </h1>
-          <p className="text-sm  text-gray-500">
-            This application has been assigned to{" "}
-            <span className="font-bold text-black">
-              {" "}
-              {application.assignedAdmin || "N/A"}{" "}
-            </span>
-          </p>
           <p className="text-sm text-gray-500">
             This application was submitted by {application.user.firstName}{" "}
             {application.user.lastName} on{" "}
@@ -317,7 +268,7 @@ const Application = ({
         </div>
 
         <div className="col-span-4 bg-white p-4 rounded-lg shadow-lg w-full">
-          <div className="flex items-start justify-between">
+          <div className="grid grid-cols-2 gap-4">
             <div className="text-sm text-gray-500">
               <h2 className="text-lg font-semibold text-gray-800">
                 Initial Screening Information
@@ -363,45 +314,37 @@ const Application = ({
                 {application.user.toc ? "Agreed" : "Not Agreed"}
               </p>
             </div>
-            <div className="text-sm text-gray-500 grid grid-cols-3 gap-4">
+            <div className="text-sm text-gray-500 flex justify-end gap-2">
               <button
                 onClick={onClickViewDocuments}
-                className="btn-sm btn-primary rounded-xl flex items-center justify-center gap-2 text-white bg-primary px-4 py-5"
+                className="btn-sm btn-primary rounded-xl flex items-center justify-center gap-2 text-white bg-primary px-4 py-5 w-64"
               >
                 View Documents
               </button>
               <button
                 onClick={() => setViewIntakeForm(true)}
-                className="btn-sm rounded-xl flex items-center gap-2 btn-primary justify-center text-white bg-primary px-4 py-5"
+                className="btn-sm rounded-xl flex items-center gap-2 btn-primary justify-center text-white bg-primary px-4 py-5 w-64"
               >
                 View Intake Form
               </button>
               <button
                 onClick={() => setOpenPaymentModal(true)}
-                className="btn-sm btn-primary rounded-xl flex items-center justify-center gap-2 text-white bg-primary px-4 py-5"
+                className="btn-sm btn-primary rounded-xl flex items-center justify-center gap-2 text-white bg-primary px-4 py-5 w-64"
               >
                 Divide Payment
               </button>
               <button
                 onClick={() => setIsColorModalOpen(true)}
-                className="btn-sm btn-warning rounded-xl flex items-center justify-center gap-2 text-white bg-primary px-4 py-5"
+                className="btn-sm btn-warning rounded-xl flex items-center justify-center gap-2 text-white bg-primary px-4 py-5 w-64"
               >
                 Add/Update Color
               </button>
               <button
                 onClick={() => setDiscountModalOpen(true)}
-                className="btn-sm btn-primary rounded-xl flex items-center justify-center gap-2 text-white bg-primary px-4 py-5"
+                className="btn-sm btn-primary rounded-xl flex items-center justify-center gap-2 text-white bg-primary px-4 py-5 w-64"
               >
                 Add Discount
               </button>
-              {hasChangeAccess() && (
-                <button
-                  onClick={() => setAssignAdminModal(true)}
-                  className="btn-sm btn-primary rounded-xl flex items-center justify-center gap-2 text-white bg-primary px-4 py-5"
-                >
-                  Assign Admin
-                </button>
-              )}
             </div>
           </div>
         </div>
@@ -680,45 +623,6 @@ const Application = ({
             </div>
           </dialog>
         )}
-
-        {assignAdminModal && (
-          <dialog className="modal modal-open">
-            <div className="modal-box">
-              <button
-                className="btn btn-secondary float-right"
-                onClick={() => setAssignAdminModal(false)}
-              >
-                Close
-              </button>
-              <h3 className="font-bold text-lg">Assign Admin</h3>
-              <label
-                htmlFor="admin-select"
-                className="block text-gray-700 mt-5 mb-5"
-              >
-                Select Admin:
-              </label>
-              <select
-                id="admin-select"
-                className="select select-bordered w-full mb-4"
-                value={selectedAdmin}
-                onChange={(e) => setSelectedAdmin(e.target.value)}
-              >
-                <option value="">Select Admin</option>
-                {possibleAdmins.map((admin) => (
-                  <option key={admin} value={admin}>
-                    {admin}
-                  </option>
-                ))}
-              </select>
-              <button
-                className="btn btn-primary mt-4 w-full"
-                onClick={handleAssignAdmin}
-              >
-                Assign Admin
-              </button>
-            </div>
-          </dialog>
-        )}
       </div>
     </div>
   );
@@ -744,7 +648,7 @@ const CustomersInfo = () => {
   const getUserApplications = async (userId) => {
     setSubmissionLoading(true);
     try {
-      const response = await getAdminApplications(userId);
+      const response = await getApplications(userId);
       console.log("application", response);
       setApplications(response);
       setSubmissionLoading(false);
@@ -816,15 +720,12 @@ const CustomersInfo = () => {
   const getApplicationsData = async () => {
     try {
       setSubmissionLoading(true);
-      const auth = getAuth();
-      const userId = auth.currentUser.uid;
-      let applicationsData = await getAdminApplications(userId);
+      let applicationsData = await getApplications();
 
       applicationsData.sort(
-        (a, b) => new Date(b.status[0]?.time) - new Date(a.status[0]?.time)
+        (a, b) => new Date(b.status[0].time) - new Date(a.status[0].time)
       );
       //filter applications based on status which are not in Waiting for Verification
-
       setApplications(applicationsData);
       setFilteredApplications(applicationsData);
       setSubmissionLoading(false);
@@ -1120,35 +1021,27 @@ const CustomersInfo = () => {
                     className={`animate-fade-up items-center overflow-auto `}
                   >
                     <td className={`p-5 flex items-center`}>
-                      <div className="flex flex-col">
-                        {application.applicationId
-                          ? application.applicationId
-                          : application.id}{" "}
-                        <br></br>
-                        {application.color && (
-                          <>
-                            (
-                            {application.color === "red"
-                              ? "Hot Enquiry"
-                              : application.color === "yellow"
-                              ? "Proceeded With Payment"
-                              : application.color === "gray"
-                              ? "Cold Enquiry"
-                              : application.color === "lightblue"
-                              ? "Impacted Student"
-                              : application.color === "green"
-                              ? "Completed"
-                              : "N/A"}
-                            )
-                          </>
-                        )}
-                        {application.assignedAdmin && (
-                          <p className="text-sm text-gray-500">
-                            Assigned to: {application.assignedAdmin}
-                          </p>
-                        )}
-                      </div>
-
+                      {application.applicationId
+                        ? application.applicationId
+                        : application.id}{" "}
+                      <br></br>
+                      {application.color && (
+                        <>
+                          (
+                          {application.color === "red"
+                            ? "Hot Enquiry"
+                            : application.color === "yellow"
+                            ? "Proceeded With Payment"
+                            : application.color === "gray"
+                            ? "Cold Enquiry"
+                            : application.color === "lightblue"
+                            ? "Impacted Student"
+                            : application.color === "green"
+                            ? "Completed"
+                            : "N/A"}
+                          )
+                        </>
+                      )}
                       <BsEye
                         className="text-blue-500 ml-2 cursor-pointer"
                         onClick={() => setSelectedApplication(application)}
