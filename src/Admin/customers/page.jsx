@@ -43,7 +43,6 @@ import {
   updatePhone,
   dividePayment,
   assignApplicationToAdmin,
-  getAdminApplications,
 } from "../../Customer/Services/adminServices";
 
 import { initiateVerificationCall } from "../../Customer/Services/twilioService";
@@ -394,14 +393,13 @@ const Application = ({
               >
                 Add Discount
               </button>
-              {hasChangeAccess() && (
-                <button
-                  onClick={() => setAssignAdminModal(true)}
-                  className="btn-sm btn-primary rounded-xl flex items-center justify-center gap-2 text-white bg-primary px-4 py-5"
-                >
-                  Assign Admin
-                </button>
-              )}
+
+              <button
+                onClick={() => setAssignAdminModal(true)}
+                className="btn-sm btn-primary rounded-xl flex items-center justify-center gap-2 text-white bg-primary px-4 py-5"
+              >
+                Assign Admin
+              </button>
             </div>
           </div>
         </div>
@@ -575,6 +573,7 @@ const Application = ({
                 <option value="yellow">Proceeded With Payment</option>
                 <option value="gray">Cold Enquiry </option>
                 <option value="lightblue">Impacted Student</option>
+                <option value="pink">Agent</option>
                 <option value="green">Completed</option>
               </select>
               <div className="flex justify-end">
@@ -726,6 +725,29 @@ const Application = ({
 
 const CustomersInfo = () => {
   const navigate = useNavigate();
+  const [filterOptions, setFilterOptions] = useState([
+    "All",
+    "Assigned to Gabi",
+    "Assigned to Ehsan",
+    "Assigned to N/A",
+  ]);
+  const [selectedFilter, setSelectedFilter] = useState("All");
+
+  const [colorFilterOptions] = useState([
+    "All",
+    "Hot Enquiry",
+    "Proceeded With Payment",
+    "Cold Enquiry",
+    "Impacted Student",
+    "Agent",
+    "Completed",
+  ]);
+  const [selectedColorFilter, setSelectedColorFilter] = useState("All");
+
+  const handleColorFilterChange = (e) => {
+    setSelectedColorFilter(e.target.value);
+  };
+
   const [submissionLoading, setSubmissionLoading] = useState(false);
   const [applicationId, setApplicationId] = useState("");
 
@@ -744,13 +766,17 @@ const CustomersInfo = () => {
   const getUserApplications = async (userId) => {
     setSubmissionLoading(true);
     try {
-      const response = await getAdminApplications(userId);
+      const response = await getApplications(userId);
       console.log("application", response);
       setApplications(response);
       setSubmissionLoading(false);
     } catch (error) {
       console.log(error);
     }
+  };
+
+  const handleFilterChange = (e) => {
+    setSelectedFilter(e.target.value);
   };
 
   const [selectedApplication, setSelectedApplication] = useState(null);
@@ -766,8 +792,18 @@ const CustomersInfo = () => {
   const [payment2, setPayment2] = useState(0);
   const [full_paid, setFullPaid] = useState(false);
 
+  const calculateDiscountedPrice = (price, discount) => {
+    // Remove commas and convert to number
+    console.log(price);
+    if (!price) return 0;
+    if (!discount) return price;
+    const cleanPrice = parseFloat(price.toString().replace(/,/g, ""));
+    console.log("ok", cleanPrice, discount);
+    return cleanPrice - discount;
+  };
   const onClickPayment = (
     price,
+    discount,
     applicationId,
     userId,
     partialScheme,
@@ -777,7 +813,11 @@ const CustomersInfo = () => {
     full_paid
   ) => {
     setUserId(userId);
-    setPrice(price);
+    if (!discount) {
+      setPrice(price);
+    } else {
+      setPrice(calculateDiscountedPrice(price, discount));
+    }
     setApplicationId(applicationId);
     setPartialScheme(partialScheme);
     setPaid(paid);
@@ -818,7 +858,7 @@ const CustomersInfo = () => {
       setSubmissionLoading(true);
       const auth = getAuth();
       const userId = auth.currentUser.uid;
-      let applicationsData = await getAdminApplications(userId);
+      let applicationsData = await getApplications();
 
       applicationsData.sort(
         (a, b) => new Date(b.status[0]?.time) - new Date(a.status[0]?.time)
@@ -947,9 +987,46 @@ const CustomersInfo = () => {
     setCurrentPage(1);
   };
   useEffect(() => {
-    //search applications by ID or Name
-    searchByIDorName();
-  }, [search]);
+    // First filter by search
+    let filtered = applications;
+    if (search !== "") {
+      let searchValue = search.toLowerCase();
+      filtered = applications.filter(
+        (app) =>
+          app.applicationId?.toLowerCase().includes(searchValue) ||
+          app.user?.firstName?.toLowerCase().includes(searchValue) ||
+          app.user?.lastName?.toLowerCase().includes(searchValue)
+      );
+    }
+
+    // Then filter by assignment
+    if (selectedFilter !== "All") {
+      if (selectedFilter === "Assigned to N/A") {
+        filtered = filtered.filter((app) => !app.assignedAdmin);
+      } else {
+        const admin = selectedFilter.replace("Assigned to ", "");
+        filtered = filtered.filter((app) => app.assignedAdmin === admin);
+      }
+    }
+
+    // Then filter by color status
+    if (selectedColorFilter !== "All") {
+      const colorMap = {
+        "Hot Enquiry": "red",
+        "Proceeded With Payment": "yellow",
+        "Cold Enquiry": "gray",
+        "Impacted Student": "lightblue",
+        Agent: "pink",
+        Completed: "green",
+      };
+      filtered = filtered.filter(
+        (app) => app.color === colorMap[selectedColorFilter]
+      );
+    }
+
+    setFilteredApplications(filtered);
+    setCurrentPage(1);
+  }, [search, selectedFilter, selectedColorFilter, applications]);
 
   const onClickInitiateCall = async (applicationId) => {
     try {
@@ -1071,23 +1148,61 @@ const CustomersInfo = () => {
           </div>
 
           <div className="flex items-start flex-col mb-4 gap-2">
-            <div className="flex justify-between w-full">
-              <div>
-                <label htmlFor="search" className="text-sm">
-                  Search by ID or Name
-                </label>
-                <input
-                  type="text"
-                  id="search"
-                  className="input input-bordered w-full"
-                  placeholder="Search"
-                  onChange={(e) => setSearch(e.target.value)}
-                />
+            <div className="flex justify-between items-end w-full gap-4">
+              <div className="flex gap-4 flex-1">
+                <div className="flex-1">
+                  <label htmlFor="search" className="text-sm block mb-2">
+                    Search by ID or Name
+                  </label>
+                  <input
+                    type="text"
+                    id="search"
+                    className="input input-bordered w-full"
+                    placeholder="Search"
+                    onChange={(e) => setSearch(e.target.value)}
+                  />
+                </div>
+                <div className="flex-1">
+                  <label
+                    htmlFor="assignmentFilter"
+                    className="text-sm block mb-2"
+                  >
+                    Filter by Assignment
+                  </label>
+                  <select
+                    id="assignmentFilter"
+                    className="select select-bordered w-full"
+                    value={selectedFilter}
+                    onChange={handleFilterChange}
+                  >
+                    {filterOptions.map((option) => (
+                      <option key={option} value={option}>
+                        {option}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="flex-1">
+                  <label htmlFor="colorFilter" className="text-sm block mb-2">
+                    Filter by Status
+                  </label>
+                  <select
+                    id="colorFilter"
+                    className="select select-bordered w-full"
+                    value={selectedColorFilter}
+                    onChange={handleColorFilterChange}
+                  >
+                    {colorFilterOptions.map((option) => (
+                      <option key={option} value={option}>
+                        {option}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
               <ExportButton />
             </div>
           </div>
-
           <div className=" overflow-x-auto border border-gray-300 rounded-md">
             <div className="table mx-auto max-sm:overflow-x-auto overflow-auto">
               <thead>
@@ -1136,6 +1251,8 @@ const CustomersInfo = () => {
                               ? "Cold Enquiry"
                               : application.color === "lightblue"
                               ? "Impacted Student"
+                              : application.color === "pink"
+                              ? "Agent"
                               : application.color === "green"
                               ? "Completed"
                               : "N/A"}
@@ -1265,6 +1382,7 @@ const CustomersInfo = () => {
                           onClick={() =>
                             onClickPayment(
                               application.price,
+                              application.discount,
                               application.id,
                               application.userId,
                               application.partialScheme,

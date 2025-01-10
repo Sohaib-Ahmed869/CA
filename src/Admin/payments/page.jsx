@@ -14,6 +14,7 @@ const PaymentApproval = () => {
     "All Payments",
     "Payments Completed",
     "Waiting for Payment",
+    "Partial Payment",
   ];
 
   const [activeFilter, setActiveFilter] = useState("Waiting for Payment");
@@ -74,6 +75,8 @@ const PaymentApproval = () => {
       filtered = filtered.filter((application) => application.paid === true);
     } else if (activeFilter === "Waiting for Payment") {
       filtered = filtered.filter((application) => application.paid === false);
+    } else if (activeFilter === "Partial Payment") {
+      filtered = filtered.filter((application) => application.partialScheme || application.amount_paid);
     }
 
     // Apply search filter
