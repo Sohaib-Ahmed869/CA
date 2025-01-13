@@ -15,6 +15,227 @@ import {
 import SpinnerLoader from "../../Customer/components/spinnerLoader";
 import dashb from "../../assets/dashb.png";
 import ApexCharts from "react-apexcharts";
+import {
+  FunnelChart,
+  Funnel,
+  LabelList,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
+const ApplicationFunnel = ({ applications }) => {
+  const getFunnelData = () => {
+    const statusOrder = [
+      "Student Intake Form",
+      "Upload Documents",
+      "Sent to RTO",
+      "Waiting for Verification",
+      "Certificate Generated",
+    ];
+
+    // Colors for each status (in order of appearance)
+    const colors = ["#142E1D", "#089C34", "#FFA000", "#1976D2", "#6D4C41"];
+
+    // Count applications for each status
+    const statusCounts = statusOrder.reduce((acc, status) => {
+      acc[status] = 0;
+      return acc;
+    }, {});
+
+    applications.forEach((app) => {
+      if (statusCounts.hasOwnProperty(app.currentStatus)) {
+        statusCounts[app.currentStatus]++;
+      }
+    });
+
+    // Filter out zero-value statuses and return formatted data
+    return statusOrder
+      .map((status, index) => ({
+        name: status,
+        count: statusCounts[status],
+        fill: colors[index], // Assign a specific color for each status
+      }))
+      .filter((d) => d.count > 0); // Exclude statuses with count = 0
+  };
+
+  const data = React.useMemo(() => getFunnelData(), [applications]);
+
+  // Fallback for empty data
+  if (!data.some((d) => d.count > 0)) {
+    return (
+      <div className="bg-white rounded-lg shadow p-4">
+        <h4>No data available for the funnel chart.</h4>
+      </div>
+    );
+  }
+
+  return (
+    <div
+      style={{
+        padding: "5",
+        borderRadius: "8px",
+        boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+        backgroundColor: "#fff",
+      }}
+    >
+      <h3
+        style={{ fontSize: "16px", fontWeight: "bold", marginBottom: "10px" }}
+      >
+        Application Funnel
+      </h3>
+      <ResponsiveContainer width="100%" height={400}>
+        <FunnelChart>
+          <Tooltip
+            formatter={(value) => `${value} applications`}
+            cursor={{ fill: "rgba(0, 0, 0, 0.05)" }}
+          />
+          <Funnel
+            dataKey="count"
+            data={data}
+            isAnimationActive
+            fillOpacity={1} // Ensure full color visibility
+          >
+            {/* Display only percentages inside the funnel */}
+            <LabelList
+              style={{ fontSize: "12px", fontWeight: "bold", fill: "#000000" }}
+              formatter={(value) => {
+                const total = data.reduce((sum, d) => sum + d.count, 0);
+                const percentage = ((value / total) * 100).toFixed(1);
+                return `${percentage}%`;
+              }}
+            />
+          </Funnel>
+        </FunnelChart>
+      </ResponsiveContainer>
+
+      {/* Legend */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)" }}>
+        {data.map((d) => (
+          <div
+            key={d.name}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              marginRight: "15px",
+              fontSize: "14px",
+            }}
+          >
+            <div
+              style={{
+                width: "12px",
+                height: "12px",
+                backgroundColor: d.fill, // Use the same color as in the funnel
+                marginRight: "5px",
+                borderRadius: "2px",
+              }}
+            ></div>
+            {d.name}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+const ColorStatusChart = ({ stats }) => {
+  const getColorData = () => {
+    const hotLeadCount = stats.colorStatusCount?.hotLead || 0;
+    const warmLeadCount = stats.colorStatusCount?.warmLead || 0;
+    const coldLeadCount = stats.colorStatusCount?.coldLead || 0;
+
+    const totalLeads = hotLeadCount + warmLeadCount + coldLeadCount;
+
+    const hotLeadPercent = totalLeads ? (hotLeadCount / totalLeads) * 100 : 0;
+    const warmLeadPercent = totalLeads ? (warmLeadCount / totalLeads) * 100 : 0;
+    const coldLeadPercent = totalLeads ? (coldLeadCount / totalLeads) * 100 : 0;
+
+    return {
+      labels: ["Hot Lead", "Warm Lead", "Cold Lead"],
+      series: [hotLeadPercent, warmLeadPercent, coldLeadPercent],
+      numbers: [hotLeadCount, warmLeadCount, coldLeadCount],
+    };
+  };
+
+  // Get fresh data each render
+  const data = React.useMemo(() => getColorData(), [stats]);
+
+  const chartOptions = React.useMemo(
+    () => ({
+      labels: data.labels,
+      colors: ["#EF4444", "#F97316", "#6B7280"],
+      chart: {
+        type: "pie",
+        events: {
+          dataPointMouseEnter: function (event, chartContext, config) {
+            // Force tooltip update
+            const dataPointIndex = config.dataPointIndex;
+            const count = data.numbers[dataPointIndex];
+            const percentage = data.series[dataPointIndex].toFixed(1);
+          },
+        },
+      },
+      legend: {
+        position: "bottom",
+        fontSize: "14px",
+        markers: {
+          fillColors: ["#EF4444", "#F97316", "#6B7280"],
+        },
+      },
+      plotOptions: {
+        pie: {
+          dataLabels: {
+            enabled: true,
+            position: "inside",
+            style: {
+              fontSize: "14px",
+              fontWeight: "bold",
+              colors: ["#fff"],
+            },
+            formatter: function (val, opts) {
+              return data.numbers[opts.seriesIndex].toString();
+            },
+          },
+        },
+      },
+      tooltip: {
+        enabled: true,
+        custom: function ({ seriesIndex }) {
+          const count = data.numbers[seriesIndex];
+          const percentage = data.series[seriesIndex].toFixed(1);
+          const label = data.labels[seriesIndex];
+
+          return `<div class="custom-tooltip" style="padding: 8px;">
+          <span>${label}</span><br/>
+          <span>Count: ${count}</span><br/>
+          <span>Percentage: ${percentage}%</span>
+        </div>`;
+        },
+      },
+      title: {
+        text: "Lead Status Distribution",
+        align: "left",
+        style: {
+          fontSize: "16px",
+          fontWeight: "bold",
+        },
+      },
+    }),
+    [data]
+  );
+
+  // Force chart to re-render when data changes
+  const chartKey = React.useMemo(() => JSON.stringify(data), [data]);
+
+  return (
+    <div className="bg-white rounded-lg shadow p-4">
+      <ApexCharts
+        key={chartKey}
+        options={chartOptions}
+        series={data.series}
+        type="pie"
+        height={350}
+      />
+    </div>
+  );
+};
 
 // Weekly Applications Chart
 const WeeklyChart = ({ applications }) => {
@@ -222,6 +443,12 @@ const Dashboard = () => {
     pendingPayments: 0,
     totalCustomers: 0,
     totalAgents: 0,
+    colorStatusCount: {
+      hotLead: 0,
+      warmLead: 0,
+      coldLead: 0,
+      others: 0,
+    },
   });
 
   const [applications, setApplications] = useState([]);
@@ -338,6 +565,10 @@ const Dashboard = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-8">
         <WeeklyChart applications={applications} />
+        <ColorStatusChart stats={stats} />
+        <ApplicationFunnel applications={applications} />
+      </div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-8">
         <PaymentTrends applications={applications} />
         <StatusChart applications={applications} />
       </div>

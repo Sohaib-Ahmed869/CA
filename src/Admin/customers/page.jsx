@@ -71,9 +71,21 @@ const Application = ({
   const [isColorModalOpen, setIsColorModalOpen] = useState(false);
   const [isUpdateEmailOpen, setIsUpdateEmailOpen] = useState(false);
   const [isUpdatePhoneOpen, setIsupdatePhoneOpen] = useState(false);
+  const [callAttempts, setCallAttempts] = useState(1);
+  const [contactStatus, setContactStatus] = useState("");
+  const [isCallStatusModalOpen, setIsCallStatusModalOpen] = useState(false);
+  const [isContactStatusModalOpen, setIsContactStatusModalOpen] =
+    useState(false);
 
   //self-note: add possible admins to the state
-  const [possibleAdmins, setPossibleAdmins] = useState(["Gabi", "Ehsan"]);
+  const [possibleAdmins, setPossibleAdmins] = useState([
+    "Gabi",
+    "Ehsan",
+    "Sameer",
+    "Aayan",
+    "Emad",
+    "Azhar",
+  ]);
   const [selectedAdmin, setSelectedAdmin] = useState("");
   const [assignAdminModal, setAssignAdminModal] = useState(false);
 
@@ -131,6 +143,13 @@ const Application = ({
       const response = await addColorToApplication(application.id, color);
       if (response.message === "Color updated successfully") {
         toast.success("Color updated successfully!");
+        // Update the local application state
+        const updatedApplication = {
+          ...application,
+          color,
+        };
+
+        setSelectedApplication(updatedApplication);
         setColor("");
         setIsColorModalOpen(false);
         setSubmissionLoading(false);
@@ -154,10 +173,16 @@ const Application = ({
         toast.error("Failed to update phone number.");
       } else {
         toast.success("Phone number updated successfully!");
+        // Update the local application state
+        const updatedApplication = {
+          ...application,
+          user: { ...application.user, phone: updatedPhone },
+        };
+        setSelectedApplication(updatedApplication);
       }
       setSubmissionLoading(false);
       setIsupdatePhoneOpen(false);
-      setSelectedApplication(null);
+
       await getApplicationsData();
     } catch (error) {
       console.error("Error updating phone:", error);
@@ -174,10 +199,16 @@ const Application = ({
         toast.error("Failed to update email.");
       } else {
         toast.success("Email updated successfully!");
+        // Update the local application state
+        const updatedApplication = {
+          ...application,
+          user: { ...application.user, email: updatedEmail },
+        };
+        setSelectedApplication(updatedApplication);
       }
       setSubmissionLoading(false);
       setIsUpdateEmailOpen(false);
-      setSelectedApplication(null);
+
       await getApplicationsData();
     } catch (error) {
       console.error("Error updating email:", error);
@@ -194,10 +225,16 @@ const Application = ({
         toast.error("Failed to divide payment.");
       } else {
         toast.success("Payment divided successfully!");
+        // Update the local application state
+        const updatedApplication = {
+          ...application,
+          price: response.price,
+        };
+        setSelectedApplication(updatedApplication);
       }
       setSubmissionLoading(false);
       setOpenPaymentModal(false);
-      setSelectedApplication(null);
+
       await getApplicationsData();
     } catch (error) {
       console.error("Error dividing payment:", error);
@@ -217,10 +254,16 @@ const Application = ({
         toast.error("Failed to assign admin.");
       } else {
         toast.success("Admin assigned successfully!");
+        // Update the local application state
+        const updatedApplication = {
+          ...application,
+          assignedAdmin: selectedAdmin,
+        };
+        setSelectedApplication(updatedApplication);
       }
       setSubmissionLoading(false);
       setAssignAdminModal(false);
-      setSelectedApplication(null);
+
       await getApplicationsData();
     } catch (error) {
       console.error("Error assigning admin:", error);
@@ -253,15 +296,94 @@ const Application = ({
 
       const data = await response.json();
       toast.success("Discount applied successfully!");
+      // Update the local application state
+      const updatedApplication = {
+        ...application,
+        discount: data.discount,
+      };
+      setSelectedApplication(updatedApplication);
       setDiscountModalOpen(false);
       setDiscount("");
       //fetch updated applications
       await getApplicationsData();
       // go back to applications page
-      setSelectedApplication(null);
     } catch (error) {
       console.error("Error updating discount:", error);
       toast.error("Failed to apply discount");
+    } finally {
+      setSubmissionLoading(false);
+    }
+  };
+
+  const handleUpdateCallAttempts = async () => {
+    try {
+      setSubmissionLoading(true);
+      const response = await fetch(
+        `${URL}/api/applications/callAttempts/${application.id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ contactAttempts: callAttempts }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to update call attempts");
+      }
+
+      toast.success("Call attempts updated successfully!");
+      // Update the local application state
+      const updatedApplication = {
+        ...application,
+        contactAttempts: callAttempts,
+      };
+      setSelectedApplication(updatedApplication);
+      setIsCallStatusModalOpen(false);
+
+      await getApplicationsData();
+    } catch (error) {
+      console.error("Error updating call attempts:", error);
+      toast.error("Failed to update call attempts");
+    } finally {
+      setSubmissionLoading(false);
+    }
+  };
+
+  const handleUpdateContactStatus = async () => {
+    try {
+      setSubmissionLoading(true);
+      const response = await fetch(
+        `${URL}/api/applications/contactStatus/${application.id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ contactStatus }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to update contact status");
+      }
+
+      toast.success("Contact status updated successfully!");
+      // Update the local application state
+      const updatedApplication = {
+        ...application,
+        contactStatus,
+      };
+
+      setSelectedApplication(updatedApplication);
+
+      setIsCallStatusModalOpen(false);
+
+      await getApplicationsData();
+    } catch (error) {
+      console.error("Error updating contact status:", error);
+      toast.error("Failed to update contact status");
     } finally {
       setSubmissionLoading(false);
     }
@@ -318,6 +440,11 @@ const Application = ({
         <div className="col-span-4 bg-white p-4 rounded-lg shadow-lg w-full">
           <div className="flex items-start justify-between">
             <div className="text-sm text-gray-500">
+              <h2 className="text-lg font-semibold text-gray-800">
+                Call Attempts and Contact Status
+              </h2>
+              <p>Call Attempts: {application.contactAttempts || 0}</p>
+              <p>Contact Status: {application.contactStatus || "N/A"}</p>
               <h2 className="text-lg font-semibold text-gray-800">
                 Initial Screening Information
               </h2>
@@ -400,9 +527,97 @@ const Application = ({
               >
                 Assign Admin
               </button>
+              <button
+                onClick={() => setIsCallStatusModalOpen(true)}
+                className="btn-sm btn-primary rounded-xl flex items-center justify-center gap-2 text-white bg-primary px-4 py-5"
+              >
+                Update Call Status
+              </button>
+              <button
+                onClick={() => setIsContactStatusModalOpen(true)}
+                className="btn-sm btn-primary rounded-xl flex items-center justify-center gap-2 text-white bg-primary px-4 py-5"
+              >
+                Update Contact Status
+              </button>
             </div>
           </div>
         </div>
+
+        {isCallStatusModalOpen && (
+          <dialog className="modal modal-open">
+            <div className="modal-box">
+              <button
+                className="btn btn-secondary float-right"
+                onClick={() => setIsCallStatusModalOpen(false)}
+              >
+                Close
+              </button>
+              <h3 className="font-bold text-lg">Update Call Status</h3>
+
+              <div className="mt-4">
+                <label className="block text-sm font-medium text-gray-700">
+                  Call Attempts
+                </label>
+                <select
+                  className="select select-bordered w-full mt-1"
+                  value={callAttempts}
+                  onChange={(e) => setCallAttempts(parseInt(e.target.value))}
+                >
+                  {[1, 2, 3, 4, 5].map((num) => (
+                    <option key={num} value={num}>
+                      {num}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <button
+                className="btn btn-primary mt-4 w-full"
+                onClick={handleUpdateCallAttempts}
+              >
+                Update Call Attempts
+              </button>
+            </div>
+          </dialog>
+        )}
+
+        {isContactStatusModalOpen && (
+          <dialog className="modal modal-open">
+            <div className="modal-box">
+              <div className="mt-4">
+                <label className="block text-sm font-medium text-gray-700">
+                  Contact Status
+                </label>
+                <select
+                  className="select select-bordered w-full mt-1"
+                  value={contactStatus}
+                  onChange={(e) => setContactStatus(e.target.value)}
+                >
+                  <option value="">Select Status</option>
+                  <option value="Voice Mail">Voice Mail</option>
+                  <option value="No pick up">No pick up</option>
+                  <option value="Request Follow Up">Request Follow Up</option>
+                  <option value="Picked Up">Picked Up</option>
+                  <option value="Invalid Number">Invalid Number</option>
+                </select>
+              </div>
+
+              <button
+                className="btn btn-primary mt-4 w-full"
+                onClick={handleUpdateContactStatus}
+                disabled={!contactStatus}
+              >
+                Update Status
+              </button>
+              <button
+                className="btn btn-secondary mt-4 w-full"
+                onClick={() => setIsContactStatusModalOpen(false)}
+              >
+                Close
+              </button>
+            </div>
+          </dialog>
+        )}
 
         {discountModalOpen && (
           <dialog className="modal modal-open">
@@ -569,9 +784,10 @@ const Application = ({
                 onChange={(e) => setColor(e.target.value)}
               >
                 <option value="white">White (Default)</option>
-                <option value="red">Hot Enquiry</option>
+                <option value="red">Hot Lead</option>
+                <option value="orange">Warm Lead</option>
+                <option value="gray">Cold Lead </option>
                 <option value="yellow">Proceeded With Payment</option>
-                <option value="gray">Cold Enquiry </option>
                 <option value="lightblue">Impacted Student</option>
                 <option value="pink">Agent</option>
                 <option value="green">Completed</option>
@@ -725,19 +941,25 @@ const Application = ({
 
 const CustomersInfo = () => {
   const navigate = useNavigate();
+
   const [filterOptions, setFilterOptions] = useState([
     "All",
     "Assigned to Gabi",
     "Assigned to Ehsan",
+    "Assigned to Sameer",
+    "Assigned to Aayan",
+    "Assigned to Emad",
+    "Assigned to Azhar",
     "Assigned to N/A",
   ]);
   const [selectedFilter, setSelectedFilter] = useState("All");
 
   const [colorFilterOptions] = useState([
     "All",
-    "Hot Enquiry",
+    "Hot Lead",
+    "Warm Lead",
+    "Cold Lead",
     "Proceeded With Payment",
-    "Cold Enquiry",
     "Impacted Student",
     "Agent",
     "Completed",
@@ -758,7 +980,7 @@ const CustomersInfo = () => {
   const [loading, setLoading] = React.useState(true);
 
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5; // Number of items per page
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
   const [price, setPrice] = useState(0);
 
@@ -850,6 +1072,8 @@ const CustomersInfo = () => {
   };
 
   const [filteredApplications, setFilteredApplications] = useState([]);
+  const [selectedIndustryFilter, setSelectedIndustryFilter] = useState("All");
+  const [industryFilterOptions, setIndustryFilterOptions] = useState([]);
 
   const [activeStatus, setActiveStatus] = useState("Unverified");
 
@@ -1012,9 +1236,10 @@ const CustomersInfo = () => {
     // Then filter by color status
     if (selectedColorFilter !== "All") {
       const colorMap = {
-        "Hot Enquiry": "red",
+        "Hot Lead": "red",
+        "Warm Lead": "orange",
         "Proceeded With Payment": "yellow",
-        "Cold Enquiry": "gray",
+        "Cold Lead": "gray",
         "Impacted Student": "lightblue",
         Agent: "pink",
         Completed: "green",
@@ -1024,9 +1249,22 @@ const CustomersInfo = () => {
       );
     }
 
+    // Then filter by industry
+    if (selectedIndustryFilter !== "All") {
+      filtered = filtered.filter(
+        (app) => app.isf.industry === selectedIndustryFilter
+      );
+    }
+
     setFilteredApplications(filtered);
     setCurrentPage(1);
-  }, [search, selectedFilter, selectedColorFilter, applications]);
+  }, [
+    search,
+    selectedFilter,
+    selectedColorFilter,
+    applications,
+    selectedIndustryFilter,
+  ]);
 
   const onClickInitiateCall = async (applicationId) => {
     try {
@@ -1044,6 +1282,22 @@ const CustomersInfo = () => {
       setSubmissionLoading(false);
     }
   };
+
+  const handleIndustryFilterChange = (e) => {
+    setSelectedIndustryFilter(e.target.value);
+  };
+  const getUniqueIndustries = (applications) => {
+    const industries = applications.map((app) => app.isf.industry);
+    return ["All", ...new Set(industries.filter(Boolean))];
+  };
+
+  useEffect(() => {
+    if (applications.length > 0) {
+      setSelectedIndustryFilter("All");
+      //set the filter options
+      setIndustryFilterOptions(getUniqueIndustries(applications));
+    }
+  }, [applications]);
 
   const totalItems = filteredApplications.length;
   const totalPages = Math.ceil(totalItems / itemsPerPage);
@@ -1199,8 +1453,44 @@ const CustomersInfo = () => {
                     ))}
                   </select>
                 </div>
+                <div className="flex-1">
+                  <label
+                    htmlFor="industryFilter"
+                    className="text-sm block mb-2"
+                  >
+                    Filter by Industry
+                  </label>
+                  <select
+                    id="industryFilter"
+                    className="select select-bordered w-full"
+                    value={selectedIndustryFilter}
+                    onChange={handleIndustryFilterChange}
+                  >
+                    {industryFilterOptions.length > 0 &&
+                      industryFilterOptions.map((option) => (
+                        <option key={option} value={option}>
+                          {option}
+                        </option>
+                      ))}
+                  </select>
+                </div>
               </div>
               <ExportButton />
+            </div>
+          </div>
+          <div className="flex items-center justify-end gap-4 mb-5">
+            <div className="flex items-center gap-4">
+              <p className="text-sm">Items per page:</p>
+              <select
+                className="select select-bordered"
+                value={itemsPerPage}
+                onChange={(e) => setItemsPerPage(parseInt(e.target.value))}
+              >
+                <option value="10">10</option>
+                <option value="20">20</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+              </select>
             </div>
           </div>
           <div className=" overflow-x-auto border border-gray-300 rounded-md">
@@ -1244,11 +1534,13 @@ const CustomersInfo = () => {
                           <>
                             (
                             {application.color === "red"
-                              ? "Hot Enquiry"
+                              ? "Hot Lead"
                               : application.color === "yellow"
                               ? "Proceeded With Payment"
+                              : application.color === "orange"
+                              ? "Warm Lead"
                               : application.color === "gray"
-                              ? "Cold Enquiry"
+                              ? "Cold Lead"
                               : application.color === "lightblue"
                               ? "Impacted Student"
                               : application.color === "pink"
@@ -1376,6 +1668,26 @@ const CustomersInfo = () => {
                       >
                         Call Now
                       </button>
+                      {application.paid && !application.full_paid && (
+                        <button
+                          className="btn btn-primary btn-sm w-full text-white"
+                          onClick={() =>
+                            onClickPayment(
+                              application.price,
+                              application.discount,
+                              application.id,
+                              application.userId,
+                              application.partialScheme,
+                              application.paid,
+                              application.payment1,
+                              application.payment2,
+                              application.full_paid
+                            )
+                          }
+                        >
+                          Pay Now
+                        </button>
+                      )}
                       {!application.paid && (
                         <button
                           className="btn btn-primary btn-sm w-full text-white"

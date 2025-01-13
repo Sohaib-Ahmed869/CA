@@ -76,7 +76,9 @@ const PaymentApproval = () => {
     } else if (activeFilter === "Waiting for Payment") {
       filtered = filtered.filter((application) => application.paid === false);
     } else if (activeFilter === "Partial Payment") {
-      filtered = filtered.filter((application) => application.partialScheme || application.amount_paid);
+      filtered = filtered.filter(
+        (application) => application.partialScheme || application.amount_paid
+      );
     }
 
     // Apply search filter
@@ -181,7 +183,34 @@ const PaymentApproval = () => {
                     application.discount
                   )}
                 </td>
-                <td>{application.amount_paid}</td>
+                <td>
+                  {application.partialScheme ? (
+                    <div className="flex items-center gap-2">
+                      <span>
+                        {application.amount_paid
+                          ? application.amount_paid
+                          : "0"}
+                      </span>
+                    </div>
+                  ) : application.discount ? (
+                    <div className="flex items-center gap-2">
+                      <span>
+                        {calculateDiscountedPrice(
+                          application.price,
+                          application.discount
+                        )}
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <span>
+                        {application.amount_paid
+                          ? application.amount_paid
+                          : "0"}
+                      </span>
+                    </div>
+                  )}
+                </td>
                 <td>{application.currentStatus}</td>
                 <td>
                   {application.paid
