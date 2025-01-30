@@ -307,10 +307,10 @@ const ExistingApplications = () => {
                         <FaCertificate className="text-white" />
                         {application.currentStatus}
                       </div>
-                    ) : application.currentStatus === "Dispatched" ? (
-                      <div className="p-1 rounded-full bg-black text-white flex items-center justify-center w-2/3 gap-2">
-                        <BsTruck className="text-white" />
-                        {application.currentStatus}
+                    ) : application.currentStatus === "Sent to Assessor" ? (
+                      <div className="p-1 rounded-full bg-red-800 text-white flex items-center justify-center w-2/3 gap-2">
+                        <BsArrowUpRight className="text-white" />
+                        Waiting Approval
                       </div>
                     ) : (
                       application.currentStatus === "Completed" && (
@@ -322,7 +322,13 @@ const ExistingApplications = () => {
                     )}
                   </div>
                   <div className="table-cell p-2">
-                    {application.paid ? (
+                    {application.partialScheme ? (
+                      application.full_paid ? (
+                        <BiCheckCircle className="text-green-500 text-xl text-center w-full" />
+                      ) : (
+                        <FaTimesCircle className="text-red-500 text-xl text-center w-full" />
+                      )
+                    ) : application.paid ? (
                       <BiCheckCircle className="text-green-500 text-xl text-center w-full" />
                     ) : (
                       <FaTimesCircle className="text-red-500 text-xl text-center w-full" />

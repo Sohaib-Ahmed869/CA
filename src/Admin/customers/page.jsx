@@ -43,6 +43,7 @@ import {
   updatePhone,
   dividePayment,
   assignApplicationToAdmin,
+  deleteApplication,
 } from "../../Customer/Services/adminServices";
 
 import { initiateVerificationCall } from "../../Customer/Services/twilioService";
@@ -62,6 +63,8 @@ const Application = ({
   application,
   setSelectedApplication,
   getApplicationsData,
+  onClickInitiateCall,
+  resendEmailFunc,
 }) => {
   const [submissionLoading, setSubmissionLoading] = useState(false);
   const [viewIntakeForm, setViewIntakeForm] = useState(false);
@@ -69,6 +72,8 @@ const Application = ({
   const [documentLinks, setDocumentLinks] = useState([]);
   const [color, setColor] = useState("");
   const [isColorModalOpen, setIsColorModalOpen] = useState(false);
+  const [isAddingNote, setIsAddingNote] = useState(false);
+  const [note, setNote] = useState(application.note || "");
   const [isUpdateEmailOpen, setIsUpdateEmailOpen] = useState(false);
   const [isUpdatePhoneOpen, setIsupdatePhoneOpen] = useState(false);
   const [callAttempts, setCallAttempts] = useState(1);
@@ -76,14 +81,24 @@ const Application = ({
   const [isCallStatusModalOpen, setIsCallStatusModalOpen] = useState(false);
   const [isContactStatusModalOpen, setIsContactStatusModalOpen] =
     useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false); // For the delete confirmation modal
+  const [applicationToDelete, setApplicationToDelete] = useState(null); // Track the application to delete
+
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const year = date.getFullYear();
+    return `${day}-${month}-${year}`;
+  };
 
   //self-note: add possible admins to the state
   const [possibleAdmins, setPossibleAdmins] = useState([
     "Gabi",
-    "Ehsan",
+    "Sidra",
     "Sameer",
     "Aayan",
-    "Emad",
+    "Ilhan",
     "Azhar",
   ]);
   const [selectedAdmin, setSelectedAdmin] = useState("");
@@ -98,6 +113,32 @@ const Application = ({
   const [updatedEmail, setUpdatedEmail] = useState(
     application.user.email || ""
   );
+
+  const handleDeleteClick = (applicationId) => {
+    setApplicationToDelete(applicationId);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDeleteApplication = async () => {
+    try {
+      setSubmissionLoading(true);
+      const result = await deleteApplication(applicationToDelete);
+      if (result.message) {
+        toast.success(result.message);
+        getApplicationsData();
+        setSelectedApplication(null);
+      } else {
+        toast.error("Failed to delete application");
+      }
+      setSubmissionLoading(false);
+    } catch (error) {
+      toast.error("Error deleting application");
+      setSubmissionLoading(false);
+    } finally {
+      setShowDeleteModal(false);
+      setApplicationToDelete(null);
+    }
+  };
 
   const onClickViewDocuments = async () => {
     console.log("Viewing documents for application with ID:", application);
@@ -275,6 +316,8 @@ const Application = ({
 
   const [discountModalOpen, setDiscountModalOpen] = useState(false);
   const [discount, setDiscount] = useState("");
+  const [isEditingIntakeForm, setIsEditingIntakeForm] = useState(false);
+  const [editedIntakeForm, setEditedIntakeForm] = useState(null);
 
   const handleDiscountUpdate = async () => {
     try {
@@ -394,13 +437,83 @@ const Application = ({
     const cleanPrice = parseFloat(price.toString().replace(/,/g, ""));
     return (cleanPrice - application.discount).toFixed(2);
   };
+
+  const handleNoteUpdate = async () => {
+    try {
+      setSubmissionLoading(true);
+      const response = await addNoteToApplication(application.id, note);
+      if (response === "error") {
+        toast.error("Failed to update note");
+      } else {
+        toast.success("Note updated successfully!");
+        // Update the local application state
+        const updatedApplication = {
+          ...application,
+          note: note,
+        };
+        setSelectedApplication(updatedApplication);
+      }
+      setSubmissionLoading(false);
+      setIsAddingNote(false);
+      await getApplicationsData();
+    } catch (error) {
+      console.error("Error updating note:", error);
+      toast.error("An error occurred while updating the note");
+      setSubmissionLoading(false);
+    }
+  };
+  const handleEditIntakeForm = async () => {
+    try {
+      setSubmissionLoading(true);
+      const response = await fetch(
+        `${URL}/api/admin/student-intake-form/${application.studentFormId}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(editedIntakeForm),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to update student intake form");
+      }
+
+      // Update the local application state
+      const updatedApplication = {
+        ...application,
+        sif: {
+          ...application.sif,
+          ...editedIntakeForm,
+        },
+      };
+      setSelectedApplication(updatedApplication);
+
+      toast.success("Student intake form updated successfully");
+      await getApplicationsData();
+      setIsEditingIntakeForm(false);
+      setEditedIntakeForm(null);
+    } catch (error) {
+      console.error("Error updating student intake form:", error);
+      toast.error("Failed to update student intake form");
+    } finally {
+      setSubmissionLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen">
       {submissionLoading && <SpinnerLoader />}
-      <button onClick={() => setSelectedApplication(null)} className="btn-sm">
-        Back
-      </button>
       <div className="flex flex-col items-center justify-center p-16">
+        <div className="flex justify-start items-center gap-4 w-full">
+          <button
+            onClick={() => setSelectedApplication(null)}
+            className="btn-sm btn-secondary rounded-xl flex items-center justify-center gap-2 text-white bg-primary px-4 py-5"
+          >
+            Back
+          </button>
+        </div>
         <div className="col-span-4 text-center">
           <h1 className="text-2xl font-bold text-gray-800">
             Application# {application.applicationId}
@@ -415,11 +528,27 @@ const Application = ({
           <p className="text-sm text-gray-500">
             This application was submitted by {application.user.firstName}{" "}
             {application.user.lastName} on{" "}
-            {application.status[0].time.split("T")[0]}
+            {formatDate(application.status[0].time.split("T")[0])}
           </p>
           <h1 className="text-lg font-semibold text-gray-800 mt-4">
             {application.isf.lookingForWhatQualification}
           </h1>
+        </div>
+
+        {/* Add Note section at the top */}
+        <div className="col-span-4 bg-white p-4 rounded-lg shadow-lg w-full mb-4">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-lg font-semibold text-gray-800">Notes</h2>
+            <button
+              onClick={() => setIsAddingNote(true)}
+              className="btn btn-primary btn-sm text-white"
+            >
+              {application.note ? "Edit Note" : "Add Note"}
+            </button>
+          </div>
+          {application.note && !isAddingNote && (
+            <p className="text-gray-600">{application.note}</p>
+          )}
         </div>
 
         <div className="col-span-4 bg-white p-4 rounded-lg shadow-lg w-full">
@@ -539,9 +668,57 @@ const Application = ({
               >
                 Update Contact Status
               </button>
+              <button
+                onClick={() => resendEmailFunc(application.userId)}
+                className="btn-sm btn-primary rounded-xl flex items-center justify-center gap-2 text-white bg-primary px-4 py-5"
+              >
+                Resend Email
+              </button>
+              <button
+                onClick={() => onClickInitiateCall(application.id)}
+                className="btn-sm btn-primary rounded-xl flex items-center justify-center gap-2 text-white bg-primary px-4 py-5"
+              >
+                Call Now
+              </button>
+
+              <button
+                onClick={() => handleDeleteClick(application.id)}
+                className="btn-sm btn-danger rounded-xl flex items-center justify-center gap-2 text-white bg-primary px-4 py-5"
+              >
+                Archive Application
+              </button>
             </div>
           </div>
         </div>
+
+        {isAddingNote && (
+          <dialog className="modal modal-open">
+            <div className="modal-box">
+              <button
+                className="btn btn-secondary float-right"
+                onClick={() => setIsAddingNote(false)}
+              >
+                Close
+              </button>
+              <h3 className="font-bold text-lg">
+                {application.note ? "Edit Note" : "Add Note"}
+              </h3>
+              <textarea
+                className="textarea textarea-bordered w-full mt-4"
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+                placeholder="Enter note here"
+                rows={4}
+              />
+              <button
+                className="btn btn-primary mt-4 w-full"
+                onClick={handleNoteUpdate}
+              >
+                {application.note ? "Update Note" : "Add Note"}
+              </button>
+            </div>
+          </dialog>
+        )}
 
         {isCallStatusModalOpen && (
           <dialog className="modal modal-open">
@@ -563,7 +740,7 @@ const Application = ({
                   value={callAttempts}
                   onChange={(e) => setCallAttempts(parseInt(e.target.value))}
                 >
-                  {[1, 2, 3, 4, 5].map((num) => (
+                  {[0, 1, 2, 3, 4, 5].map((num) => (
                     <option key={num} value={num}>
                       {num}
                     </option>
@@ -655,73 +832,260 @@ const Application = ({
           <dialog className="modal modal-open">
             <div className="col-span-4 bg-white p-4 rounded-lg shadow-lg w-1/2">
               <button
-                onClick={() => setViewIntakeForm(false)}
+                onClick={() => {
+                  setViewIntakeForm(false);
+                  setIsEditingIntakeForm(false);
+                  setEditedIntakeForm(null);
+                }}
                 className="mt-4 mr-4 float-right"
               >
                 <FaTimes className="text-lg" />
               </button>
-              <div className="flex justify-between items-center">
+              <div className="flex flex-col justify-between items-start">
                 <h2 className="text-lg font-semibold text-gray-800">
                   Student Intake Form
                 </h2>
-                {/* <button
-                  onClick={onClickDownloadIntakeForm}
-                  className=" text-black btn-sm rounded-xl flex items-center gap-2 bg-gray-200 px-4 py-2 m-2 disabled:opacity-50"
-                >
-                  <GrDocumentDownload />
-                  Download Intake Form
-                </button> */}
+                {!isEditingIntakeForm && (
+                  <button
+                    onClick={() => {
+                      setIsEditingIntakeForm(true);
+                      setEditedIntakeForm({
+                        ...application.sif,
+                        // Exclude qualification fields
+                        lookingForWhatQualification: undefined,
+                        qualification: undefined,
+                      });
+                    }}
+                    className="btn btn-primary btn-sm text-white mt-3"
+                  >
+                    Edit Form
+                  </button>
+                )}
               </div>
               <div className="grid grid-cols-1 gap-4">
-                <div className="text-md text-gray-500 ">
+                <div className="text-md text-gray-500">
                   <h2 className="text-lg font-semibold text-gray-800 mt-4">
                     Personal Information
                   </h2>
-                  <div className="text-md text-gray-500 grid grid-cols-2">
-                    <p>First Name: {application.user.firstName}</p>
-                    <p>Last Name: {application.user.lastName}</p>
-                    <p>USI: {application.sif.USI}</p>
-                    <p>Gender: {application.sif.gender}</p>
-                    <p className=" text-gray-500">
-                      Date of Birth: {application.sif.dob}
-                    </p>
-                    <p>Home Address: {application.sif.homeAddress}</p>
-                    <p>Suburb: {application.sif.suburb}</p>
-                    <p>Postcode: {application.sif.postcode}</p>
-                    <p>Country: {application.user.country}</p>
-                    <p>State: {application.sif.state}</p>
-
-                    <p className=" text-gray-500">
-                      Location Of Experience:{" "}
-                      {application.isf.locationOfExperience}
-                    </p>
+                  <div className="text-md text-gray-500 grid grid-cols-2 gap-4">
+                    {isEditingIntakeForm ? (
+                      // Edit mode - show input fields
+                      <>
+                        <div>
+                          <label className="text-sm font-medium">USI</label>
+                          <input
+                            type="text"
+                            className="input input-bordered w-full"
+                            value={editedIntakeForm?.USI || ""}
+                            onChange={(e) =>
+                              setEditedIntakeForm({
+                                ...editedIntakeForm,
+                                USI: e.target.value,
+                              })
+                            }
+                          />
+                        </div>
+                        <div>
+                          <label className="text-sm font-medium">Gender</label>
+                          <select
+                            className="select select-bordered w-full"
+                            value={editedIntakeForm?.gender || ""}
+                            onChange={(e) =>
+                              setEditedIntakeForm({
+                                ...editedIntakeForm,
+                                gender: e.target.value,
+                              })
+                            }
+                          >
+                            <option value="">Select Gender</option>
+                            <option value="male">Male</option>
+                            <option value="female">Female</option>
+                            <option value="other">Other</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label className="text-sm font-medium">
+                            Date of Birth
+                          </label>
+                          <input
+                            type="date"
+                            className="input input-bordered w-full"
+                            value={editedIntakeForm?.dob || ""}
+                            onChange={(e) =>
+                              setEditedIntakeForm({
+                                ...editedIntakeForm,
+                                dob: e.target.value,
+                              })
+                            }
+                          />
+                        </div>
+                        <div>
+                          <label className="text-sm font-medium">
+                            Home Address
+                          </label>
+                          <input
+                            type="text"
+                            className="input input-bordered w-full"
+                            value={editedIntakeForm?.homeAddress || ""}
+                            onChange={(e) =>
+                              setEditedIntakeForm({
+                                ...editedIntakeForm,
+                                homeAddress: e.target.value,
+                              })
+                            }
+                          />
+                        </div>
+                        <div>
+                          <label className="text-sm font-medium">Suburb</label>
+                          <input
+                            type="text"
+                            className="input input-bordered w-full"
+                            value={editedIntakeForm?.suburb || ""}
+                            onChange={(e) =>
+                              setEditedIntakeForm({
+                                ...editedIntakeForm,
+                                suburb: e.target.value,
+                              })
+                            }
+                          />
+                        </div>
+                        <div>
+                          <label className="text-sm font-medium">
+                            Postcode
+                          </label>
+                          <input
+                            type="text"
+                            className="input input-bordered w-full"
+                            value={editedIntakeForm?.postcode || ""}
+                            onChange={(e) =>
+                              setEditedIntakeForm({
+                                ...editedIntakeForm,
+                                postcode: e.target.value,
+                              })
+                            }
+                          />
+                        </div>
+                        <div>
+                          <label className="text-sm font-medium">State</label>
+                          <input
+                            type="text"
+                            className="input input-bordered w-full"
+                            value={editedIntakeForm?.state || ""}
+                            onChange={(e) =>
+                              setEditedIntakeForm({
+                                ...editedIntakeForm,
+                                state: e.target.value,
+                              })
+                            }
+                          />
+                        </div>
+                        {/* Education Section */}
+                        <div>
+                          <label className="text-sm font-medium">
+                            Credits Transfer
+                          </label>
+                          <select
+                            className="select select-bordered w-full"
+                            value={
+                              editedIntakeForm?.creditsTransfer?.toString() ||
+                              "false"
+                            }
+                            onChange={(e) =>
+                              setEditedIntakeForm({
+                                ...editedIntakeForm,
+                                creditsTransfer: e.target.value === "true",
+                              })
+                            }
+                          >
+                            <option value="true">Yes</option>
+                            <option value="false">No</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label className="text-sm font-medium">
+                            Year of Completion
+                          </label>
+                          <input
+                            type="text"
+                            className="input input-bordered w-full"
+                            value={editedIntakeForm?.YearCompleted || ""}
+                            onChange={(e) =>
+                              setEditedIntakeForm({
+                                ...editedIntakeForm,
+                                YearCompleted: e.target.value,
+                              })
+                            }
+                          />
+                        </div>
+                        <div>
+                          <label className="text-sm font-medium">
+                            Highest Level of Education
+                          </label>
+                          <input
+                            type="text"
+                            className="input input-bordered w-full"
+                            value={editedIntakeForm?.nameOfQualification || ""}
+                            onChange={(e) =>
+                              setEditedIntakeForm({
+                                ...editedIntakeForm,
+                                nameOfQualification: e.target.value,
+                              })
+                            }
+                          />
+                        </div>
+                      </>
+                    ) : (
+                      // View mode - show text
+                      <>
+                        <p>First Name: {application.user.firstName}</p>
+                        <p>Last Name: {application.user.lastName}</p>
+                        <p>USI: {application.sif.USI}</p>
+                        <p>Gender: {application.sif.gender}</p>
+                        <p>Date of Birth: {application.sif.dob}</p>
+                        <p>Home Address: {application.sif.homeAddress}</p>
+                        <p>Suburb: {application.sif.suburb}</p>
+                        <p>Postcode: {application.sif.postcode}</p>
+                        <p>Country: {application.user.country}</p>
+                        <p>State: {application.sif.state}</p>
+                        <p>
+                          Location Of Experience:{" "}
+                          {application.isf.locationOfExperience}
+                        </p>
+                        {/* Education Section */}
+                        <p>
+                          Credits Transfer:{" "}
+                          {application.sif.creditsTransfer ? "Yes" : "No"}
+                        </p>
+                        <p>
+                          Year of Completion:{" "}
+                          {application.sif.YearCompleted || "N/A"}
+                        </p>
+                        <p>
+                          Highest Level of Education:{" "}
+                          {application.sif.nameOfQualification || "N/A"}
+                        </p>
+                      </>
+                    )}
                   </div>
-                  <h2 className="text-lg font-semibold text-gray-800 mt-4">
-                    Contact Information
-                  </h2>
-                  <div className="text-md text-gray-500 grid grid-cols-2">
-                    <p>Email: {application.user.email}</p>
-                    <p>Phone: {application.user.phone}</p>
-                  </div>
-
-                  <h2 className="text-lg font-semibold text-gray-800 mt-4">
-                    Education
-                  </h2>
-                  <div className="text-md text-gray-500 grid grid-cols-2">
-                    <p>
-                      Credits Transfer:{" "}
-                      {application.sif.creditsTransfer ? "Yes" : "No"}
-                    </p>
-
-                    <p>
-                      Year of Completion:{" "}
-                      {application.sif.YearCompleted || "N/A"}
-                    </p>
-                    <p>
-                      Highest Level of Education:{" "}
-                      {application.sif.nameOfQualification || "N/A"}
-                    </p>
-                  </div>
+                  {isEditingIntakeForm && (
+                    <div className="flex justify-end gap-2 mt-4">
+                      <button
+                        onClick={() => {
+                          setIsEditingIntakeForm(false);
+                          setEditedIntakeForm(null);
+                        }}
+                        className="btn btn-ghost"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={handleEditIntakeForm}
+                        className="btn btn-primary"
+                      >
+                        Save Changes
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -934,6 +1298,32 @@ const Application = ({
             </div>
           </dialog>
         )}
+
+        {showDeleteModal && (
+          <dialog open className="modal modal-open">
+            <div className="modal-box">
+              <h3 className="font-bold text-lg">Confirm Deletion</h3>
+              <p className="py-4">
+                Are you sure you want to archive this application? This action
+                cannot be undone.
+              </p>
+              <div className="modal-action">
+                <button
+                  className="btn btn-secondary"
+                  onClick={() => setShowDeleteModal(false)}
+                >
+                  Cancel
+                </button>
+                <button
+                  className="btn btn-primary"
+                  onClick={confirmDeleteApplication}
+                >
+                  Confirm
+                </button>
+              </div>
+            </div>
+          </dialog>
+        )}
       </div>
     </div>
   );
@@ -945,10 +1335,10 @@ const CustomersInfo = () => {
   const [filterOptions, setFilterOptions] = useState([
     "All",
     "Assigned to Gabi",
-    "Assigned to Ehsan",
+    "Assigned to Sidra",
     "Assigned to Sameer",
     "Assigned to Aayan",
-    "Assigned to Emad",
+    "Assigned to Ilhan",
     "Assigned to Azhar",
     "Assigned to N/A",
   ]);
@@ -963,6 +1353,7 @@ const CustomersInfo = () => {
     "Impacted Student",
     "Agent",
     "Completed",
+    "Default",
   ]);
   const [selectedColorFilter, setSelectedColorFilter] = useState("All");
 
@@ -1074,6 +1465,8 @@ const CustomersInfo = () => {
   const [filteredApplications, setFilteredApplications] = useState([]);
   const [selectedIndustryFilter, setSelectedIndustryFilter] = useState("All");
   const [industryFilterOptions, setIndustryFilterOptions] = useState([]);
+  const [selectedCallAttemptsFilter, setSelectedCallAttemptsFilter] =
+    useState("All");
 
   const [activeStatus, setActiveStatus] = useState("Unverified");
 
@@ -1195,21 +1588,6 @@ const CustomersInfo = () => {
     return () => clearInterval(interval);
   };
 
-  const searchByIDorName = () => {
-    if (search === "") {
-      setFilteredApplications(applications);
-      return;
-    }
-    let searchValue = search.toLowerCase();
-    let filtered = applications.filter(
-      (app) =>
-        app.applicationId?.toLowerCase().includes(searchValue) ||
-        app.user?.firstName?.toLowerCase().includes(searchValue) ||
-        app.user?.lastName?.toLowerCase().includes(searchValue)
-    );
-    setFilteredApplications(filtered);
-    setCurrentPage(1);
-  };
   useEffect(() => {
     // First filter by search
     let filtered = applications;
@@ -1219,7 +1597,8 @@ const CustomersInfo = () => {
         (app) =>
           app.applicationId?.toLowerCase().includes(searchValue) ||
           app.user?.firstName?.toLowerCase().includes(searchValue) ||
-          app.user?.lastName?.toLowerCase().includes(searchValue)
+          app.user?.lastName?.toLowerCase().includes(searchValue) ||
+          app.user?.phone?.toLowerCase().includes(searchValue)
       );
     }
 
@@ -1244,9 +1623,16 @@ const CustomersInfo = () => {
         Agent: "pink",
         Completed: "green",
       };
-      filtered = filtered.filter(
-        (app) => app.color === colorMap[selectedColorFilter]
-      );
+      //if filter is default then all applications with no color will be shown
+      if (selectedColorFilter === "Default") {
+        filtered = filtered.filter(
+          (app) => !app.color || app.color === "white"
+        );
+      } else {
+        filtered = filtered.filter(
+          (app) => app.color === colorMap[selectedColorFilter]
+        );
+      }
     }
 
     // Then filter by industry
@@ -1256,14 +1642,25 @@ const CustomersInfo = () => {
       );
     }
 
+    // Filter by call attempts
+    if (selectedCallAttemptsFilter !== "All") {
+      if (selectedCallAttemptsFilter === "None") {
+        filtered = filtered.filter((app) => !app.contactAttempts);
+      } else {
+        filtered = filtered.filter(
+          (app) => app.contactAttempts === parseInt(selectedCallAttemptsFilter)
+        );
+      }
+    }
+
     setFilteredApplications(filtered);
-    setCurrentPage(1);
   }, [
     search,
     selectedFilter,
     selectedColorFilter,
     applications,
     selectedIndustryFilter,
+    selectedCallAttemptsFilter,
   ]);
 
   const onClickInitiateCall = async (applicationId) => {
@@ -1330,19 +1727,6 @@ const CustomersInfo = () => {
     toast.error("Failed");
   };
 
-  const filterApplications = (status) => {
-    setActiveStatus(status);
-    setCurrentPage(1);
-    if (status === "All") {
-      setFilteredApplications(applications);
-    } else {
-      const filtered = applications.filter(
-        (application) => application.currentStatus === status
-      );
-      setFilteredApplications(filtered);
-    }
-  };
-
   const onClickAddNote = async () => {
     setSubmissionLoading(true);
     try {
@@ -1383,6 +1767,62 @@ const CustomersInfo = () => {
 
   const [selectedApplicationId, setSelectedApplicationId] = useState(null);
 
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const year = date.getFullYear();
+    return `${day}-${month}-${year}`;
+  };
+
+  const getPaginationRange = (currentPage, totalPages) => {
+    const delta = 2; // Number of pages to show before and after current page
+    const range = [];
+
+    // Always show first page
+    range.push(1);
+
+    // Calculate start and end of range
+    const rangeStart = Math.max(2, currentPage - delta);
+    const rangeEnd = Math.min(totalPages - 1, currentPage + delta);
+
+    // Add ellipsis after first page if needed
+    if (rangeStart > 2) {
+      range.push("...");
+    }
+
+    // Add pages in range
+    for (let i = rangeStart; i <= rangeEnd; i++) {
+      range.push(i);
+    }
+
+    // Add ellipsis before last page if needed
+    if (rangeEnd < totalPages - 1) {
+      range.push("...");
+    }
+
+    // Always show last page if there is more than one page
+    if (totalPages > 1) {
+      range.push(totalPages);
+    }
+
+    return range;
+  };
+
+  useEffect(() => {
+    if (addNoteModal) {
+      window.scrollTo({
+        top: 0,
+        behavior: "smooth",
+      });
+    }
+    if (showCheckoutModal) {
+      window.scrollTo({
+        top: 0,
+        behavior: "smooth",
+      });
+    }
+  }, [addNoteModal, showCheckoutModal]);
   return (
     <div className="">
       {loading && <Loader />}
@@ -1474,11 +1914,35 @@ const CustomersInfo = () => {
                       ))}
                   </select>
                 </div>
+                <div className="flex-1">
+                  <label
+                    htmlFor="callAttemptsFilter"
+                    className="text-sm block mb-2"
+                  >
+                    Filter by Call Attempts
+                  </label>
+                  <select
+                    id="callAttemptsFilter"
+                    className="select select-bordered w-full"
+                    value={selectedCallAttemptsFilter}
+                    onChange={(e) =>
+                      setSelectedCallAttemptsFilter(e.target.value)
+                    }
+                  >
+                    <option value="All">All</option>
+                    <option value="1">1 Attempt</option>
+                    <option value="2">2 Attempts</option>
+                    <option value="3">3 Attempts</option>
+                    <option value="4">4 Attempts</option>
+                    <option value="5">5 Attempts</option>
+                    <option value="None">None</option>
+                  </select>
+                </div>
               </div>
-              <ExportButton />
             </div>
           </div>
-          <div className="flex items-center justify-end gap-4 mb-5">
+          <div className="flex items-center justify-between gap-4 mb-5">
+            <ExportButton />
             <div className="flex items-center gap-4">
               <p className="text-sm">Items per page:</p>
               <select
@@ -1504,7 +1968,8 @@ const CustomersInfo = () => {
                   <th className="font-semibold text-center">Industry</th>
                   <th className="font-semibold text-center">Status</th>
                   <th className="text-center w-52">Notes</th>
-                  <th className="font-semibold text-center">Paid</th>
+
+                  <th className="font-semibold text-center">Payment Status</th>
                   <th className="font-semibold">Actions</th>
                 </tr>
               </thead>
@@ -1519,257 +1984,378 @@ const CustomersInfo = () => {
                     </tr>
                   )
                 }
-                {currentItems.map((application) => (
-                  <tr
-                    key={application.id}
-                    className={`animate-fade-up items-center overflow-auto `}
-                  >
-                    <td className={`p-5 flex items-center`}>
-                      <div className="flex flex-col">
-                        {application.applicationId
-                          ? application.applicationId
-                          : application.id}{" "}
-                        <br></br>
-                        {application.color && (
-                          <>
-                            (
-                            {application.color === "red"
-                              ? "Hot Lead"
-                              : application.color === "yellow"
-                              ? "Proceeded With Payment"
-                              : application.color === "orange"
-                              ? "Warm Lead"
-                              : application.color === "gray"
-                              ? "Cold Lead"
-                              : application.color === "lightblue"
-                              ? "Impacted Student"
-                              : application.color === "pink"
-                              ? "Agent"
-                              : application.color === "green"
-                              ? "Completed"
-                              : "N/A"}
-                            )
-                          </>
-                        )}
-                        {application.assignedAdmin && (
-                          <p className="text-sm text-gray-500">
-                            Assigned to: {application.assignedAdmin}
-                          </p>
-                        )}
-                      </div>
+                {currentItems
+                  .filter((application) => !application.archive) // Only show non-archived applications
+                  .map((application) => (
+                    <tr
+                      key={application.id}
+                      className={`animate-fade-up items-center overflow-auto `}
+                    >
+                      <td className={`p-5 flex items-center`}>
+                        <div className="flex flex-col">
+                          {application.applicationId
+                            ? application.applicationId
+                            : application.id}{" "}
+                          <br></br>
+                          {application.color && (
+                            <>
+                              (
+                              {application.color === "red"
+                                ? "Hot Lead"
+                                : application.color === "yellow"
+                                ? "Proceeded With Payment"
+                                : application.color === "orange"
+                                ? "Warm Lead"
+                                : application.color === "gray"
+                                ? "Cold Lead"
+                                : application.color === "lightblue"
+                                ? "Impacted Student"
+                                : application.color === "pink"
+                                ? "Agent"
+                                : application.color === "green"
+                                ? "Completed"
+                                : "N/A"}
+                              )
+                            </>
+                          )}
+                          {application.assignedAdmin && (
+                            <p className="text-sm text-gray-500">
+                              Assigned to: {application.assignedAdmin}
+                            </p>
+                          )}
+                        </div>
 
-                      <BsEye
+                        {/* <BsEye
                         className="text-blue-500 ml-2 cursor-pointer"
                         onClick={() => setSelectedApplication(application)}
-                      />
-                    </td>
-                    <td className="">
-                      {application.status[0].time.split("T")[0]}
-                    </td>
-                    <td style={{ backgroundColor: application.color }}>
-                      {application.user.firstName +
-                        " " +
-                        application.user.lastName}
-                    </td>
-                    <td className="text-center w-40">
-                      {application.isf.lookingForWhatQualification}
-                    </td>
-                    <td className="text-center">{application.isf.industry}</td>
-                    <td className="p-2 flex items-center justify-center flex-col mt-5 w-60">
-                      {application.currentStatus === "Sent to RTO" ? (
-                        <div className="p-1 rounded-full bg-red-600 text-white flex items-center justify-center gap-2  max-sm:text-center">
-                          <BsArrowUpRight className="text-white" />
-                          {application.currentStatus}
-                        </div>
-                      ) : application.currentStatus ===
-                        "Waiting for Verification" ? (
-                        <div className="p-1 rounded-full bg-yellow-300 text-black flex items-center justify-center gap-2 max-sm:text-center">
-                          <BsClock className="text-black" />
-                          {application.currentStatus}
-                        </div>
-                      ) : application.currentStatus ===
-                        "Waiting for Payment" ? (
-                        <div className="p-1 rounded-full bg-green-400 text-white flex items-center justify-center gap-2  max-sm:text-center">
-                          <BsClock className="text-white" />
-                          {application.currentStatus}
-                        </div>
-                      ) : application.currentStatus ===
-                        "Student Intake Form" ? (
-                        <div className="p-1 rounded-full bg-blue-900 text-white flex items-center justify-center gap-2 max-sm:text-center">
-                          <BiUser className="text-white" />
-                          {application.currentStatus}
-                        </div>
-                      ) : application.currentStatus === "Upload Documents" ? (
-                        <div className="p-1 rounded-full bg-red-900 text-white flex items-center justify-center gap-2  ">
-                          <BiUpload className="text-white" />
-                          {application.currentStatus}
-                        </div>
-                      ) : application.currentStatus ===
-                        "Certificate Generated" ? (
-                        <div className="p-1 rounded-full bg-primary text-white flex items-center justify-center gap-2  ">
-                          <FaCertificate className="text-white" />
-                          {application.currentStatus}
-                        </div>
-                      ) : application.currentStatus === "Dispatched" ? (
-                        <div className="p-1 rounded-full bg-black text-white flex items-center justify-center gap-2  ">
-                          <BsTruck className="text-white" />
-                          {application.currentStatus}
-                        </div>
-                      ) : (
-                        application.currentStatus === "Completed" && (
-                          <div className="p-1 rounded-full bg-green-500 text-white flex items-center justify-center gap-2  ">
-                            <BiCheck className="text-white" />
+                      /> */}
+                      </td>
+                      <td className="">
+                        {formatDate(application.status[0].time)}
+                      </td>
+                      <td style={{ backgroundColor: application.color }}>
+                        {application.user.firstName +
+                          " " +
+                          application.user.lastName}
+                      </td>
+                      <td className="text-center w-40">
+                        {application.isf.lookingForWhatQualification}
+                      </td>
+                      <td className="text-center">
+                        {application.isf.industry}
+                      </td>
+                      <td className="p-2 flex items-center justify-center flex-col mt-5 w-60">
+                        {application.currentStatus === "Sent to RTO" ? (
+                          // Only show "Sent to RTO" if:
+                          // 1. For partial schemes: both paid and full_paid must be true
+                          // 2. For non-partial schemes: paid must be true
+                          (
+                            application.partialScheme
+                              ? application.paid && application.full_paid
+                              : application.paid
+                          ) ? (
+                            <div className="p-1 rounded-full bg-red-600 text-white flex items-center justify-center gap-2 max-sm:text-center">
+                              <BsArrowUpRight className="text-white" />
+                              Sent to RTO
+                            </div>
+                          ) : (
+                            <div className="p-1 rounded-full bg-green-400 text-white flex items-center justify-center gap-2 max-sm:text-center">
+                              <BsClock className="text-white" />
+                              Waiting for Payment
+                            </div>
+                          )
+                        ) : application.currentStatus === "Sent to Assessor" ? (
+                          (
+                            application.partialScheme
+                              ? application.paid && application.full_paid
+                              : application.paid
+                          ) ? (
+                            <div className="p-1 rounded-full bg-red-600 text-white flex items-center justify-center gap-2 max-sm:text-center">
+                              <BsArrowUpRight className="text-white" />
+                              Sent to Assessor
+                            </div>
+                          ) : (
+                            <div className="p-1 rounded-full bg-green-400 text-white flex items-center justify-center gap-2 max-sm:text-center">
+                              <BsClock className="text-white" />
+                              Waiting for Payment
+                            </div>
+                          )
+                        ) : application.currentStatus ===
+                          "Waiting for Verification" ? (
+                          <div className="p-1 rounded-full bg-yellow-300 text-black flex items-center justify-center gap-2 max-sm:text-center">
+                            <BsClock className="text-black" />
                             {application.currentStatus}
                           </div>
-                        )
-                      )}
-                    </td>
-                    <td className="items-center justify-center relative">
-                      {application.note ? (
-                        <div className="flex items-center gap-2">
-                          <p className="text-sm text-center w-full">
-                            {application.note}
-                          </p>
-                          <p
+                        ) : application.currentStatus ===
+                          "Waiting for Payment" ? (
+                          <div className="p-1 rounded-full bg-green-400 text-white flex items-center justify-center gap-2  max-sm:text-center">
+                            <BsClock className="text-white" />
+                            {application.currentStatus}
+                          </div>
+                        ) : application.currentStatus ===
+                          "Student Intake Form" ? (
+                          <div className="p-1 rounded-full bg-blue-900 text-white flex items-center justify-center gap-2 max-sm:text-center">
+                            <BiUser className="text-white" />
+                            {application.currentStatus}
+                          </div>
+                        ) : application.currentStatus === "Upload Documents" ? (
+                          <div className="p-1 rounded-full bg-red-900 text-white flex items-center justify-center gap-2  ">
+                            <BiUpload className="text-white" />
+                            {application.currentStatus}
+                          </div>
+                        ) : application.currentStatus ===
+                          "Certificate Generated" ? (
+                          <div className="p-1 rounded-full bg-primary text-white flex items-center justify-center gap-2  ">
+                            <FaCertificate className="text-white" />
+                            {application.currentStatus}
+                          </div>
+                        ) : application.currentStatus === "Dispatched" ? (
+                          <div className="p-1 rounded-full bg-black text-white flex items-center justify-center gap-2  ">
+                            <BsTruck className="text-white" />
+                            {application.currentStatus}
+                          </div>
+                        ) : (
+                          application.currentStatus === "Completed" && (
+                            <div className="p-1 rounded-full bg-green-500 text-white flex items-center justify-center gap-2  ">
+                              <BiCheck className="text-white" />
+                              {application.currentStatus}
+                            </div>
+                          )
+                        )}
+                      </td>
+                      <td className="items-center justify-center relative">
+                        {application.note ? (
+                          <div className="flex items-center gap-2">
+                            <p className="text-sm text-center w-full">
+                              {application.note}
+                            </p>
+                            {/* <p
                             className="cursor-pointer bg-white border-0 btn-sm rounded absolute top-2 right-2 hover:bg-white"
                             onClick={() => {
                               setSelectedApplicationId(application.id);
                               setNote(application.note);
+                              window.scrollTo(0, 0);
                               setAddNoteModal(true);
+                              //tale to the top of the page
                             }}
                           >
                             <BiEdit />
-                          </p>
+                          </p> */}
+                          </div>
+                        ) : (
+                          // <button
+                          //   className="btn bg-white border-0 btn-sm rounded w-full"
+                          //   onClick={() => {
+                          //     setSelectedApplicationId(application.id);
+                          //     window.scrollTo(0, 0);
+                          //     setAddNoteModal(true);
+                          //   }}
+                          // >
+                          //   <GrFormAdd />
+                          // </button>
+                          <p className="text-sm text-center w-full">No notes</p>
+                        )}
+                      </td>
+                      {/* <td className=" text-center">
+                        {application.full_paid ? (
+                          <BiCheckCircle className="text-green-500 text-xl" />
+                        ) : (
+                          <FaTimesCircle className="text-red-500 text-xl" />
+                        )}
+                      </td> */}
+                      <td className="text-center">
+                        <div className="flex flex-col items-center gap-1">
+                          <div className="flex items-center gap-2">
+                            {application.full_paid ? (
+                              <span className="flex items-center text-green-500">
+                                <BiCheckCircle className="mr-1" />
+                                Paid in Full
+                              </span>
+                            ) : application.paid &&
+                              application.partialScheme ? (
+                              <span className="flex items-center text-orange-500">
+                                Partial: ${application.amount_paid || 0} / $
+                                {calculateDiscountedPrice(
+                                  application.price,
+                                  application.discount
+                                )}
+                              </span>
+                            ) : (
+                              <span className="flex items-center text-red-500">
+                                <FaTimesCircle className="mr-1" />
+                                Due: $
+                                {calculateDiscountedPrice(
+                                  application.price,
+                                  application.discount
+                                )}
+                              </span>
+                            )}
+                          </div>
+                          {application.discount && (
+                            <span className="text-xs text-gray-500">
+                              Discount: ${application.discount}
+                            </span>
+                          )}
+                          {!application.full_paid && application.price && (
+                            <span className="text-xs text-gray-500">
+                              Original: ${application.price}
+                            </span>
+                          )}
                         </div>
-                      ) : (
-                        <button
-                          className="btn bg-white border-0 btn-sm rounded w-full"
-                          onClick={() => {
-                            setSelectedApplicationId(application.id);
-                            setAddNoteModal(true);
-                          }}
-                        >
-                          <GrFormAdd />
-                        </button>
-                      )}
-                    </td>
-                    <td className=" text-center">
-                      {application.full_paid ? (
-                        <BiCheckCircle className="text-green-500 text-xl" />
-                      ) : (
-                        <FaTimesCircle className="text-red-500 text-xl" />
-                      )}
-                    </td>
+                      </td>
 
-                    <td className="flex items-center flex-col gap-2">
-                      <button
+                      <td className="flex items-center flex-col gap-2">
+                        <button
+                          className="btn btn-primary btn-sm w-full text-white"
+                          onClick={() => setSelectedApplication(application)}
+                        >
+                          Edit
+                        </button>
+                        {/* <button
+                        className="btn btn-primary btn-sm w-full text-white"
+                        onClick={() => {
+                          setSelectedApplicationId(application.id);
+                          setNote(application.note);
+                          setAddNoteModal(true);
+                        }}
+                      >
+                        Edit Note
+                      </button> */}
+                        {/* <button
                         className="btn btn-primary btn-sm w-full text-white"
                         onClick={() => onClickInitiateCall(application.id)}
                       >
                         Call Now
-                      </button>
-                      {application.paid && !application.full_paid && (
-                        <button
-                          className="btn btn-primary btn-sm w-full text-white"
-                          onClick={() =>
-                            onClickPayment(
-                              application.price,
-                              application.discount,
-                              application.id,
-                              application.userId,
-                              application.partialScheme,
-                              application.paid,
-                              application.payment1,
-                              application.payment2,
-                              application.full_paid
-                            )
-                          }
-                        >
-                          Pay Now
-                        </button>
-                      )}
-                      {!application.paid && (
-                        <button
-                          className="btn btn-primary btn-sm w-full text-white"
-                          onClick={() =>
-                            onClickPayment(
-                              application.price,
-                              application.discount,
-                              application.id,
-                              application.userId,
-                              application.partialScheme,
-                              application.paid,
-                              application.payment1,
-                              application.payment2,
-                              application.full_paid
-                            )
-                          }
-                        >
-                          Pay Now
-                        </button>
-                      )}
-                      <button
+                      </button> */}
+                        {application.paid && !application.full_paid && (
+                          <button
+                            className="btn btn-primary btn-sm w-full text-white"
+                            onClick={() =>
+                              onClickPayment(
+                                application.price,
+                                application.discount,
+                                application.id,
+                                application.userId,
+                                application.partialScheme,
+                                application.paid,
+                                application.payment1,
+                                application.payment2,
+                                application.full_paid
+                              )
+                            }
+                          >
+                            Pay Now
+                          </button>
+                        )}
+                        {!application.paid && (
+                          <button
+                            className="btn btn-primary btn-sm w-full text-white"
+                            onClick={() =>
+                              onClickPayment(
+                                application.price,
+                                application.discount,
+                                application.id,
+                                application.userId,
+                                application.partialScheme,
+                                application.paid,
+                                application.payment1,
+                                application.payment2,
+                                application.full_paid
+                              )
+                            }
+                          >
+                            Pay Now
+                          </button>
+                        )}
+                        {/* <button
                         className="btn btn-primary btn-sm w-full text-white"
                         onClick={() => resendEmailFunc(application.userId)}
                       >
                         Resend Email
-                      </button>
-                      {application.currentStatus === "Completed" ||
-                      application.currentStatus === "Dispatched" ||
-                      application.currentStatus === "Certificate Generated" ? (
-                        <div className="flex items-center gap-2 w-full">
-                          <button
-                            className="btn bg-green-500 hover:bg-green-600 text-white btn-sm w-full"
-                            onClick={() =>
-                              onClickDownload(application.certificateId)
-                            }
-                          >
-                            Download
-                          </button>
-                        </div>
-                      ) : (
-                        <div className=" items-center gap-2 max-sm:text-sm w-full">
-                          {application.verified ? null : (
-                            <div className="flex items-center gap-2 max-sm:flex-col w-full">
-                              <button
-                                className="btn bg-green-500 hover:bg-green-600 text-white btn-sm flex items-center max-sm:w-full w-full"
-                                onClick={() =>
-                                  onVerifyApplication(application.id)
-                                }
-                              >
-                                <BiCheck className="text-white max-sm:hidden" />
-                                Verify
-                              </button>
-                              <button
-                                className="btn bg-yelloq-500 hover:bg-yellow-600 text-black btn-sm flex max-sm:w-full w-full"
-                                onClick={simulateCall}
-                              >
-                                {text}
-                              </button>
-                              <button className="btn bg-red-500 hover:bg-red-600 text-white btn-sm flex max-sm:w-full w-full">
-                                <FaTimesCircle className="text-white max-sm:hidden" />
-                                Reject
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </td>
-                  </tr>
-                ))}
+                      </button> */}
+                        {application.currentStatus === "Completed" ||
+                        application.currentStatus === "Dispatched" ||
+                        application.currentStatus ===
+                          "Certificate Generated" ? (
+                          <div className="flex items-center gap-2 w-full">
+                            <button
+                              className="btn bg-green-500 hover:bg-green-600 text-white btn-sm w-full"
+                              onClick={() =>
+                                onClickDownload(application.certificateId)
+                              }
+                            >
+                              Download
+                            </button>
+                          </div>
+                        ) : (
+                          <div className=" items-center gap-2 max-sm:text-sm w-full">
+                            {application.verified ? null : (
+                              <div className="flex items-center gap-2 max-sm:flex-col w-full">
+                                <button
+                                  className="btn bg-green-500 hover:bg-green-600 text-white btn-sm flex items-center max-sm:w-full w-full"
+                                  onClick={() =>
+                                    onVerifyApplication(application.id)
+                                  }
+                                >
+                                  <BiCheck className="text-white max-sm:hidden" />
+                                  Verify
+                                </button>
+                                <button
+                                  className="btn bg-yelloq-500 hover:bg-yellow-600 text-black btn-sm flex max-sm:w-full w-full"
+                                  onClick={simulateCall}
+                                >
+                                  {text}
+                                </button>
+                                <button className="btn bg-red-500 hover:bg-red-600 text-white btn-sm flex max-sm:w-full w-full">
+                                  <FaTimesCircle className="text-white max-sm:hidden" />
+                                  Reject
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
               </tbody>
             </div>
-            <div className="flex items-center justify-between gap-4 p-4">
+            <div className="flex items-center justify-center gap-2 p-4">
               <button
-                onClick={goToPreviousPage}
-                className="btn btn-primary btn-sm"
+                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                className="btn btn-sm btn-ghost"
+                disabled={currentPage === 1}
               >
                 Previous
               </button>
-              <div>
-                Page {currentPage} of {totalPages}
-              </div>
-              <button onClick={goToNextPage} className="btn btn-primary btn-sm">
+
+              {getPaginationRange(currentPage, totalPages).map(
+                (page, index) => (
+                  <button
+                    key={index}
+                    onClick={() =>
+                      typeof page === "number" ? setCurrentPage(page) : null
+                    }
+                    className={`btn btn-sm ${
+                      page === currentPage
+                        ? "btn-primary text-white"
+                        : page === "..."
+                        ? "btn-ghost cursor-default"
+                        : "btn-ghost"
+                    }`}
+                    disabled={page === "..."}
+                  >
+                    {page}
+                  </button>
+                )
+              )}
+
+              <button
+                onClick={() =>
+                  setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                }
+                className="btn btn-sm btn-ghost"
+                disabled={currentPage === totalPages}
+              >
                 Next
               </button>
             </div>
@@ -1781,12 +2367,50 @@ const CustomersInfo = () => {
           application={selectedApplication}
           setSelectedApplication={setSelectedApplication}
           getApplicationsData={getApplicationsData}
+          resendEmailFunc={resendEmailFunc}
+          onClickInitiateCall={onClickInitiateCall}
         />
       )}
 
+      {addNoteModal && (
+        <div
+          className="fixed top-0 left-0 w-full h-screen flex items-center justify-center"
+          style={{ zIndex: 9999 }}
+        >
+          <div className="fixed inset-0 bg-black opacity-50"></div>
+          <div className=" bg-white rounded-lg p-6 w-[500px] z-50 mx-4 fixed">
+            <div className="flex justify-between items-center">
+              <h1 className="text-2xl font-bold">Add Note</h1>
+              <button
+                className="btn btn-secondary"
+                onClick={() => setAddNoteModal(false)}
+              >
+                Close
+              </button>
+            </div>
+            <textarea
+              className="w-full p-3 border border-gray-300 rounded-md mt-5"
+              placeholder="Enter note here"
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+            ></textarea>
+            <button
+              className="btn btn-primary mt-5 w-full"
+              onClick={onClickAddNote}
+            >
+              Add Note
+            </button>
+          </div>
+        </div>
+      )}
+
       {showCheckoutModal && (
-        <div className="modal modal-open">
-          <div className="modal-box">
+        <div
+          className="fixed top-0 left-0 w-full h-screen flex items-center justify-center"
+          style={{ zIndex: 9999 }}
+        >
+          <div className="fixed inset-0 bg-black opacity-50"></div>
+          <div className="bg-white rounded-lg p-6 w-[500px] relative z-50 mx-4">
             <h3 className="font-bold text-lg">Payment Details</h3>
             <div className="py-4">
               <PaymentPage
@@ -1807,34 +2431,8 @@ const CustomersInfo = () => {
                 Close
               </button>
             </div>
-            <div className="modal-action"></div>
           </div>
         </div>
-      )}
-
-      {addNoteModal && (
-        <dialog className="modal" open>
-          <div className="modal-box">
-            <div className="flex items-center justify-between">
-              <h1 className="text-2xl font-bold">Add Note</h1>
-              <button
-                className="btn btn-secondary"
-                onClick={() => setAddNoteModal(false)}
-              >
-                Close
-              </button>
-            </div>
-            <textarea
-              className="w-full p-3 border border-gray-300 rounded-md mt-5"
-              placeholder="Enter note here"
-              value={note}
-              onChange={(e) => setNote(e.target.value)}
-            ></textarea>
-            <button className="btn btn-primary mt-5" onClick={onClickAddNote}>
-              Add Note
-            </button>
-          </div>
-        </dialog>
       )}
     </div>
   );

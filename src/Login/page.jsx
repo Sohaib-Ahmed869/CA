@@ -66,6 +66,12 @@ const Login = () => {
           notify();
           setSubmissionLoading(false);
           navigate("/agent");
+        } else if (userDoc.exists() && userDoc.data().role === "assessor") {
+          localStorage.setItem("role", "assessor");
+          const idToken = await user.getIdToken();
+          notify();
+          setSubmissionLoading(false);
+          navigate("/assessor");
         } else {
           await auth.signOut();
           notifyError("Access denied: Registered users only");

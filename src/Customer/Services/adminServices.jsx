@@ -168,6 +168,18 @@ export const addNoteToApplication = async (applicationId, note) => {
   }
 };
 
+export const addAssessorNoteToApplication = async (applicationId, note) => {
+  try {
+    const response = await axios.put(
+      `${URL}/api/applications/assessorNote/${applicationId}`,
+      { note }
+    );
+    return response.data;
+  } catch (error) {
+    return "error";
+  }
+};
+
 export const resendEmail = async (userId) => {
   try {
     const response = await axios.post(`${URL}/api/admin/resend/${userId}`);

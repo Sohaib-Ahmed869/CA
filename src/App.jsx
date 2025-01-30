@@ -25,6 +25,7 @@ import MainAgentScreen from "./Agent/Applications/main";
 import ScreeningFormAgent from "./Agent/Applications/initial";
 import CustomersByAgent from "./Agent/Customers/page";
 import ExistingApplicationsbyAgent from "./Agent/Applications/page";
+import AssessorSidebar from "./Assessor/Sidebar/page";
 
 function App() {
   return (
@@ -64,6 +65,8 @@ function App() {
           path="/agent/applications"
           element={<ExistingApplicationsbyAgent />}
         />
+
+        <Route path="/assessor" element={<AssessorSidebar />} />
       </Routes>
     </Router>
   );

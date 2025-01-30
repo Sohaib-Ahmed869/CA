@@ -9,6 +9,7 @@ import ExpensesDashboard from "../FinanceModule/ExpenseView";
 import Analytics from "../FinanceModule/Analytics";
 import Dashboard from "../dashboard/page";
 import Industries from "../Industries/page";
+import ArchivedApplications from "../archived/page";
 import { MdDashboard } from "react-icons/md";
 import { FaCheckSquare } from "react-icons/fa";
 import { BsClock } from "react-icons/bs";
@@ -180,6 +181,21 @@ const AdminSidebar = () => {
               </li>
               <li
                 className={`cursor-pointer p-3 flex items-center gap-2 ${
+                  active === "Archived Applications"
+                    ? "bg-gray-100 bg-opacity-15 rounded-xl"
+                    : ""
+                }`}
+                onClick={() => {
+                  setActive("Archived Applications");
+                  setIsOpen(false);
+                }}
+              >
+                <FaCheckSquare className="text-xl" />
+                <button className="font-medium">Archived Applications</button>
+              </li>
+
+              <li
+                className={`cursor-pointer p-3 flex items-center gap-2 ${
                   active === "Applications"
                     ? "bg-gray-100 bg-opacity-15 rounded-xl"
                     : ""
@@ -294,6 +310,21 @@ const AdminSidebar = () => {
           </li>
           <li
             className={`border-b border-base-300 cursor-pointer p-3 flex items-center gap-2 ${
+              active === "Archived Applications"
+                ? "bg-gray-100 bg-opacity-15 rounded-xl"
+                : ""
+            }`}
+            onClick={() => {
+              setActive("Archived Applications");
+              setIsOpen(false);
+            }}
+          >
+            <FaCheckSquare className="text-xl" />
+            <button className="font-medium">Archived Applications</button>
+          </li>
+
+          <li
+            className={`border-b border-base-300 cursor-pointer p-3 flex items-center gap-2 ${
               active === "Applications"
                 ? "bg-gray-100 bg-opacity-15 rounded-xl"
                 : ""
@@ -374,6 +405,7 @@ const AdminSidebar = () => {
         {active === "Applications" && <ExistingApplicationsAdmin />}
         {active === "Payments" && <PaymentApproval />}
         {active === "Industries" && <Industries />}
+        {active === "Archived Applications" && <ArchivedApplications />}
         {active === "Change Password" && <ChangePassword />}
         {active === "Finances" && activeFinance === "Management" && (
           <FinanceManagement />
