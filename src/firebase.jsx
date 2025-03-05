@@ -6,8 +6,7 @@ import { getFirestore } from "firebase/firestore";
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+
 const firebaseConfig = {
   apiKey: "AIzaSyDCfrf4npemD5T0ZzPcfRv3Kiq--Vs3m1A",
   authDomain: "certifiedaustralia1.firebaseapp.com",
@@ -18,6 +17,15 @@ const firebaseConfig = {
   measurementId: "G-ESBEFL4ZJ9",
 };
 
+// const firebaseConfig = {
+//   apiKey: "AIzaSyAlDj_YjopzasGvveP1VNxJsMOk-fBICO8",
+//   authDomain: "testca-e3e5e.firebaseapp.com",
+//   projectId: "testca-e3e5e",
+//   storageBucket: "testca-e3e5e.firebasestorage.app",
+//   messagingSenderId: "92801329690",
+//   appId: "1:92801329690:web:6daa5db44133212b3bffa3",
+//   measurementId: "G-V2Z5CZHSPQ",
+// };
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);

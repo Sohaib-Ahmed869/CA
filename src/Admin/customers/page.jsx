@@ -19,6 +19,7 @@ import { GrFormAdd } from "react-icons/gr";
 import { IoCall } from "react-icons/io5";
 import { MdPayment } from "react-icons/md";
 import SpinnerLoader from "../../Customer/components/spinnerLoader";
+import FilteredExportButton from "./FilteredExportButton";
 import toast from "react-hot-toast";
 import { Toaster } from "react-hot-toast";
 import applicationsimg from "../../assets/applications.png";
@@ -96,10 +97,12 @@ const Application = ({
   const [possibleAdmins, setPossibleAdmins] = useState([
     "Gabi",
     "Sidra",
+    "Ibrahim",
     "Sameer",
     "Aayan",
     "Ilhan",
     "Azhar",
+    "Wania",
   ]);
   const [selectedAdmin, setSelectedAdmin] = useState("");
   const [assignAdminModal, setAssignAdminModal] = useState(false);
@@ -267,11 +270,8 @@ const Application = ({
       } else {
         toast.success("Payment divided successfully!");
         // Update the local application state
-        const updatedApplication = {
-          ...application,
-          price: response.price,
-        };
-        setSelectedApplication(updatedApplication);
+
+        setSelectedApplication(null);
       }
       setSubmissionLoading(false);
       setOpenPaymentModal(false);
@@ -433,11 +433,19 @@ const Application = ({
   };
 
   const calculateDiscountedPrice = (price) => {
+    if (!price) return "0.00";
     // Remove commas and convert to number
-    const cleanPrice = parseFloat(price.toString().replace(/,/g, ""));
-    return (cleanPrice - application.discount).toFixed(2);
+    try {
+      const cleanPrice = parseFloat(price.toString().replace(/,/g, ""));
+      const discountedPrice = (
+        cleanPrice - (application.discount || 0)
+      ).toFixed(2);
+      return isNaN(discountedPrice) ? "0.00" : discountedPrice;
+    } catch (error) {
+      console.error("Error calculating discounted price:", error);
+      return "0.00";
+    }
   };
-
   const handleNoteUpdate = async () => {
     try {
       setSubmissionLoading(true);
@@ -562,6 +570,26 @@ const Application = ({
               </p>
             ) : (
               <p>No discount applied</p>
+            )}
+          </div>
+        </div>
+
+        <div className="col-span-4 bg-white p-4 rounded-lg shadow-lg w-full">
+          <h1 className="text-lg font-semibold text-gray-800">
+            Partial Payment
+          </h1>
+          <div className="grid grid-cols-1 gap-4">
+            {application.partialScheme ? (
+              <p>
+                Partial Payment: {application.payment1} and{" "}
+                {application.payment2} applied from original price: $
+                {application.price} so the final price is: ${" "}
+                <span className="font-bold">
+                  {calculateDiscountedPrice(application.price)}
+                </span>
+              </p>
+            ) : (
+              <p>No partial payment applied</p>
             )}
           </div>
         </div>
@@ -1236,7 +1264,14 @@ const Application = ({
                 {application.user.firstName} {application.user.lastName} has
                 applied for {application.isf.qualification} in{" "}
                 {application.isf.industry}. The total payment amount is{" "}
-                {application.price}.
+                {application.discount ? (
+                  <span>
+                    ${application.price} - ${application.discount} = $
+                    {calculateDiscountedPrice(application.price)}
+                  </span>
+                ) : (
+                  <span>${application.price}</span>
+                )}
               </p>
               <input
                 className="input input-bordered w-full mt-4"
@@ -1335,11 +1370,13 @@ const CustomersInfo = () => {
   const [filterOptions, setFilterOptions] = useState([
     "All",
     "Assigned to Gabi",
+    "Assigned to Ibrahim",
     "Assigned to Sidra",
     "Assigned to Sameer",
     "Assigned to Aayan",
     "Assigned to Ilhan",
     "Assigned to Azhar",
+    "Assigned to Waniya",
     "Assigned to N/A",
   ]);
   const [selectedFilter, setSelectedFilter] = useState("All");
@@ -1406,13 +1443,10 @@ const CustomersInfo = () => {
   const [full_paid, setFullPaid] = useState(false);
 
   const calculateDiscountedPrice = (price, discount) => {
-    // Remove commas and convert to number
-    console.log(price);
-    if (!price) return 0;
-    if (!discount) return price;
+    if (!price) return "0";
+    if (!discount) return price.toString();
     const cleanPrice = parseFloat(price.toString().replace(/,/g, ""));
-    console.log("ok", cleanPrice, discount);
-    return cleanPrice - discount;
+    return (cleanPrice - discount).toString();
   };
   const onClickPayment = (
     price,
@@ -1942,7 +1976,15 @@ const CustomersInfo = () => {
             </div>
           </div>
           <div className="flex items-center justify-between gap-4 mb-5">
-            <ExportButton />
+            {/* <ExportButton /> */}
+            <FilteredExportButton
+              applications={applications}
+              search={search}
+              selectedFilter={selectedFilter}
+              selectedColorFilter={selectedColorFilter}
+              selectedIndustryFilter={selectedIndustryFilter}
+              selectedCallAttemptsFilter={selectedCallAttemptsFilter}
+            />
             <div className="flex items-center gap-4">
               <p className="text-sm">Items per page:</p>
               <select
