@@ -1,38 +1,10 @@
 import { BsClock } from "react-icons/bs";
 import { BiCheck } from "react-icons/bi";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
-const Timeline = ({
-  timeline,
-  applicationId,
-  applicationName,
-  paid,
-  applications,
-}) => {
+const Timeline = ({ timeline, applicationName, paid, applications }) => {
   console.log("applications", applications);
-  const [newTimeLine, setnewTimeline] = useState([]);
-  const [selectedApplication, setSelectedApplication] = useState([]);
-  const statuses = [
-    "Student Intake Form",
-    "Payment Awaiting",
-    "Waiting for Documents",
-    "Sent to RTO",
-    "Certificate Generated",
-  ];
-
-  //   useEffect(() => {
-  //     if (selectedApplication) {
-  //       setnewTimeline(
-  //         statuses.map((status) => ({
-  //           statusname: status,
-  //           time: selectedApplication?.status.some(
-  //             (s) => s.statusname === status
-  //           ),
-  //         }))
-  //       );
-  //     }
-  //   }, [selectedApplication]);
-  //   console.log("new timeline", newTimeLine);
+  const [selectedApplication, setSelectedApplication] = useState();
 
   const handleApplicationChange = (e) => {
     const Application = applications.find(
@@ -68,10 +40,72 @@ const Timeline = ({
           completed
         </p>
       </div>
-      <div className="flex flex-col lg:items-center items-center justify-center lg:block">
-        <div className="flex lg:flex-row flex-col lg:items-center items-start justify-between">
-          {console.log("timeline", timeline)}
+      <div className="flex  gap-10 my-10 justify-center ">
+        {selectedApplication?.applicationStatus?.map((item, index) => (
+          <div key={index}>
+            {/* Student Intake Form Status */}
+            {item.statusname === "Student Intake Form" && (
+              <div className="flex items-center gap-2">
+                <span className="font-semibold">Intake Form:</span>
+                {item.completed ? (
+                  <BiCheck className="text-green-500 text-2xl" />
+                ) : (
+                  <BsClock className="text-red-500 text-2xl" />
+                )}
+              </div>
+            )}
 
+            {/* Payment Status */}
+            {item.statusname === "payment" && (
+              <div className="flex items-center gap-2">
+                <span className="font-semibold">Payment:</span>
+                {item.paid ? (
+                  <span className="text-green-600">Completed</span>
+                ) : (
+                  <BsClock className="text-red-500 text-2xl" />
+                )}
+              </div>
+            )}
+
+            {/* Documents Uploaded Status */}
+            {item.statusname === "documents uploaded" && (
+              <div className="flex items-center gap-2">
+                <span className="font-semibold">Documents:</span>
+                {item.completed ? (
+                  <span className="text-green-600">Uploaded</span>
+                ) : (
+                  <BsClock className="text-red-500 text-2xl" />
+                )}
+              </div>
+            )}
+
+            {/* Verification Status */}
+            {item.statusname === "verified" && (
+              <div className="flex items-center gap-2">
+                <span className="font-semibold">Verification:</span>
+                {item.verified ? (
+                  <span className="text-green-600">Verified</span>
+                ) : (
+                  <BsClock className="text-red-500 text-2xl" />
+                )}
+              </div>
+            )}
+
+            {/* Application Completion Status */}
+            {item.statusname === "completed" && (
+              <div className="flex items-center gap-2">
+                <span className="font-semibold">Application Status:</span>
+                {item.completed ? (
+                  <span className="text-green-600">Completed</span>
+                ) : (
+                  <BsClock className="text-red-500 text-2xl" />
+                )}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+      {/* 
           {timeline.map((item, index) => (
             <div
               key={index}
@@ -127,9 +161,7 @@ const Timeline = ({
                 </p>
               </div>
             </div>
-          ))}
-        </div>
-      </div>
+          ))} */}
     </div>
   );
 };
