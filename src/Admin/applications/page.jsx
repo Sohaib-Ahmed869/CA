@@ -27,7 +27,7 @@ import Loader from "../../Customer/components/loader";
 
 import certificate from "../../assets/certificate.pdf";
 
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 import {
   getApplications,
@@ -226,7 +226,7 @@ const ExistingApplicationsAdmin = () => {
                   <th className="font-semibold text-center">Certificate</th>
                   <th className="font-semibold text-center">Status</th>
                   <th className="font-semibold text-center">Paid</th>
-                  <th className="font-semibold">Actions</th>
+                  <th className="font-semibold text-center">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -305,13 +305,19 @@ const ExistingApplicationsAdmin = () => {
                         <FaTimesCircle className="text-red-500 text-xl" />
                       )}
                     </td>
-                    <td className="flex flex-col items-center">
+                    <td className="flex gap-x-2 items-center">
                       <button
                         className="btn bg-red-500 hover:bg-red-600 text-white btn-sm"
                         onClick={() => handleDeleteApplication(application.id)}
                       >
                         Delete
                       </button>
+                      <Link
+                        to={`/view-application/${application.userId}/${application.id}`}
+                        className="btn bg-gray-400 hover:bg-gray-600 px-4 text-white btn-sm"
+                      >
+                        View
+                      </Link>
                       {application.currentStatus === "Completed" ||
                       application.currentStatus === "Dispatched" ||
                       application.currentStatus === "Certificate Generated" ? (

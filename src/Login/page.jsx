@@ -11,6 +11,8 @@ import { doc, getDoc } from "firebase/firestore";
 import { MdEmail } from "react-icons/md";
 import { BiLock } from "react-icons/bi";
 import { FaSpinner } from "react-icons/fa";
+import { IoMdEye } from "react-icons/io";
+import { IoMdEyeOff } from "react-icons/io";
 import certifiedAustralia from "../assets/certifiedAustraliaBlack.png";
 import Footer from "../Customer/components/footer";
 
@@ -23,6 +25,7 @@ const Login = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [resetEmail, setResetEmail] = useState("");
   const [resetLoading, setResetLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const notify = () => toast.success("Login Successful");
   const notifyError = (message) => toast.error(message);
@@ -131,12 +134,23 @@ const Login = () => {
             <div className="flex items-center border p-2 rounded-lg mb-4">
               <BiLock className="text-gray-500" />
               <input
-                type="password"
                 placeholder="Password"
+                type={showPassword ? "text" : "password"}
                 className="w-full ml-2 border-none"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
+              {showPassword ? (
+                <IoMdEye
+                  className="text-gray-500"
+                  onClick={() => setShowPassword(!showPassword)}
+                />
+              ) : (
+                <IoMdEyeOff
+                  className="text-gray-500"
+                  onClick={() => setShowPassword(!showPassword)}
+                />
+              )}
             </div>
             <p
               className="text-right cursor-pointer text-gray-500 text-sm mb-4 w-full"

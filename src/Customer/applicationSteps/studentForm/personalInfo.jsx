@@ -62,13 +62,15 @@ const PersonalInfo = ({ personalInfo, setPersonalInfo }) => {
           </div>
         </div>
         <div className="flex flex-col">
-          <label htmlFor="gender">Gender</label>
+          <label htmlFor="gender" className=" text-xs text-gray-500">
+            Gender
+          </label>
           <select
             onChange={handleChange}
             value={personalInfo.gender}
             name="gender"
             id="gender"
-            className="input mt-2 p-2"
+            className="input mt-2 p-2 text-sm"
           >
             <option value="">Select Gender</option>
             <option value="male">Male</option>

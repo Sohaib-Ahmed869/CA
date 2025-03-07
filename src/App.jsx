@@ -6,19 +6,14 @@ import ScreeningForm2 from "./Customer/newApplication";
 import ExistingApplications from "./Customer/existingApplications/page";
 import StudentIntakeForm from "./Customer/applicationSteps/studentForm/studentForm";
 import UploadDocuments from "./Customer/uploadDocuments/page";
-
 import Sidebar from "./RTO/components/siderbar";
 import AdminSidebar from "./Admin/Sidebar/page";
 import Dashboard from "./Admin/dashboard/page";
-
 import Login from "./Login/page";
 import AdminLogin from "./Admin/adminLogin/login";
-
 import RtoLogin from "./RTO/rtoLogin/page";
-
 import CustomerDashboardSignup from "./Customer/components/newUserOptions";
 import PaymentPage from "./Customer/checkoutForm";
-
 import AgentLogin from "./Agent/AgentLogin/page";
 import AgentSignup from "./Agent/AgentSignup/page";
 import MainAgentScreen from "./Agent/Applications/main";
@@ -26,6 +21,7 @@ import ScreeningFormAgent from "./Agent/Applications/initial";
 import CustomersByAgent from "./Agent/Customers/page";
 import ExistingApplicationsbyAgent from "./Agent/Applications/page";
 import AssessorSidebar from "./Assessor/Sidebar/page";
+import ViewApplication from "./ViewApplication/page";
 
 function App() {
   return (
@@ -39,6 +35,10 @@ function App() {
         <Route
           path="/existing-applications"
           element={<ExistingApplications />}
+        />
+        <Route
+          path="/view-application/:userId/:id"
+          element={<ViewApplication />}
         />
         <Route
           path="/student-intake-form/:id"

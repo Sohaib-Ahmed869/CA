@@ -9,3 +9,8 @@ html {
   font-weight: 300;
   font-style: light;
 }
+
+.modal {
+  background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent black */
+  backdrop-filter: blur(4px); /* Blurs everything behind it */
+}

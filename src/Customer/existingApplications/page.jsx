@@ -28,7 +28,7 @@ import { initiateVerificationCall } from "../Services/twilioService";
 import certificate from "../../assets/certificate.pdf";
 import applicationsimg from "../../assets/applications.png";
 
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 const ExistingApplications = () => {
   const [userId, setUserId] = useState("");
@@ -358,7 +358,6 @@ const ExistingApplications = () => {
                         </button>
                       ) : null
                     ) : null}
-
                     {application.paid === false &&
                     application.currentStatus !== "Sent to RTO" ? (
                       <button
@@ -380,16 +379,17 @@ const ExistingApplications = () => {
                         Pay Now
                       </button>
                     ) : null}
-
                     {application.currentStatus ===
                     "Waiting for Verification" ? null : application.currentStatus === // ) //   </button> //     Verify Now //     <IoCall /> //   <button onClick={() => handleVerifyNow(application.id)}> //    ( //   className="btn btn-sm text-white btn-primary"
                       "Student Intake Form" ? (
-                      <button
-                        className="btn btn-sm text-white btn-primary"
-                        onClick={() => onClickStudentForm(application.id)}
-                      >
-                        Fill Form
-                      </button>
+                      <>
+                        <button
+                          className="btn btn-sm text-white btn-primary"
+                          onClick={() => onClickStudentForm(application.id)}
+                        >
+                          Fill Form
+                        </button>
+                      </>
                     ) : application.currentStatus === "Upload Documents" ? (
                       <button
                         className="btn btn-sm text-white btn-primary"
@@ -438,6 +438,13 @@ const ExistingApplications = () => {
                         </div>
                       )
                     )}
+
+                    <Link
+                      to={`/view-application/${application.userId}/${application.id}`}
+                      className="btn btn-sm text-white btn-primary"
+                    >
+                      View Application
+                    </Link>
                   </div>
                 </div>
               ))}
