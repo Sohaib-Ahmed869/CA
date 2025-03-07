@@ -176,6 +176,7 @@ const ScreeningForm = () => {
     }
 
     try {
+      console.log("Country value before submission:", country);
       const response = await register(
         industry,
         qualification,
@@ -208,7 +209,6 @@ const ScreeningForm = () => {
   };
 
   const [loading, setLoading] = React.useState(false);
-
 
   const steps = [
     "Industry & Qualification",
