@@ -1,272 +1,150 @@
 import React, { useEffect, useState } from "react";
-import Navbar from "../components/navbar";
 import { useNavigate } from "react-router-dom";
-import { documentsUpload } from "../Services/customerApplication";
+import Navbar from "../components/navbar";
+import SingleFileUploader from "./SingleFileUploader";
 import { BsCheck } from "react-icons/bs";
 import { CgLock } from "react-icons/cg";
 import SpinnerLoader from "../components/spinnerLoader";
 import { Toaster } from "react-hot-toast";
 import toast from "react-hot-toast";
+import axios from "axios";
 const UploadDocuments = () => {
+  const navigate = useNavigate();
   const [submissionLoading, setSubmissionLoading] = useState(false);
+
+  // The application ID and industry
+  const [applicationId, setApplicationId] = useState("");
+  const [applicationIndustry, setApplicationIndustry] = useState("");
+
+  // 100 Points of ID fields: must match what you want in Firestore
   const [hundredPointsOfID, setHundredPointsOfID] = useState({
     driversLicense: "",
     passport: "",
     birthCertificate: "",
     medicareCard: "",
-    creditCard: "",
+    creditcard: "",
     idCard: "",
     australianCitizenship: "",
   });
 
+  // Other fields
   const [resume, setResume] = useState("");
   const [previousQualifications, setPreviousQualifications] = useState("");
-
   const [twoReferences, setTwoReferences] = useState({
-    referenceOne: "",
-    referenceTwo: "",
+    reference1: "",
+    reference2: "",
   });
-
-  const [applicationIndustry, setApplicationIndustry] = useState("");
-
   const [employmentLetter, setEmploymentLetter] = useState("");
   const [payslip, setPayslip] = useState("");
+  const [images, setImages] = useState({
+    image1: "",
+    image2: "",
+    image3: "",
+    image4: "",
+  });
+  const [videos, setVideos] = useState({
+    video1: "",
+    video2: "",
+  });
 
   const [score, setScore] = useState(0);
 
-  const [image1, setImage1] = useState("");
-  const [image2, setImage2] = useState("");
-  const [image3, setImage3] = useState("");
-  const [image4, setImage4] = useState("");
-
-  const [video1, setVideo1] = useState("");
-  const [video2, setVideo2] = useState("");
-
-  const handleChange = (e) => {
-    //if file size is greater than 5MB
-    if (e.target.files[0].size > 5000000) {
-      alert("File size is too large. Maximum file size is 5MB");
-      return;
-    }
-
-    setHundredPointsOfID({
-      ...hundredPointsOfID,
-      [e.target.name]: e.target.files[0], // Set the File object directly
-    });
+  // Called after each single-file upload success
+  const handleHundredPointsUploadSuccess = (field, fileUrl) => {
+    setHundredPointsOfID((prev) => ({ ...prev, [field]: fileUrl }));
   };
 
-  const handleResume = (e) => {
-    //if file size is greater than 5MB
-    if (e.target.files[0].size > 5000000) {
-      alert("File size is too large. Maximum file size is 5MB");
-      return;
-    }
-
-    setResume(e.target.files[0]);
+  const handleHundredPointsDeleteSuccess = (field) => {
+    setHundredPointsOfID((prev) => ({ ...prev, [field]: "" }));
   };
 
-  const handlePreviousQualifications = (e) => {
-    //if file size is greater than 5MB
-    if (e.target.files[0].size > 5000000) {
-      alert("File size is too large. Maximum file size is 5MB");
-      return;
-    }
-
-    setPreviousQualifications(e.target.files[0]);
-  };
-
-  const handleTwoReferences = (e) => {
-    //if file size is greater than 5MB
-    if (e.target.files[0].size > 5000000) {
-      alert("File size is too large. Maximum file size is 5MB");
-      return;
-    }
-
-    setTwoReferences({
-      ...twoReferences,
-      [e.target.name]: e.target.files[0],
-    });
-  };
-
-  const handleEmploymentLetter = (e) => {
-    //if file size is greater than 5MB
-    if (e.target.files[0].size > 5000000) {
-      alert("File size is too large. Maximum file size is 5MB");
-      return;
-    }
-
-    setEmploymentLetter(e.target.files[0]);
-  };
-
-  const handlePayslip = (e) => {
-    //if file size is greater than 5MB
-    if (e.target.files[0].size > 5000000) {
-      alert("File size is too large. Maximum file size is 5MB");
-      return;
-    }
-
-    setPayslip(e.target.files[0]);
-  };
-
+  // Recalculate the "100 Points of ID" score whenever ID fields change
   useEffect(() => {
-    let score = 0;
-    if (hundredPointsOfID.driversLicense) {
-      score += 40;
-    }
-    if (hundredPointsOfID.idCard) {
-      score += 40;
-    }
-    if (hundredPointsOfID.passport) {
-      score += 70;
-    }
-    if (hundredPointsOfID.birthCertificate) {
-      score += 70;
-    }
-    if (hundredPointsOfID.medicareCard) {
-      score += 25;
-    }
-
-    setScore(score);
+    let newScore = 0;
+    if (hundredPointsOfID.driversLicense) newScore += 40;
+    if (hundredPointsOfID.idCard) newScore += 40;
+    if (hundredPointsOfID.passport) newScore += 70;
+    if (hundredPointsOfID.birthCertificate) newScore += 70;
+    if (hundredPointsOfID.medicareCard) newScore += 25;
+    setScore(newScore);
   }, [hundredPointsOfID]);
-  const navigate = useNavigate();
 
-  const getApplicationIndustry = async () => {
-    //from local storage
+  // On mount, grab the application ID from the URL and the industry from localStorage
+  useEffect(() => {
+    const idFromUrl = window.location.pathname.split("/")[2];
+    setApplicationId(idFromUrl);
     const industry = localStorage.getItem("applicationIndustry");
     setApplicationIndustry(industry);
-  };
-
-  useEffect(() => {
-    getApplicationIndustry();
   }, []);
 
+  // Toast helpers
   const successToast = () => toast.success("Documents uploaded successfully");
-  const errorToast = () => toast.error("Please fill in all the fields");
+  const errorToast = () => toast.error("Please fill in all the required fields");
   const errorToast2 = () =>
     toast.error("100 points of ID score is less than 100");
+
+  // Final Submit: all single-file uploads are already done
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // Check required fields
     if (
-      !hundredPointsOfID.creditCard ||
+      !hundredPointsOfID.creditcard ||
       !resume ||
       !previousQualifications ||
-      !twoReferences.referenceOne ||
+      !twoReferences.reference1 ||
       !employmentLetter ||
       !payslip
     ) {
-      // Show an error toast
       errorToast();
       return;
     }
 
+    // Check 100 points
     if (score < 100) {
       errorToast2();
       return;
     }
 
+    // If automotive or building, check images/videos
     if (
       applicationIndustry === "Automotive" ||
       applicationIndustry === "Building & Construction"
     ) {
-      if (!image1 || !image2 || !image3 || !image4 || !video1 || !video2) {
+      if (
+        !images.image1 ||
+        !images.image2 ||
+        !images.image3 ||
+        !images.image4 ||
+        !videos.video1 ||
+        !videos.video2
+      ) {
         errorToast();
         return;
       }
     }
 
     setSubmissionLoading(true);
-    const formData = new FormData();
-    if (hundredPointsOfID.passport) {
-      formData.append("passport", hundredPointsOfID.passport);
-    }
-    if (hundredPointsOfID.driversLicense) {
-      formData.append("license", hundredPointsOfID.driversLicense);
-    }
-    if (hundredPointsOfID.idCard) {
-      formData.append("idCard", hundredPointsOfID.idCard);
-    }
-    if (hundredPointsOfID.australianCitizenship) {
-      formData.append(
-        "australian_citizenship",
-        hundredPointsOfID.australianCitizenship
-      );
-    }
-    if (hundredPointsOfID.birthCertificate) {
-      formData.append("birth_certificate", hundredPointsOfID.birthCertificate);
-    }
-    if (hundredPointsOfID.medicareCard)
-      formData.append("medicare", hundredPointsOfID.medicareCard);
-
-    if (hundredPointsOfID.creditCard)
-      formData.append("creditcard", hundredPointsOfID.creditCard);
-
-    if (resume) formData.append("resume", resume);
-
-    if (previousQualifications)
-      formData.append("previousQualifications", previousQualifications);
-
-    if (twoReferences.referenceOne)
-      formData.append("reference1", twoReferences.referenceOne);
-
-    if (twoReferences.referenceTwo)
-      formData.append("reference2", twoReferences.referenceTwo);
-
-    if (employmentLetter) formData.append("employmentLetter", employmentLetter);
-
-    if (payslip) formData.append("payslip", payslip);
-
-    if (image1) formData.append("image1", image1);
-    if (image2) formData.append("image2", image2);
-    if (image3) formData.append("image3", image3);
-    if (image4) formData.append("image4", image4);
-    if (video1) formData.append("video1", video1);
-    if (video2) formData.append("video2", video2);
-
     try {
-      const id = window.location.pathname.split("/")[2];
-      const applicationId = id;
-      const response = await documentsUpload(
-        formData,
-        applicationId,
-        applicationIndustry
-      );
-      console.log(response);
+      await axios.post(`/api/users/${applicationId}/submitDocument`, {});
 
       setSubmissionLoading(false);
       successToast();
-
       alert("Documents uploaded successfully");
       navigate("/");
     } catch (err) {
       setSubmissionLoading(false);
-      alert("Error uploading documents");
+      alert("Error submitting documents");
     }
   };
 
-  useEffect(() => {
-    console.log(hundredPointsOfID);
-    console.log(resume);
-    console.log(previousQualifications);
-    console.log(twoReferences);
-    console.log(employmentLetter);
-    console.log(payslip);
-  }, [
-    hundredPointsOfID,
-    resume,
-    previousQualifications,
-    twoReferences,
-    employmentLetter,
-    payslip,
-  ]);
-
   return (
     <div>
-      <Navbar />
+      <Navbar />      
       <Toaster position="top-right" reverseOrder={false} />
-      {submissionLoading && <SpinnerLoader />}
-      <div className="p-5 lg:p-60 lg:pt-36 lg:pb-20">
-        <div className="flex flex-col items-center text-left w-full">
+      {submissionLoading && <SpinnerLoader />}      
+      <div className="p-5 lg:p-60 lg:pt-36 lg:pb-20">        
+        <div className="flex flex-col items-center text-left w-full">          
           <h1 className="text-2xl lg:text-3xl font-bold">Upload Documents</h1>
           <p className="text-md text-gray-600 mb-3 lg:mb-8 mt-2">
             Please upload the following documents to complete your application.
@@ -279,106 +157,83 @@ const UploadDocuments = () => {
           </p>
           <div>
             <h3 className="file-lg font-semibold mb-3">
-              100 Points of ID<span className="text-red-500">*</span>
+              100 Points of ID <span className="text-red-500">*</span>
             </h3>
             <div
               className={`flex items-center gap-2 border border-gray-300 p-2 rounded-lg mb-3 ${
-                score > 100 ? "bg-green-100" : "bg-red-100"
+                score >= 100 ? "bg-green-100" : "bg-red-100"
               }`}
             >
-              {score > 100 ? (
+              {score >= 100 ? (
                 <BsCheck className="text-green-400 text-2xl" />
               ) : (
                 <p className="text-red-800 text-xl">X</p>
               )}
               <p className="text-md">Score: {score}/100</p>
             </div>
+
             <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
               <div className="gap-1 flex flex-col">
-                <label className="text-md text-gray-600">
-                  Driver's License
-                </label>
-                <input
-                  type="file"
-                  name="driversLicense"
-                  id="driversLicense"
-                  onChange={handleChange}
-                  placeholder="Driver's License"
-                  className="border border-gray-300 max-sm:p-0 w-full"
+                <SingleFileUploader
+                  applicationId={applicationId}
+                  fieldName="driversLicense" 
+                  label="Driver's License"
+                  onUploadSuccess={handleHundredPointsUploadSuccess}
+                  onDeleteSuccess={handleHundredPointsDeleteSuccess}
                 />
               </div>
               <div className="gap-1 flex flex-col">
-                <label className="text-md text-gray-600">ID Card</label>
-                <input
-                  type="file"
-                  name="idCard"
-                  id="idCard"
-                  onChange={handleChange}
-                  placeholder="ID Card"
-                  className="border border-gray-300 max-sm:p-0 w-full"
-                />
-              </div>
-
-              <div className="gap-1 flex flex-col">
-                <label className="text-md text-gray-600">Passport</label>
-                <input
-                  type="file"
-                  name="passport"
-                  id="passport"
-                  onChange={handleChange}
-                  placeholder="Passport"
-                  className="border border-gray-300 max-sm:p-0 w-full"
-                />
-              </div>
-
-              <div className="gap-1 flex flex-col">
-                <label className="text-md text-gray-600">
-                  Australian Citizenship
-                </label>
-                <input
-                  type="file"
-                  name="australianCitizenship"
-                  id="australianCitizenship"
-                  onChange={handleChange}
-                  placeholder="Australian Citizenship"
-                  className="border border-gray-300 max-sm:p-0 w-full"
+                <SingleFileUploader
+                  applicationId={applicationId}
+                  fieldName="idCard"
+                  label="ID Card"
+                  onUploadSuccess={handleHundredPointsUploadSuccess}
+                  onDeleteSuccess={handleHundredPointsDeleteSuccess}
                 />
               </div>
               <div className="gap-1 flex flex-col">
-                <label className="text-md text-gray-600">
-                  Birth Certificate
-                </label>
-                <input
-                  type="file"
-                  name="birthCertificate"
-                  id="birthCertificate"
-                  onChange={handleChange}
-                  placeholder="Birth Certificate"
-                  className="border border-gray-300 max-sm:p-0 w-full"
+                <SingleFileUploader
+                  applicationId={applicationId}
+                  fieldName="passport"
+                  label="Passport"
+                  onUploadSuccess={handleHundredPointsUploadSuccess}
+                  onDeleteSuccess={handleHundredPointsDeleteSuccess}
                 />
               </div>
               <div className="gap-1 flex flex-col">
-                <label className="text-md text-gray-600">Medicare Card</label>
-                <input
-                  type="file"
-                  name="medicareCard"
-                  id="medicareCard"
-                  onChange={handleChange}
-                  placeholder="Medicare Card"
-                  className="border border-gray-300 max-sm:p-0 w-full"
+                <SingleFileUploader
+                  applicationId={applicationId}
+                  fieldName="australianCitizenship"
+                  label="Australian Citizenship"
+                  onUploadSuccess={handleHundredPointsUploadSuccess}
+                  onDeleteSuccess={handleHundredPointsDeleteSuccess}
                 />
               </div>
               <div className="gap-1 flex flex-col">
-                <label className="text-md text-gray-600">
-                  Credit Card <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="file"
-                  name="creditCard"
-                  id="creditCard"
-                  onChange={handleChange}
-                  placeholder="Credit Card"
-                  className="border border-gray-300 max-sm:p-0 w-full"
+                <SingleFileUploader
+                  applicationId={applicationId}
+                  fieldName="birthCertificate"
+                  label="Birth Certificate"
+                  onUploadSuccess={handleHundredPointsUploadSuccess}
+                  onDeleteSuccess={handleHundredPointsDeleteSuccess}
+                />
+              </div>
+              <div className="gap-1 flex flex-col">
+                <SingleFileUploader
+                  applicationId={applicationId}
+                  fieldName="medicareCard"
+                  label="Medicare Card"
+                  onUploadSuccess={handleHundredPointsUploadSuccess}
+                  onDeleteSuccess={handleHundredPointsDeleteSuccess}
+                />
+              </div>
+              <div className="gap-1 flex flex-col">
+                <SingleFileUploader
+                  applicationId={applicationId}
+                  fieldName="creditcard"
+                  label="Credit Card"
+                  onUploadSuccess={handleHundredPointsUploadSuccess}
+                  onDeleteSuccess={handleHundredPointsDeleteSuccess}
                 />
               </div>
             </div>
@@ -388,23 +243,23 @@ const UploadDocuments = () => {
               Other Documents <span className="text-red-500">*</span>
             </h3>
             <div className="gap-1 flex flex-col">
-              <label className="text-md text-gray-600">Resume</label>
-              <input
-                type="file"
-                onChange={handleResume}
-                placeholder="Resume"
-                className="border border-gray-300 max-sm:p-0 w-full"
+              <SingleFileUploader
+                applicationId={applicationId}
+                fieldName="resume"
+                label="Resume"
+                onUploadSuccess={(field, fileUrl) => setResume(fileUrl)}
+                onDeleteSuccess={() => setResume("")}
               />
             </div>
             <div className="gap-1 flex flex-col mt-4">
-              <label className="text-md text-gray-600">
-                Previous Qualifications <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="file"
-                onChange={handlePreviousQualifications}
-                placeholder="Previous Qualifications"
-                className="border border-gray-300 max-sm:p-0 w-full"
+              <SingleFileUploader
+                applicationId={applicationId}
+                fieldName="previousQualifications"
+                label="Previous Qualifications"
+                onUploadSuccess={(field, fileUrl) =>
+                  setPreviousQualifications(fileUrl)
+                }
+                onDeleteSuccess={() => setPreviousQualifications("")}
               />
             </div>
           </div>
@@ -413,27 +268,29 @@ const UploadDocuments = () => {
           </h3>
           <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
             <div className="gap-1 flex flex-col">
-              <label className="text-md text-gray-600">
-                Reference One <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="file"
-                name="referenceOne"
-                id="referenceOne"
-                onChange={handleTwoReferences}
-                placeholder="Reference One"
-                className="border border-gray-300 max-sm:p-0 w-full"
+              <SingleFileUploader
+                applicationId={applicationId}
+                fieldName="reference1"
+                label="Reference One"
+                onUploadSuccess={(field, fileUrl) =>
+                  setTwoReferences((prev) => ({ ...prev, reference1: fileUrl }))
+                }
+                onDeleteSuccess={() =>
+                  setTwoReferences((prev) => ({ ...prev, reference1: "" }))
+                }
               />
             </div>
             <div className="gap-1 flex flex-col">
-              <label className="text-md text-gray-600">Reference Two</label>
-              <input
-                type="file"
-                name="referenceTwo"
-                id="referenceTwo"
-                onChange={handleTwoReferences}
-                placeholder="Reference Two"
-                className="border border-gray-300 max-sm:p-0 w-full"
+              <SingleFileUploader
+                applicationId={applicationId}
+                fieldName="reference2"
+                label="Reference Two"
+                onUploadSuccess={(field, fileUrl) =>
+                  setTwoReferences((prev) => ({ ...prev, reference2: fileUrl }))
+                }
+                onDeleteSuccess={() =>
+                  setTwoReferences((prev) => ({ ...prev, reference2: "" }))
+                }
               />
             </div>
           </div>
@@ -441,29 +298,23 @@ const UploadDocuments = () => {
             Employment Documents <span className="text-red-500">*</span>
           </h3>
           <div className="gap-1 flex flex-col">
-            <label className="text-md text-gray-600">
-              Employment Letter <span className="text-red-500">*</span>
-            </label>
-
-            <input
-              type="file"
-              onChange={handleEmploymentLetter}
-              placeholder="Employment Letter"
-              className="border border-gray-300 max-sm:p-0 w-full"
+            <SingleFileUploader
+              applicationId={applicationId}
+              fieldName="employmentLetter"
+              label="Employment Letter"
+              onUploadSuccess={(field, fileUrl) => setEmploymentLetter(fileUrl)}
+              onDeleteSuccess={() => setEmploymentLetter("")}
             />
           </div>
           <div className="gap-1 flex flex-col">
-            <label className="text-md text-gray-600">
-              Payslip/Invoice <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="file"
-              onChange={handlePayslip}
-              placeholder="Payslip"
-              className="border border-gray-300 max-sm:p-0 w-full"
+            <SingleFileUploader
+              applicationId={applicationId}
+              fieldName="payslip"
+              label="Payslip/Invoice"
+              onUploadSuccess={(field, fileUrl) => setPayslip(fileUrl)}
+              onDeleteSuccess={() => setPayslip("")}
             />
           </div>
-          {/* if the industry is automotive ask for videos and images */}
           {(applicationIndustry === "Automotive" ||
             applicationIndustry === "Building & Construction") && (
             <>
@@ -472,69 +323,81 @@ const UploadDocuments = () => {
               </h3>
               <div className="grid grid-cols-1 gap-5 md:grid-cols-2 bg-white p-5 rounded-lg">
                 <div className="gap-1 flex flex-col">
-                  <label className="text-md text-gray-600">
-                    Image 1 <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="file"
-                    onChange={(e) => setImage1(e.target.files[0])}
-                    placeholder="Image 1"
-                    className="border border-gray-300 max-sm:p-0 w-full"
+                  <SingleFileUploader
+                    applicationId={applicationId}
+                    fieldName="image1"
+                    label="Image 1"
+                    onUploadSuccess={(field, fileUrl) =>
+                      setImages((prev) => ({ ...prev, image1: fileUrl }))
+                    }
+                    onDeleteSuccess={() =>
+                      setImages((prev) => ({ ...prev, image1: "" }))
+                    }
                   />
                 </div>
                 <div className="gap-1 flex flex-col">
-                  <label className="text-md text-gray-600">
-                    Image 2 <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="file"
-                    onChange={(e) => setImage2(e.target.files[0])}
-                    placeholder="Image 2"
-                    className="border border-gray-300 max-sm:p-0 w-full"
+                  <SingleFileUploader
+                    applicationId={applicationId}
+                    fieldName="image2"
+                    label="Image 2"
+                    onUploadSuccess={(field, fileUrl) =>
+                      setImages((prev) => ({ ...prev, image2: fileUrl }))
+                    }
+                    onDeleteSuccess={() =>
+                      setImages((prev) => ({ ...prev, image2: "" }))
+                    }
                   />
                 </div>
                 <div className="gap-1 flex flex-col">
-                  <label className="text-md text-gray-600">
-                    Image 3 <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="file"
-                    onChange={(e) => setImage3(e.target.files[0])}
-                    placeholder="Image 3"
-                    className="border border-gray-300 max-sm:p-0 w-full"
+                  <SingleFileUploader
+                    applicationId={applicationId}
+                    fieldName="image3"
+                    label="Image 3"
+                    onUploadSuccess={(field, fileUrl) =>
+                      setImages((prev) => ({ ...prev, image3: fileUrl }))
+                    }
+                    onDeleteSuccess={() =>
+                      setImages((prev) => ({ ...prev, image3: "" }))
+                    }
                   />
                 </div>
                 <div className="gap-1 flex flex-col">
-                  <label className="text-md text-gray-600">
-                    Image 4 <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="file"
-                    onChange={(e) => setImage4(e.target.files[0])}
-                    placeholder="Image 4"
-                    className="border border-gray-300 max-sm:p-0 w-full"
+                  <SingleFileUploader
+                    applicationId={applicationId}
+                    fieldName="image4"
+                    label="Image 4"
+                    onUploadSuccess={(field, fileUrl) =>
+                      setImages((prev) => ({ ...prev, image4: fileUrl }))
+                    }
+                    onDeleteSuccess={() =>
+                      setImages((prev) => ({ ...prev, image4: "" }))
+                    }
                   />
                 </div>
                 <div className="gap-1 flex flex-col">
-                  <label className="text-md text-gray-600">
-                    Video 1 <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="file"
-                    onChange={(e) => setVideo1(e.target.files[0])}
-                    placeholder="Video 1"
-                    className="border border-gray-300 max-sm:p-0 w-full"
+                  <SingleFileUploader
+                    applicationId={applicationId}
+                    fieldName="video1"
+                    label="Video 1"
+                    onUploadSuccess={(field, fileUrl) =>
+                      setVideos((prev) => ({ ...prev, video1: fileUrl }))
+                    }
+                    onDeleteSuccess={() =>
+                      setVideos((prev) => ({ ...prev, video1: "" }))
+                    }
                   />
                 </div>
                 <div className="gap-1 flex flex-col">
-                  <label className="text-md text-gray-600">
-                    Video 2 <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="file"
-                    onChange={(e) => setVideo2(e.target.files[0])}
-                    placeholder="Video 2"
-                    className="border border-gray-300 max-sm:p-0 w-full"
+                  <SingleFileUploader
+                    applicationId={applicationId}
+                    fieldName="video2"
+                    label="Video 2"
+                    onUploadSuccess={(field, fileUrl) =>
+                      setVideos((prev) => ({ ...prev, video2: fileUrl }))
+                    }
+                    onDeleteSuccess={() =>
+                      setVideos((prev) => ({ ...prev, video2: "" }))
+                    }
                   />
                 </div>
               </div>
@@ -559,5 +422,5 @@ const UploadDocuments = () => {
     </div>
   );
 };
-
 export default UploadDocuments;
+
