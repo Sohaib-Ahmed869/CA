@@ -150,7 +150,7 @@ const FinalScreen = ({
               -- Select a Country --
             </option>
             {countries.map((country) => (
-              <option key={country.value} value={country.value}>
+              <option key={country.label} value={country.label}>
                 {country.label}
               </option>
             ))}
