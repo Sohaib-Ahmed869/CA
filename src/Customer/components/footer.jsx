@@ -7,7 +7,7 @@ import logo from "../../assets/certifiedAustralia.png";
 const Footer = () => {
   const navigate = useNavigate();
   return (
-    <footer className="bg-gray-800 text-white py-2 fixed w-full bottom-0">
+    <footer className="bg-gray-800 text-white py-2 lg:fixed w-full bottom-0">
       <div className="container mx-auto flex flex-col sm:flex-row items-center justify-center">
         <div className="flex items-center gap-5 mt-5 sm:mt-0">
           <Link

@@ -62,26 +62,27 @@ const ScreeningForm2 = () => {
 
   const [step, setStep] = useState(0);
 
+  useEffect(() => {
+    console.log("Step: ", step);
+  }, [step]);
+
   const handleNext = () => {
-    if ((step === 1 && industry === "") || qualification === "") {
+    if ((step === 0 && industry === "") || qualification === "") {
       alert("Please fill in the required fields");
       return;
     }
-    if (step === 2) {
-      console.log("Please fill in the required fields");
+
+    if (step === 1) {
+      if (yearsOfExperience === "" || locationOfExperience === "") {
+        alert("Please fill in the required fields");
+        return;
+      }
     }
-    if (
-      step === 2 &&
-      (yearsOfExperience === "" || locationOfExperience === "")
-    ) {
+    if (step === 2 && state === "") {
       alert("Please fill in the required fields");
       return;
     }
-    if (step === 3 && state === "") {
-      alert("Please fill in the required fields");
-      return;
-    }
-    if (step === 4 && formalEducation === "" && formalEducationAnswer === "") {
+    if (step === 3 && formalEducation === "" && formalEducationAnswer === "") {
       alert("Please fill in the required fields");
       return;
     }

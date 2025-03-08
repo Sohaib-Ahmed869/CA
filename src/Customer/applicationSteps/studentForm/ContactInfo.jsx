@@ -1,142 +1,269 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import FloatingLabelInput from "../../components/floatingLabelInput";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
 
 const ContactInfo = ({ contactInfo, setContactInfo }) => {
-  const handleChange = (e) => {
-    setContactInfo({ ...contactInfo, [e.target.name]: e.target.value });
+  const [errors, setErrors] = useState({});
+
+  const validateField = (name, value) => {
+    let error = "";
+
+    switch (name) {
+      case "email":
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (value && !emailRegex.test(value)) {
+          error = "Please enter a valid email address";
+        }
+        break;
+      default:
+        break;
+    }
+
+    return error;
   };
 
-  useEffect(() => {
-    console.log(contactInfo.phone);
-  }, [contactInfo.phone]);
+  const handleChange = (e) => {
+    const { name, value } = e.target;
 
-  useEffect(() => {
-    console.log(contactInfo);
-  }, [contactInfo]);
+    // Validate the field
+    const error = validateField(name, value);
+
+    // Update errors state
+    setErrors({
+      ...errors,
+      [name]: error,
+    });
+
+    // Update form data
+    setContactInfo({ ...contactInfo, [name]: value });
+  };
 
   return (
-    <div className="mb-10">
-      <h2 className="text-2xl font-semibold mb-5">Contact Information</h2>
-      <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-        <div className="flex flex-col">
-          <label htmlFor="phone">Phone Number</label>
-          <PhoneInput
-            country={"au"}
-            value={contactInfo.contactNumber}
-            onChange={(phone) =>
-              setContactInfo({ ...contactInfo, contactNumber: phone })
-            }
-            inputClass="input p-0 mt-2"
+    <div className="mb-10 animate-fade">
+      <div className="flex items-center mb-6 border-b pb-2">
+        <div className="w-1 h-6 bg-green-500 rounded-full mr-2"></div>
+        <h2 className="text-2xl font-semibold text-green-700">
+          Contact Information
+        </h2>
+      </div>
+
+      {/* Main form layout with consistent sizing */}
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+        {/* Phone field with custom styling */}
+        <div className="space-y-2">
+          <label
+            htmlFor="phone"
+            className="block text-sm font-medium text-gray-700"
+          >
+            Phone Number <span className="text-red-500">*</span>
+          </label>
+          <div className="phone-input-container">
+            <PhoneInput
+              country={"au"}
+              value={contactInfo.contactNumber}
+              onChange={(phone) =>
+                setContactInfo({ ...contactInfo, contactNumber: phone })
+              }
+              inputClass="w-full h-11 border-gray-300 rounded-md shadow-sm focus:border-green-500 focus:ring focus:ring-green-200"
+              containerClass="w-full"
+              buttonStyle={{
+                border: "1px solid #d1d5db",
+                borderRadius: "0.375rem 0 0 0.375rem",
+                backgroundColor: "#f9fafb",
+              }}
+              dropdownStyle={{
+                width: "300px",
+              }}
+            />
+          </div>
+        </div>
+
+        {/* Email field */}
+        <div className="space-y-2">
+          <label
+            htmlFor="email"
+            className="block text-sm font-medium text-gray-700"
+          >
+            Email <span className="text-red-500">*</span>
+          </label>
+          <input
+            name="email"
+            type="email"
+            id="email"
+            placeholder="your.email@example.com"
+            value={contactInfo.email}
+            onChange={handleChange}
+            className={`w-full h-11 px-3 py-2 border ${
+              errors.email ? "border-red-500" : "border-gray-300"
+            } rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-200 focus:border-green-500`}
+          />
+          {errors.email && (
+            <p className="text-red-500 text-xs mt-1">{errors.email}</p>
+          )}
+        </div>
+
+        {/* Country of Birth field */}
+        <div className="space-y-2">
+          <label
+            htmlFor="countryOfBirth"
+            className="block text-sm font-medium text-gray-700"
+          >
+            Country of Birth <span className="text-red-500">*</span>
+          </label>
+          <input
+            name="countryOfBirth"
+            type="text"
+            id="countryOfBirth"
+            placeholder="e.g. Australia"
+            value={contactInfo.countryOfBirth}
+            onChange={handleChange}
+            className="w-full h-11 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-200 focus:border-green-500"
           />
         </div>
-        <FloatingLabelInput
-          name="email"
-          type="email"
-          id="email"
-          label="Email"
-          value={contactInfo.email}
-          onChange={handleChange}
-        />
-        <FloatingLabelInput
-          name="countryOfBirth"
-          type="text"
-          id="countryOfBirth"
-          label="Country of Birth"
-          value={contactInfo.countryOfBirth}
-          onChange={handleChange}
-        />
-        <FloatingLabelInput
-          name="englishLevel"
-          type="text"
-          id="englishLevel"
-          label="English Level"
-          value={contactInfo.englishLevel}
-          onChange={handleChange}
-        />
-        <div className="flex flex-col">
-          <label htmlFor="questions">Are you an Australian citizen?</label>
-          <select
-            id="questions"
-            value={contactInfo.australianCitizen}
-            className="input p-0 mt-2"
-            onChange={(e) =>
-              setContactInfo({
-                ...contactInfo,
-                australianCitizen: e.target.value,
-              })
-            }
+
+        {/* English Level field */}
+        <div className="space-y-2">
+          <label
+            htmlFor="englishLevel"
+            className="block text-sm font-medium text-gray-700"
           >
-            <option value="">Select an option</option>
-            <option value="Yes">Yes</option>
-            <option value="No">No</option>
-          </select>
-        </div>
-        <div className="flex flex-col">
-          <label htmlFor="questions">
-            Are you an Aboriginal or Torres Strait Islander?
+            English Level
           </label>
-          <select
-            id="questions"
-            value={contactInfo.aboriginalOrTorresStraitIslander}
-            className="input p-0 mt-2"
-            onChange={(e) =>
-              setContactInfo({
-                ...contactInfo,
-                aboriginalOrTorresStraitIslander: e.target.value,
-              })
-            }
-          >
-            <option value="">Select an option</option>
-            <option value="Yes">Yes</option>
-            <option value="No">No</option>
-          </select>
+          <input
+            name="englishLevel"
+            type="text"
+            id="englishLevel"
+            placeholder="e.g. Native, Fluent, Intermediate"
+            value={contactInfo.englishLevel}
+            onChange={handleChange}
+            className="w-full h-11 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-200 focus:border-green-500"
+          />
         </div>
-        <FloatingLabelInput
-          name="previousQualifications"
-          type="text"
-          id="previousQualifications"
-          label="Previous Qualifications"
-          value={contactInfo.previousQualifications}
-          onChange={handleChange}
-        />
-        <select
-          name="employmentStatus"
-          type="text"
-          id="employmentStatus"
-          value={contactInfo.employmentStatus}
-          className="input p-0 mt-2"
-          onChange={(e) =>
-            setContactInfo({
-              ...contactInfo,
-              employmentStatus: e.target.value,
-            })
-          }
-        >
-          <option value="">Employment Status</option>
-          <option value="Employed">Employed</option>
-          <option value="Unemployed">Unemployed</option>
-          <option value="Self-Employed">Self-Employed</option>
-        </select>
       </div>
-      <div className="flex flex-col">
-        <label htmlFor="questions">Do you have a disability?</label>
-        <select
-          id="questions"
-          value={contactInfo.disability}
-          className="input mt-2 p-0"
-          onChange={(e) =>
-            setContactInfo({
-              ...contactInfo,
-              disability: e.target.value,
-            })
-          }
-        >
-          <option value="">Select an option</option>
-          <option value="Yes">Yes</option>
-          <option value="No">No</option>
-        </select>
+
+      {/* Citizenship and background information */}
+      <div className="mt-8 bg-gray-50 p-5 rounded-lg border border-gray-200">
+        <h3 className="text-base font-medium text-gray-700 mb-4">
+          Additional Information
+        </h3>
+
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+          <div className="space-y-2">
+            <label
+              htmlFor="australianCitizen"
+              className="block text-sm font-medium text-gray-700"
+            >
+              Are you an Australian citizen?
+            </label>
+            <select
+              id="australianCitizen"
+              name="australianCitizen"
+              value={contactInfo.australianCitizen}
+              className="w-full h-11 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-200 focus:border-green-500 bg-white"
+              onChange={handleChange}
+            >
+              <option value="">Select an option</option>
+              <option value="Yes">Yes</option>
+              <option value="No">No</option>
+            </select>
+          </div>
+
+          <div className="space-y-2">
+            <label
+              htmlFor="aboriginalOrTorresStraitIslander"
+              className="block text-sm font-medium text-gray-700"
+            >
+              Are you Aboriginal or Torres Strait Islander?
+            </label>
+            <select
+              id="aboriginalOrTorresStraitIslander"
+              name="aboriginalOrTorresStraitIslander"
+              value={contactInfo.aboriginalOrTorresStraitIslander}
+              className="w-full h-11 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-200 focus:border-green-500 bg-white"
+              onChange={handleChange}
+            >
+              <option value="">Select an option</option>
+              <option value="Yes">Yes</option>
+              <option value="No">No</option>
+            </select>
+          </div>
+
+          <div className="space-y-2">
+            <label
+              htmlFor="disability"
+              className="block text-sm font-medium text-gray-700"
+            >
+              Do you have a disability?
+            </label>
+            <select
+              id="disability"
+              name="disability"
+              value={contactInfo.disability}
+              className="w-full h-11 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-200 focus:border-green-500 bg-white"
+              onChange={handleChange}
+            >
+              <option value="">Select an option</option>
+              <option value="Yes">Yes</option>
+              <option value="No">No</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      {/* Education and employment information */}
+      <div className="mt-8 bg-gray-50 p-5 rounded-lg border border-gray-200">
+        <h3 className="text-base font-medium text-gray-700 mb-4">
+          Education & Employment
+        </h3>
+
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+          <div className="space-y-2">
+            <label
+              htmlFor="previousQualifications"
+              className="block text-sm font-medium text-gray-700"
+            >
+              Previous Qualifications
+            </label>
+            <input
+              name="previousQualifications"
+              type="text"
+              id="previousQualifications"
+              placeholder="e.g. Bachelor of Science"
+              value={contactInfo.previousQualifications}
+              onChange={handleChange}
+              className="w-full h-11 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-200 focus:border-green-500"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label
+              htmlFor="employmentStatus"
+              className="block text-sm font-medium text-gray-700"
+            >
+              Employment Status
+            </label>
+            <select
+              name="employmentStatus"
+              id="employmentStatus"
+              value={contactInfo.employmentStatus}
+              className="w-full h-11 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-200 focus:border-green-500 bg-white"
+              onChange={handleChange}
+            >
+              <option value="">Select Employment Status</option>
+              <option value="Employed">Employed</option>
+              <option value="Unemployed">Unemployed</option>
+              <option value="Self-Employed">Self-Employed</option>
+              <option value="Student">Student</option>
+              <option value="Retired">Retired</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      {/* Responsive help text at the bottom */}
+      <div className="mt-4 text-xs text-gray-500 italic">
+        Fields marked with <span className="text-red-500">*</span> are required
       </div>
     </div>
   );
