@@ -64,7 +64,7 @@ const Timeline = ({ timeline, applicationName, paid, applications }) => {
             {item.statusname === "Student Intake Form" && (
               <Link
                 to={"/student-intake-form/" + selectedApplication.applicationId}
-                className="flex items-center flex-col font-mono w-72  bg-gray-50 p-4 rounded-lg gap-2"
+                className="flex items-center  rounded-badge flex-col font-mono w-72  bg-gray-50 p-4  gap-2"
               >
                 <img src={formImg} className="w-28" />
                 <span className="text-3xl  max-sm:text-2xl  ">Intake Form</span>
@@ -84,7 +84,7 @@ const Timeline = ({ timeline, applicationName, paid, applications }) => {
 
             {/* Payment Status */}
             {item.statusname === "payment" && (
-              <div className="flex items-center flex-col font-mono  w-72 bg-gray-50 p-4 rounded-lg gap-2">
+              <div className="flex items-center flex-col font-mono  w-72 bg-gray-50 p-4 rounded-badge gap-2">
                 <img src={paymentImg} className="w-28" />
 
                 <span className="text-3xl max-sm:text-2xl">Payment</span>
@@ -106,7 +106,7 @@ const Timeline = ({ timeline, applicationName, paid, applications }) => {
             {item.statusname === "documents uploaded" && (
               <Link
                 to={"/upload-documents/" + selectedApplication.applicationId}
-                className="flex items-center flex-col font-mono px-12 bg-gray-50 p-4 rounded-lg gap-2"
+                className="flex items-center flex-col font-mono px-12 bg-gray-50 p-4 rounded-badge gap-2"
               >
                 <img src={docImg} className="w-28" />
                 <span className="text-3xl max-sm:text-2xl">Documents</span>
@@ -126,7 +126,7 @@ const Timeline = ({ timeline, applicationName, paid, applications }) => {
 
             {/* Verification Status */}
             {item.statusname === "verified" && (
-              <div className="flex items-center flex-col font-mono  bg-gray-50 p-4 rounded-lg gap-2">
+              <div className="flex items-center flex-col font-mono  bg-gray-50 p-4 rounded-badge gap-2">
                 <img src={verifiedImg} className="w-28" />
                 <span className="text-3xl max-sm:text-2xl">Verification</span>
                 {item.verified ? (
@@ -145,7 +145,7 @@ const Timeline = ({ timeline, applicationName, paid, applications }) => {
 
             {/* Application Completion Status */}
             {item.statusname === "completed" && (
-              <div className="flex items-center flex-col font-mono  bg-gray-50 p-4 rounded-lg gap-2">
+              <div className="flex items-center flex-col font-mono  bg-gray-50 p-4 rounded-badge gap-2">
                 <img src={completedImg} className="w-28" />
                 <span className="text-3xl max-sm:text-2xl">
                   Application Status:
