@@ -185,6 +185,33 @@ const ExistingApplications = () => {
     return cleanPrice - discount;
   };
 
+  // Check if all required steps are completed
+  const checkAllStepsCompleted = (application) => {
+    // Get completion statuses
+    const isPaymentDone = application.paid;
+
+    // Check if student form is filled - simplified check, can be enhanced
+    const isStudentFormFilled =
+      application.studentForm &&
+      Object.keys(application.studentForm).length > 0 &&
+      application.studentForm.firstName;
+
+    // Check if documents are uploaded - simplified check, can be enhanced
+    const areDocumentsUploaded =
+      application.documentsForm &&
+      Object.keys(application.documentsForm).length > 0 &&
+      (application.documentsForm.resume ||
+        application.documentsForm.creditcard);
+
+    return {
+      isPaymentDone,
+      isStudentFormFilled,
+      areDocumentsUploaded,
+      allCompleted:
+        isPaymentDone && isStudentFormFilled && areDocumentsUploaded,
+    };
+  };
+
   // Filter and sort applications
   const filteredApplications = applications
     .filter((app) => {
@@ -235,61 +262,6 @@ const ExistingApplications = () => {
       return 0;
     });
 
-  // Function to get status color and icon
-  const getStatusDisplay = (status) => {
-    switch (status) {
-      case "Waiting for Verification":
-        return {
-          bgColor: "bg-yellow-300",
-          textColor: "text-black",
-          icon: <BsClock className="text-black" />,
-        };
-      case "Waiting for Payment":
-        return {
-          bgColor: "bg-green-400",
-          textColor: "text-white",
-          icon: <BsClock className="text-white" />,
-        };
-      case "Student Intake Form":
-        return {
-          bgColor: "bg-blue-900",
-          textColor: "text-white",
-          icon: <BiUser className="text-white" />,
-        };
-      case "Upload Documents":
-        return {
-          bgColor: "bg-red-900",
-          textColor: "text-white",
-          icon: <BiUpload className="text-white" />,
-        };
-      case "Certificate Generated":
-        return {
-          bgColor: "bg-primary",
-          textColor: "text-white",
-          icon: <FaCertificate className="text-white" />,
-        };
-      case "Sent to RTO":
-      case "Sent to Assessor":
-        return {
-          bgColor: "bg-red-800",
-          textColor: "text-white",
-          icon: <BsArrowUpRight className="text-white" />,
-        };
-      case "Completed":
-        return {
-          bgColor: "bg-green-500",
-          textColor: "text-white",
-          icon: <BiCheck className="text-white" />,
-        };
-      default:
-        return {
-          bgColor: "bg-gray-500",
-          textColor: "text-white",
-          icon: <BiCheck className="text-white" />,
-        };
-    }
-  };
-
   const formatDate = (dateString) => {
     if (!dateString) return "N/A";
     const date = new Date(dateString);
@@ -310,13 +282,96 @@ const ExistingApplications = () => {
     }
   };
 
+  // Get action buttons for an application
+  const getActionButtons = (application) => {
+    const {
+      isPaymentDone,
+      isStudentFormFilled,
+      areDocumentsUploaded,
+      allCompleted,
+    } = checkAllStepsCompleted(application);
+
+    const buttons = [];
+
+    // Always show these buttons if not completed
+    if (!isStudentFormFilled) {
+      buttons.push({
+        label: "Fill Student Form",
+        icon: <BiUser />,
+        action: () => onClickStudentForm(application.id),
+        color: "btn-primary",
+        priority: 2,
+      });
+    }
+
+    if (!areDocumentsUploaded) {
+      buttons.push({
+        label: "Upload Documents",
+        icon: <BiUpload />,
+        action: () =>
+          onClickUpload(application.id, application.initialForm?.industry),
+        color: "btn-primary",
+        priority: 3,
+      });
+    }
+
+    if (!isPaymentDone) {
+      buttons.push({
+        label: "Make Payment",
+        icon: <MdPayment />,
+        action: () =>
+          onClickPayment(
+            application.price,
+            application.discount,
+            application.id,
+            application.userId,
+            application.partialScheme,
+            application.paid,
+            application.payment1,
+            application.payment2,
+            application.full_paid
+          ),
+        color: "btn-success",
+        priority: 1,
+      });
+    }
+
+    // Add certificate download if available
+    if (
+      application.currentStatus === "Certificate Generated" ||
+      application.currentStatus === "Completed"
+    ) {
+      buttons.push({
+        label: "Download Certificate",
+        icon: <BiDownload />,
+        action: () => onClickDownload(application.certificateId),
+        color: "btn-primary",
+        priority: 0,
+      });
+    }
+
+    // Add verification call button if status is waiting for verification
+    if (application.currentStatus === "Waiting for Verification") {
+      buttons.push({
+        label: "Verify Now",
+        icon: <IoCall />,
+        action: () => handleVerifyNow(application.id),
+        color: "btn-primary",
+        priority: 0,
+      });
+    }
+
+    // Sort buttons by priority (lower number = higher priority)
+    return buttons.sort((a, b) => a.priority - b.priority);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {loading && <Loader />}
       {submissionLoading && <SpinnerLoader />}
       <Navbar />
 
-      <div className="container mx-auto p-4 lg:p-8 mt-20">
+      <div className="container mx-auto p-4 lg:p-8 lg:py-28">
         <div className="flex items-center gap-4 mb-6 lg:flex-row flex-col max-sm:mt-24">
           <img
             src={applicationsimg}
@@ -334,11 +389,11 @@ const ExistingApplications = () => {
         </div>
 
         {/* Legend */}
-        <div className="bg-white rounded-lg shadow p-4 mb-6">
+        <div className="bg-white rounded-lg shadow p-4 mb-6 hidden md:block">
           <h3 className="text-gray-700 font-medium mb-3">
             Application Status Guide
           </h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="flex items-center gap-2 p-2 rounded bg-gray-50">
               <BiCheckCircle className="text-green-500 text-xl" />
               <div>
@@ -354,12 +409,17 @@ const ExistingApplications = () => {
               </div>
             </div>
             <div className="flex items-center gap-2 p-2 rounded bg-gray-50">
-              <div className="flex items-center justify-center w-5 h-5 rounded-full bg-primary text-white text-xs">
-                !
-              </div>
+              <BiUser className="text-blue-500 text-xl" />
               <div>
-                <p className="font-medium">Next Step</p>
-                <p className="text-xs text-gray-500">Required action</p>
+                <p className="font-medium">Student Form</p>
+                <p className="text-xs text-gray-500">Personal details</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 p-2 rounded bg-gray-50">
+              <BiUpload className="text-red-500 text-xl" />
+              <div>
+                <p className="font-medium">Documents</p>
+                <p className="text-xs text-gray-500">Required files</p>
               </div>
             </div>
           </div>
@@ -426,7 +486,7 @@ const ExistingApplications = () => {
                   </svg>
                 </div>
               </div>
-              <select
+              {/* <select
                 className="select select-bordered shadow-sm"
                 value={filterStatus}
                 onChange={(e) => setFilterStatus(e.target.value)}
@@ -437,8 +497,8 @@ const ExistingApplications = () => {
                     {status}
                   </option>
                 ))}
-              </select>
-              <div className="flex gap-2">
+              </select> */}
+              <div className="gap-2 hidden lg:flex">
                 <select
                   className="select select-bordered shadow-sm"
                   value={sortBy}
@@ -502,7 +562,6 @@ const ExistingApplications = () => {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6">
             {filteredApplications.map((application) => {
-              const statusDisplay = getStatusDisplay(application.currentStatus);
               const paymentStatus = application.partialScheme
                 ? application.full_paid
                   ? true
@@ -511,44 +570,15 @@ const ExistingApplications = () => {
                 ? true
                 : false;
 
-              // Determine primary action based on status
-              let primaryAction = null;
-              if (application.currentStatus === "Waiting for Verification") {
-                primaryAction = {
-                  label: "Verify Now",
-                  icon: <IoCall />,
-                  action: () => handleVerifyNow(application.id),
-                  color: "btn-primary",
-                };
-              } else if (application.currentStatus === "Student Intake Form") {
-                primaryAction = {
-                  label: "Fill Student Form",
-                  icon: <BiUser />,
-                  action: () => onClickStudentForm(application.id),
-                  color: "btn-primary",
-                };
-              } else if (application.currentStatus === "Upload Documents") {
-                primaryAction = {
-                  label: "Upload Documents",
-                  icon: <BiUpload />,
-                  action: () =>
-                    onClickUpload(
-                      application.id,
-                      application.initialForm.industry
-                    ),
-                  color: "btn-primary",
-                };
-              } else if (
-                application.currentStatus === "Certificate Generated" ||
-                application.currentStatus === "Completed"
-              ) {
-                primaryAction = {
-                  label: "Download Certificate",
-                  icon: <BiDownload />,
-                  action: () => onClickDownload(application.certificateId),
-                  color: "btn-primary",
-                };
-              }
+              // Get completion status of all required steps
+              const completionStatus = checkAllStepsCompleted(application);
+
+              // Get all action buttons for this application
+              const actionButtons = getActionButtons(application);
+
+              // Primary action is the first button
+              const primaryAction =
+                actionButtons.length > 0 ? actionButtons[0] : null;
 
               return (
                 <div
@@ -580,13 +610,15 @@ const ExistingApplications = () => {
                       <div className="text-sm text-gray-600">
                         Created: {formatDate(application.status?.[0]?.time)}
                       </div>
-
-                      {/* Current Status Tag */}
-                      <div
-                        className={`px-3 py-1 rounded-md text-xs font-medium ${statusDisplay.bgColor} ${statusDisplay.textColor}`}
-                      >
-                        {application.currentStatus}
-                      </div>
+                      {/*
+                       if all steps are completed, show a badge that says "Waiting for Verification"
+                       */}
+                      {completionStatus.allCompleted && (
+                        <div className="flex items-center bg-yellow-100 text-yellow-800 text-xs font-semibold px-2 py-1 rounded-full">
+                          <BsClock className="text-yellow-600 mr-1" />
+                          Waiting for Verification
+                        </div>
+                      )}
                     </div>
                   </div>
 
@@ -647,9 +679,66 @@ const ExistingApplications = () => {
                       )}
                     </div>
 
+                    {/* Progress Indicators */}
+                    <div className="border-t border-b border-gray-100 py-4 mb-5">
+                      <div className="flex justify-between items-center mb-3">
+                        <p className="font-medium">Application Progress</p>
+                      </div>
+                      <div className="grid grid-cols-3 gap-2 mb-3">
+                        <div
+                          className={`p-2 border rounded-md text-center ${
+                            completionStatus.isStudentFormFilled
+                              ? "bg-green-200 border-green-200"
+                              : "bg-gray-50 border-gray-200"
+                          }`}
+                        >
+                          <BiUser
+                            className={`mx-auto text-lg ${
+                              completionStatus.isStudentFormFilled
+                                ? "text-green-500"
+                                : "text-gray-400"
+                            }`}
+                          />
+                          <p className="text-xs mt-1">Student Form</p>
+                        </div>
+                        <div
+                          className={`p-2 border rounded-md text-center ${
+                            completionStatus.areDocumentsUploaded
+                              ? "bg-green-200 border-green-200"
+                              : "bg-gray-50 border-gray-200"
+                          }`}
+                        >
+                          <BiUpload
+                            className={`mx-auto text-lg ${
+                              completionStatus.areDocumentsUploaded
+                                ? "text-green-500"
+                                : "text-gray-400"
+                            }`}
+                          />
+                          <p className="text-xs mt-1">Documents</p>
+                        </div>
+                        <div
+                          className={`p-2 border rounded-md text-center ${
+                            completionStatus.isPaymentDone
+                              ? "bg-green-200 border-green-200"
+                              : "bg-gray-50 border-gray-200"
+                          }`}
+                        >
+                          <MdPayment
+                            className={`mx-auto text-lg ${
+                              completionStatus.isPaymentDone
+                                ? "text-green-500"
+                                : "text-gray-400"
+                            }`}
+                          />
+                          <p className="text-xs mt-1">Payment</p>
+                        </div>
+                      </div>
+                    </div>
+
                     {/* Next Step Section */}
                     {primaryAction && (
-                      <div className="border-t border-b border-gray-100 py-4 mb-5">
+                      <div className="mb-5">
                         <div className="flex justify-between items-center mb-2">
                           <p className="font-medium flex items-center">
                             <span className="flex items-center justify-center mr-2 w-5 h-5 rounded-full bg-primary text-white text-xs">
@@ -658,7 +747,7 @@ const ExistingApplications = () => {
                             Next Step:
                           </p>
                           <p className="text-sm text-gray-500">
-                            {application.currentStatus}
+                            {primaryAction.label}
                           </p>
                         </div>
                         <button
@@ -670,38 +759,28 @@ const ExistingApplications = () => {
                       </div>
                     )}
 
-                    {/* Action Buttons */}
-                    <div className="grid grid-cols-1 gap-3">
-                      {/* Payment Button */}
-                      {!paymentStatus && (
-                        <button
-                          className="btn btn-success w-full text-white flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all"
-                          onClick={() =>
-                            onClickPayment(
-                              application.price,
-                              application.discount,
-                              application.id,
-                              application.userId,
-                              application.partialScheme,
-                              application.paid,
-                              application.payment1,
-                              application.payment2,
-                              application.full_paid
-                            )
-                          }
-                        >
-                          <MdPayment className="text-lg" /> Make Payment
-                        </button>
-                      )}
+                    {/* Secondary Action Buttons */}
+                    {actionButtons.length > 1 && (
+                      <div className="grid grid-cols-1 gap-3 mb-5">
+                        {actionButtons.slice(1).map((button, index) => (
+                          <button
+                            key={index}
+                            className={`btn ${button.color} w-full flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all`}
+                            onClick={button.action}
+                          >
+                            {button.icon} {button.label}
+                          </button>
+                        ))}
+                      </div>
+                    )}
 
-                      {/* View Application Button */}
-                      <Link
-                        to={`/view-application/${application.userId}/${application.id}`}
-                        className="btn btn-outline w-full flex items-center justify-center gap-2 shadow-sm hover:shadow transition-all"
-                      >
-                        <BsEye /> View Complete Details
-                      </Link>
-                    </div>
+                    {/* View Application Button - Always show this */}
+                    <Link
+                      to={`/view-application/${application.userId}/${application.id}`}
+                      className="btn btn-outline w-full flex items-center justify-center gap-2 shadow-sm hover:shadow transition-all"
+                    >
+                      <BsEye /> View Complete Details
+                    </Link>
                   </div>
                 </div>
               );
@@ -735,6 +814,7 @@ const ExistingApplications = () => {
                 setShowCheckoutModal={setShowCheckoutModal}
                 getUserApplications={getUserApplications}
                 userId={userId}
+                full_paid={full_paid}
               />
             </div>
           </div>

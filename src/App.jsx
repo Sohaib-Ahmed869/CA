@@ -21,7 +21,7 @@ import ScreeningFormAgent from "./Agent/Applications/initial";
 import CustomersByAgent from "./Agent/Customers/page";
 import ExistingApplicationsbyAgent from "./Agent/Applications/page";
 import AssessorSidebar from "./Assessor/Sidebar/page";
-import ViewApplication from "./ViewApplication/page";
+import ViewApplication from "./Customer/ViewApplication/page";
 
 function App() {
   return (

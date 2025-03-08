@@ -16,6 +16,9 @@ const StudentIntakeForm = () => {
   const [submissionLoading, setSubmissionLoading] = useState(false);
   const navigate = useNavigate();
   const onSuccess = () => toast.success("Form submitted successfully");
+  const onError = (message) =>
+    toast.error(message || "Please fill in all required fields");
+
   const [personalInfo, setPersonalInfo] = useState({
     firstName: "",
     middleName: "",
@@ -33,10 +36,10 @@ const StudentIntakeForm = () => {
     contactNumber: "",
     email: "",
     countryOfBirth: "",
-    australianCitizen: false,
-    aboriginalOrTorresStraitIslander: false,
+    australianCitizen: "",
+    aboriginalOrTorresStraitIslander: "",
     englishLevel: "",
-    disability: false,
+    disability: "",
     educationLevel: "",
     previousQualifications: "",
     employmentStatus: "",
@@ -51,7 +54,7 @@ const StudentIntakeForm = () => {
   });
 
   const [creditsTransfer, setCreditsTransfer] = useState({
-    creditsTransfer: false,
+    creditsTransfer: "No",
     nameOfQualification: "",
     YearCompleted: "",
   });
@@ -83,68 +86,99 @@ const StudentIntakeForm = () => {
   });
 
   const [formSubmitted, setFormSubmitted] = useState(false);
+  const [activeSection, setActiveSection] = useState(1);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const validateEmail = (email) => {
+    return String(email)
+      .toLowerCase()
+      .match(
+        /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|.(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+      );
+  };
 
+  const validatePersonalInfo = () => {
+    if (!personalInfo.firstName) {
+      onError("Please enter your first name");
+      return false;
+    }
+    if (!personalInfo.surname) {
+      onError("Please enter your surname");
+      return false;
+    }
+    if (!personalInfo.dob) {
+      onError("Please enter your date of birth");
+      return false;
+    }
+    const dobDate = new Date(personalInfo.dob);
+    const today = new Date();
+    if (dobDate > today) {
+      onError("Please enter a valid date of birth");
+      return false;
+    }
+    if (!personalInfo.homeAddress) {
+      onError("Please enter your home address");
+      return false;
+    }
+    if (!personalInfo.suburb) {
+      onError("Please enter your suburb");
+      return false;
+    }
+    if (!personalInfo.postcode) {
+      onError("Please enter your postcode");
+      return false;
+    }
+    if (!personalInfo.state) {
+      onError("Please enter your state");
+      return false;
+    }
+    return true;
+  };
+
+  const validateContactInfo = () => {
+    if (!contactInfo.contactNumber) {
+      onError("Please enter your contact number");
+      return false;
+    }
+    if (!contactInfo.email) {
+      onError("Please enter your email");
+      return false;
+    }
+    if (!validateEmail(contactInfo.email)) {
+      onError("Please enter a valid email address");
+      return false;
+    }
+    if (!contactInfo.countryOfBirth) {
+      onError("Please enter your country of birth");
+      return false;
+    }
+    return true;
+  };
+
+  const validateAgreements = () => {
     if (
       !studentAgreement.agree ||
       !studentAgreement.applicantAgreement ||
       !studentAgreement.toc
     ) {
-      alert("Please agree to the terms and conditions");
-      return;
+      onError("Please agree to all terms and conditions");
+      return false;
     }
-    if (
-      !personalInfo.firstName ||
-      !personalInfo.surname ||
-      !contactInfo.contactNumber ||
-      !contactInfo.email ||
-      !personalInfo.dob ||
-      !personalInfo.homeAddress ||
-      !personalInfo.suburb ||
-      !personalInfo.postcode ||
-      !personalInfo.state ||
-      !contactInfo.countryOfBirth
-    ) {
-      if (!personalInfo.firstName) {
-        alert("Please enter your first name");
-      }
-      if (!personalInfo.surname) {
-        alert("Please enter your surname");
-      }
-      if (!contactInfo.contactNumber) {
-        alert("Please enter your contact number");
-      }
-      if (!contactInfo.email) {
-        alert("Please enter your email");
-      }
-      if (!personalInfo.dob) {
-        alert("Please enter your date of birth");
-      }
-      if (!personalInfo.dob > new Date().toISOString().split("T")[0]) {
-        alert("Please enter a valid date of birth");
-      }
-      if (!personalInfo.homeAddress) {
-        alert("Please enter your home address");
-      }
-      if (!personalInfo.suburb) {
-        alert("Please enter your suburb");
-      }
-      if (!personalInfo.postcode) {
-        alert("Please enter your postcode");
-      }
-      if (!personalInfo.state) {
-        alert("Please enter your state");
-      }
-      if (!contactInfo.countryOfBirth) {
-        alert("Please enter your country of birth");
-      }
+    return true;
+  };
 
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (
+      !validatePersonalInfo() ||
+      !validateContactInfo() ||
+      !validateAgreements()
+    ) {
       return;
     }
+
     setSubmissionLoading(true);
-    console.log("previousQualifications", contactInfo.previousQualifications);
+
     const data = {
       firstName: personalInfo.firstName,
       middleName: personalInfo.middleName,
@@ -181,7 +215,6 @@ const StudentIntakeForm = () => {
 
     try {
       //get application id from params of the url
-
       const id = window.location.pathname.split("/")[2];
       const applicationId = id;
       const response = await studentIntakeForm(data, applicationId);
@@ -193,64 +226,182 @@ const StudentIntakeForm = () => {
       setTimeout(() => {
         navigate("/");
       }, 1000);
-      navigate("/");
     } catch (error) {
       setSubmissionLoading(false);
       console.error("Error submitting form:", error);
+      onError("An error occurred while submitting the form. Please try again.");
     }
   };
 
+  const renderProgressBar = () => {
+    return (
+      <div className="w-full mb-8">
+        <div className="flex justify-between mb-2">
+          <span className="text-sm font-medium">Personal Info</span>
+          <span className="text-sm font-medium">Contact Info</span>
+          <span className="text-sm font-medium">Employment</span>
+          <span className="text-sm font-medium">Credits</span>
+          <span className="text-sm font-medium">Agreement</span>
+        </div>
+        <div className="w-full bg-gray-200 rounded-full h-2.5">
+          <div
+            className="bg-green-600 h-2.5 rounded-full transition-all duration-300"
+            style={{ width: `${activeSection * 20}%` }}
+          ></div>
+        </div>
+      </div>
+    );
+  };
+
   return (
-    <div className="max-sm:mt-28">
+    <div className="max-sm:mt-28 bg-gray-50 min-h-screen">
       <Navbar />
       {submissionLoading && <SpinnerLoader />}
-      <Toaster />
+      <Toaster position="top-right" />
 
-      <div className="p-5 lg:w-1/2 mx-auto lg:pt-36 lg:pb-20">
-        <div className="flex flex-col items-center text-left w-full shadow-md rounded-2xl p-10 mb-10">
-          <h1 className="text-2xl lg:text-3xl font-bold">
+      <div className="p-5 lg:w-2/3 mx-auto lg:pt-24 lg:pb-20">
+        <div className="flex flex-col items-center text-center w-full shadow-lg rounded-2xl p-10 mb-10 bg-white">
+          <h1 className="text-2xl lg:text-3xl font-bold text-green-700">
             Student Intake Form
           </h1>
-          <p className="text-md text-gray-600">
+          <p className="text-md text-gray-600 mt-2">
             Please fill in the form below to complete your enrolment.
           </p>
+          {renderProgressBar()}
         </div>
-        <form onSubmit={handleSubmit}>
-          <PersonalInfo
-            personalInfo={personalInfo}
-            setPersonalInfo={setPersonalInfo}
-          />
-          <ContactInfo
-            contactInfo={contactInfo}
-            setContactInfo={setContactInfo}
-          />
-          <EmploymentDetails
-            employmentDetails={employmentDetails}
-            setEmploymentDetails={setEmploymentDetails}
-          />
-          <CreditsTransfer
-            creditsTransfer={creditsTransfer}
-            setCreditsTransfer={setCreditsTransfer}
-          />
+        <div className="bg-white shadow-lg rounded-2xl p-8">
+          <form onSubmit={handleSubmit} className="space-y-8">
+            <div className={activeSection === 1 ? "block" : "hidden"}>
+              <PersonalInfo
+                personalInfo={personalInfo}
+                setPersonalInfo={setPersonalInfo}
+              />
+              <div className="flex justify-end mt-6">
+                <button
+                  type="button"
+                  className="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+                  onClick={() => {
+                    if (validatePersonalInfo()) setActiveSection(2);
+                  }}
+                >
+                  Next
+                </button>
+              </div>
+            </div>
 
-          <h2 className="text-2xl font-semibold mb-2">{TOC.heading}</h2>
-          <p className="text-md font-normal mb-2">{TOC.subtitle}</p>
-          <p className="text-md font-normal mb-2">{TOC.content1}</p>
-          <ul className="list-disc list-inside mb-2 text-sm text-gray-600">
-            {TOC.terms.map((term, index) => (
-              <li key={index}>{term}</li>
-            ))}
-          </ul>
-          <p className="text-md font-normal mb-5">{TOC.content2}</p>
+            <div className={activeSection === 2 ? "block" : "hidden"}>
+              <ContactInfo
+                contactInfo={contactInfo}
+                setContactInfo={setContactInfo}
+              />
+              <div className="flex justify-between mt-6">
+                <button
+                  type="button"
+                  className="px-6 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors"
+                  onClick={() => setActiveSection(1)}
+                >
+                  Previous
+                </button>
+                <button
+                  type="button"
+                  className="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+                  onClick={() => {
+                    if (validateContactInfo()) setActiveSection(3);
+                  }}
+                >
+                  Next
+                </button>
+              </div>
+            </div>
 
-          <StudentAgreement
-            studentAgreement={studentAgreement}
-            setStudentAgreement={setStudentAgreement}
-          />
-          <button type="submit" className="btn btn-primary  w-full text-white">
-            Submit
-          </button>
-        </form>
+            <div className={activeSection === 3 ? "block" : "hidden"}>
+              <EmploymentDetails
+                employmentDetails={employmentDetails}
+                setEmploymentDetails={setEmploymentDetails}
+              />
+              <div className="flex justify-between mt-6">
+                <button
+                  type="button"
+                  className="px-6 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors"
+                  onClick={() => setActiveSection(2)}
+                >
+                  Previous
+                </button>
+                <button
+                  type="button"
+                  className="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+                  onClick={() => setActiveSection(4)}
+                >
+                  Next
+                </button>
+              </div>
+            </div>
+
+            <div className={activeSection === 4 ? "block" : "hidden"}>
+              <CreditsTransfer
+                creditsTransfer={creditsTransfer}
+                setCreditsTransfer={setCreditsTransfer}
+              />
+              <div className="flex justify-between mt-6">
+                <button
+                  type="button"
+                  className="px-6 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors"
+                  onClick={() => setActiveSection(3)}
+                >
+                  Previous
+                </button>
+                <button
+                  type="button"
+                  className="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+                  onClick={() => setActiveSection(5)}
+                >
+                  Next
+                </button>
+              </div>
+            </div>
+
+            <div className={activeSection === 5 ? "block" : "hidden"}>
+              <div className="mb-10">
+                <h2 className="text-2xl font-semibold mb-4 text-green-700">
+                  {TOC.heading}
+                </h2>
+                <p className="text-md font-normal mb-2">{TOC.subtitle}</p>
+                <p className="text-md font-normal mb-4">{TOC.content1}</p>
+                <div className="bg-gray-50 p-4 rounded-lg mb-4">
+                  <ul className="list-disc list-inside space-y-2 text-gray-700">
+                    {TOC.terms.map((term, index) => (
+                      <li key={index} className="text-sm">
+                        {term}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <p className="text-md font-normal mb-5">{TOC.content2}</p>
+              </div>
+
+              <StudentAgreement
+                studentAgreement={studentAgreement}
+                setStudentAgreement={setStudentAgreement}
+              />
+
+              <div className="flex justify-between mt-6">
+                <button
+                  type="button"
+                  className="px-6 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors"
+                  onClick={() => setActiveSection(4)}
+                >
+                  Previous
+                </button>
+                <button
+                  type="submit"
+                  className="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+                >
+                  Submit Application
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   );

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import FloatingLabelInput from "../../components/floatingLabelInput";
 import studentAgreementdoc from "../../../assets/1.pdf";
 import studentApplicantAgreement from "../../../assets/2.pdf";
@@ -10,7 +10,6 @@ const StudentAgreement = ({ studentAgreement, setStudentAgreement }) => {
       ...studentAgreement,
       [e.target.name]: e.target.value,
     });
-    console.log(studentAgreement);
   };
 
   const handleCheckbox = (e) => {
@@ -18,93 +17,90 @@ const StudentAgreement = ({ studentAgreement, setStudentAgreement }) => {
       ...studentAgreement,
       [e.target.name]: e.target.checked,
     });
-    console.log(studentAgreement);
   };
 
   return (
-    <div className="mb-10">
-      <h2 className="text-2xl font-semibold mb-5">Student Agreements</h2>
+    <div className="mb-10 animate-fade">
+      
+      <p className="text-sm text-gray-600 mb-4">
+        Please review and accept the following agreements to complete your
+        enrollment.
+      </p>
 
-      <div className="grid grid-cols-1 gap-5 md:grid-cols-1">
-        <div className="gap-1 flex items-center">
+      <div className="space-y-4 bg-gray-50 p-5 rounded-lg border border-gray-200">
+        <div className="flex items-center gap-3">
           <input
             type="checkbox"
             name="agree"
             id="agree"
-            value={studentAgreement.agree}
+            checked={studentAgreement.agree}
             onChange={handleCheckbox}
+            className="w-4 h-4 text-green-600 bg-gray-100 border-gray-300 rounded focus:ring-green-500"
           />
-          <label className="text-md text-gray-600">
+          <label className="text-sm text-gray-700">
             I agree to the{" "}
-            <span>
-              <a
-                href={studentApplicantAgreement}
-                target="_blank"
-                rel="noreferrer"
-                className="text-md text-blue-500"
-              >
-                Student/Applicant Agreement
-              </a>
-            </span>
+            <a
+              href={studentApplicantAgreement}
+              target="_blank"
+              rel="noreferrer"
+              className="text-green-600 font-medium hover:underline"
+            >
+              Student/Applicant Agreement
+            </a>
           </label>
         </div>
-        <div className="gap-1 flex items-center">
+
+        <div className="flex items-center gap-3">
           <input
             type="checkbox"
             name="applicantAgreement"
             id="applicantAgreement"
-            value={studentAgreement.applicantAgreement}
+            checked={studentAgreement.applicantAgreement}
             onChange={handleCheckbox}
+            className="w-4 h-4 text-green-600 bg-gray-100 border-gray-300 rounded focus:ring-green-500"
           />
-          <label className="text-md text-gray-600">
+          <label className="text-sm text-gray-700">
             I agree to the{" "}
-            <span>
-              {" "}
-              <a
-                href={studentAgreementdoc}
-                target="_blank"
-                rel="noreferrer"
-                className="text-md text-blue-500"
-              >
-                Student Privacy Contract
-              </a>
-            </span>
+            <a
+              href={studentAgreementdoc}
+              target="_blank"
+              rel="noreferrer"
+              className="text-green-600 font-medium hover:underline"
+            >
+              Student Privacy Contract
+            </a>
           </label>
         </div>
-        <div className="gap-1 flex items-center">
+
+        <div className="flex items-center gap-3">
           <input
             type="checkbox"
             name="toc"
             id="toc"
-            value={studentAgreement.toc}
+            checked={studentAgreement.toc}
             onChange={handleCheckbox}
+            className="w-4 h-4 text-green-600 bg-gray-100 border-gray-300 rounded focus:ring-green-500"
           />
-          <label className="text-md text-gray-600">
+          <label className="text-sm text-gray-700">
             I agree to the{" "}
-            <span>
-              <a
-                href={TOCdoc}
-                target="_blank"
-                rel="noreferrer"
-                className="text-md text-blue-500"
-              >
-                Terms and Conditions
-              </a>
-            </span>
+            <a
+              href={TOCdoc}
+              target="_blank"
+              rel="noreferrer"
+              className="text-green-600 font-medium hover:underline"
+            >
+              Terms and Conditions
+            </a>
           </label>
         </div>
-        {/* <div className="animate-fade animate-one">
-          {studentAgreement.agree ? (
-            <FloatingLabelInput
-              name="date"
-              type="date"
-              id="date"
-              label="Date"
-              value={studentAgreement.date}
-              onChange={handleChange}
-            />
-          ) : null}
-        </div> */}
+
+        {!studentAgreement.agree ||
+        !studentAgreement.applicantAgreement ||
+        !studentAgreement.toc ? (
+          <p className="text-amber-600 text-xs mt-2">
+            * You must agree to all terms to submit your application
+          </p>
+        ) : null}
       </div>
     </div>
   );
