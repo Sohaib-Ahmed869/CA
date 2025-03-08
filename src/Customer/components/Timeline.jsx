@@ -4,7 +4,11 @@ import { useState } from "react";
 import { GiCheckMark } from "react-icons/gi";
 import { BsCheck2Circle } from "react-icons/bs";
 import { Link } from "react-router-dom";
-
+import formImg from "../../assets/applications.png";
+import paymentImg from "../../assets/payments.png";
+import docImg from "../../assets/cert.png";
+import completedImg from "../../assets/completed.png";
+import verifiedImg from "../../assets/verifiedimg.png";
 const Timeline = ({ timeline, applicationName, paid, applications }) => {
   console.log("applications", applications);
   const [selectedApplication, setSelectedApplication] = useState(
@@ -24,10 +28,12 @@ const Timeline = ({ timeline, applicationName, paid, applications }) => {
     ).length || 0;
   console.log("selected applicaton", selectedApplication);
   return (
-    <div className="p-3   bg-gray-100 lg:p-4 mt-28 md:mt-3 lg:mt-20 w-full border-b-2 border-t-2 lg:pl-10 lg:pr-10 max-sm:mt-5">
+    <div className="p-3   bg-gradient-to-r from-green-400 via-green-500 to-green-600 lg:p-4 mt-28 md:mt-3 lg:mt-20 w-full border-b-2 border-t-2 lg:pl-10 lg:pr-10 max-sm:mt-5">
       <div className="flex lg:flex-row flex-col justify-between lg:items-center items-center">
         <div className=" flex justify-between items-center text-md  text-left">
-          <span className="text-base mr-2 block no-wrap">ApplicaitonID:</span>
+          <span className="text-base mr-2  text-white block no-wrap">
+            ApplicaitonID:
+          </span>
           <select
             name="applications"
             id="applicationSelect"
@@ -41,80 +47,121 @@ const Timeline = ({ timeline, applicationName, paid, applications }) => {
             ))}
           </select>
         </div>
-        <p className="text-md  text-left">
+        <p className="text-md  text-white text-left">
           Applying for: <span className="font-semibold">{applicationName}</span>
         </p>
 
-        <p className="text-sm text-gray-800">
+        <p className="text-sm text-white">
           {completedSteps}/{selectedApplication?.applicationStatus?.length - 1}{" "}
           steps completed
         </p>
       </div>
-      <div className="flex bg-gray-50 p-4 rounded-lg  gap-10 my-10 justify-stretch ">
+      {/* Timeline */}
+      <div className="flex   gap-10 my-10 justify-stretch    md:flex-wrap">
         {selectedApplication?.applicationStatus?.map((item, index) => (
           <div key={index}>
             {/* Student Intake Form Status */}
             {item.statusname === "Student Intake Form" && (
-              <Link className="flex items-center  gap-2">
-                <span className="text-3xl  max-sm:text-2xl  ">
-                  Intake Form:
-                </span>
+              <Link
+                to={"/student-intake-form/" + selectedApplication.applicationId}
+                className="flex items-center flex-col font-mono w-72  bg-gray-50 p-4 rounded-lg gap-2"
+              >
+                <img src={formImg} className="w-28" />
+                <span className="text-3xl  max-sm:text-2xl  ">Intake Form</span>
                 {item.completed ? (
-                  <BsCheck2Circle className="text-green-500 mt-2 text-4xl" />
+                  <span className="flex flex-row align-middle items-center text-2xl">
+                    Status :
+                    <BsCheck2Circle className="text-green-500 mt-2 text-4xl" />
+                  </span>
                 ) : (
-                  <BsClock className="text-red-500 mt-2 text-4xl" />
+                  <span className="flex flex-row align-middle items-center text-2xl">
+                    Status :
+                    <BsClock className="text-red-500 mt-2 ml-1 text-4xl" />
+                  </span>
                 )}
               </Link>
             )}
 
             {/* Payment Status */}
             {item.statusname === "payment" && (
-              <Link className="flex items-center gap-2">
-                <span className="text-3xl max-sm:text-2xl">Payment:</span>
+              <div className="flex items-center flex-col font-mono  w-72 bg-gray-50 p-4 rounded-lg gap-2">
+                <img src={paymentImg} className="w-28" />
+
+                <span className="text-3xl max-sm:text-2xl">Payment</span>
                 {item.paid ? (
-                  <BsCheck2Circle className="text-green-500 mt-2 text-4xl" />
+                  <span className="flex flex-row align-middle items-center text-2xl">
+                    Status :
+                    <BsCheck2Circle className="text-green-500 mt-2 text-4xl" />
+                  </span>
                 ) : (
-                  <BsClock className="text-red-500 mt-2 text-4xl" />
+                  <span className="flex flex-row align-middle items-center text-2xl">
+                    Status :
+                    <BsClock className="text-red-500 mt-2  ml-1 text-4xl" />
+                  </span>
                 )}
-              </Link>
+              </div>
             )}
 
             {/* Documents Uploaded Status */}
             {item.statusname === "documents uploaded" && (
-              <Link className="flex items-center gap-2">
-                <span className="text-3xl max-sm:text-2xl">Documents:</span>
+              <Link
+                to={"/upload-documents/" + selectedApplication.applicationId}
+                className="flex items-center flex-col font-mono px-12 bg-gray-50 p-4 rounded-lg gap-2"
+              >
+                <img src={docImg} className="w-28" />
+                <span className="text-3xl max-sm:text-2xl">Documents</span>
                 {item.completed ? (
-                  <BsCheck2Circle className="text-green-500 mt-2 text-4xl" />
+                  <span className="flex flex-row align-middle items-center text-2xl">
+                    Status :
+                    <BsCheck2Circle className="text-green-500 mt-2 ml-2  text-4xl" />
+                  </span>
                 ) : (
-                  <BsClock className="text-red-500 mt-2 text-4xl" />
+                  <span className="flex flex-row align-middle items-center text-2xl">
+                    Status :
+                    <BsClock className="text-red-500 mt-2 ml-1 text-4xl" />
+                  </span>
                 )}
               </Link>
             )}
 
             {/* Verification Status */}
             {item.statusname === "verified" && (
-              <Link className="flex items-center gap-2">
-                <span className="text-3xl max-sm:text-2xl">Verification:</span>
+              <div className="flex items-center flex-col font-mono  bg-gray-50 p-4 rounded-lg gap-2">
+                <img src={verifiedImg} className="w-28" />
+                <span className="text-3xl max-sm:text-2xl">Verification</span>
                 {item.verified ? (
-                  <BsCheck2Circle className="text-green-500 mt-2 text-4xl" />
+                  <span className="flex flex-row align-middle items-center text-2xl">
+                    Status :
+                    <BsCheck2Circle className="text-green-500 mt-2 text-4xl" />
+                  </span>
                 ) : (
-                  <BsClock className="text-red-500 mt-2 text-4xl" />
+                  <span className="flex flex-row align-middle items-center text-2xl">
+                    Status :
+                    <BsClock className="text-red-500 mt-2 ml-1  text-4xl" />
+                  </span>
                 )}
-              </Link>
+              </div>
             )}
 
             {/* Application Completion Status */}
             {item.statusname === "completed" && (
-              <Link className="flex items-center gap-2">
+              <div className="flex items-center flex-col font-mono  bg-gray-50 p-4 rounded-lg gap-2">
+                <img src={completedImg} className="w-28" />
                 <span className="text-3xl max-sm:text-2xl">
                   Application Status:
                 </span>
                 {item.completed ? (
-                  <BsCheck2Circle className="text-green-500 mt-2 text-4xl" />
+                  <span className="flex flex-row align-middle items-center text-2xl">
+                    Status :
+                    <BsCheck2Circle className="text-green-500 mt-2 text-4xl" />
+                  </span>
                 ) : (
-                  <BsClock className="text-red-500 mt-2 text-4xl" />
+                  <span className="flex flex-row align-middle items-center text-2xl">
+                    Status :
+                    <BsClock className="text-red-500 mt-2 ml-1 text-3xl" />
+                  </span>
                 )}
-              </Link>
+              </div>
             )}
           </div>
         ))}
