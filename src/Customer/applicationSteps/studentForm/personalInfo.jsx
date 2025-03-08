@@ -132,7 +132,7 @@ const PersonalInfo = ({ personalInfo, setPersonalInfo }) => {
         <div className="space-y-2">
           <label
             htmlFor="USI"
-            className="block text-sm font-medium text-gray-700 flex items-center"
+            className=" text-sm font-medium text-gray-700 flex items-center"
           >
             USI
             <span className="ml-1 text-xs text-gray-500">
