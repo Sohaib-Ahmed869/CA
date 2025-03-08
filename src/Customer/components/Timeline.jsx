@@ -1,10 +1,15 @@
 import { BsClock } from "react-icons/bs";
 import { BiCheck } from "react-icons/bi";
 import { useState } from "react";
+import { GiCheckMark } from "react-icons/gi";
+import { BsCheck2Circle } from "react-icons/bs";
+import { Link } from "react-router-dom";
 
 const Timeline = ({ timeline, applicationName, paid, applications }) => {
   console.log("applications", applications);
-  const [selectedApplication, setSelectedApplication] = useState();
+  const [selectedApplication, setSelectedApplication] = useState(
+    applications?.length > 0 ? applications[0] : null
+  );
 
   const handleApplicationChange = (e) => {
     const Application = applications.find(
@@ -12,9 +17,14 @@ const Timeline = ({ timeline, applicationName, paid, applications }) => {
     );
     setSelectedApplication(Application || null); // Ensure null if not found
   };
+
+  const completedSteps =
+    selectedApplication?.applicationStatus?.filter(
+      (step) => step.completed || step.verified || step.paid
+    ).length || 0;
   console.log("selected applicaton", selectedApplication);
   return (
-    <div className="p-3 lg:p-4 mt-28 md:mt-3 lg:mt-20 w-full border-b-2 border-t-2 lg:pl-10 lg:pr-10 max-sm:mt-5">
+    <div className="p-3   bg-gray-100 lg:p-4 mt-28 md:mt-3 lg:mt-20 w-full border-b-2 border-t-2 lg:pl-10 lg:pr-10 max-sm:mt-5">
       <div className="flex lg:flex-row flex-col justify-between lg:items-center items-center">
         <div className=" flex justify-between items-center text-md  text-left">
           <span className="text-base mr-2 block no-wrap">ApplicaitonID:</span>
@@ -36,71 +46,75 @@ const Timeline = ({ timeline, applicationName, paid, applications }) => {
         </p>
 
         <p className="text-sm text-gray-800">
-          ({timeline.filter((t) => t.time).length + 1}/{timeline.length}) steps
-          completed
+          {completedSteps}/{selectedApplication?.applicationStatus?.length - 1}{" "}
+          steps completed
         </p>
       </div>
-      <div className="flex  gap-10 my-10 justify-center ">
+      <div className="flex bg-gray-50 p-4 rounded-lg  gap-10 my-10 justify-stretch ">
         {selectedApplication?.applicationStatus?.map((item, index) => (
           <div key={index}>
             {/* Student Intake Form Status */}
             {item.statusname === "Student Intake Form" && (
-              <div className="flex items-center gap-2">
-                <span className="font-semibold">Intake Form:</span>
+              <Link className="flex items-center  gap-2">
+                <span className="text-3xl  max-sm:text-2xl  ">
+                  Intake Form:
+                </span>
                 {item.completed ? (
-                  <BiCheck className="text-green-500 text-2xl" />
+                  <BsCheck2Circle className="text-green-500 mt-2 text-4xl" />
                 ) : (
-                  <BsClock className="text-red-500 text-2xl" />
+                  <BsClock className="text-red-500 mt-2 text-4xl" />
                 )}
-              </div>
+              </Link>
             )}
 
             {/* Payment Status */}
             {item.statusname === "payment" && (
-              <div className="flex items-center gap-2">
-                <span className="font-semibold">Payment:</span>
+              <Link className="flex items-center gap-2">
+                <span className="text-3xl max-sm:text-2xl">Payment:</span>
                 {item.paid ? (
-                  <span className="text-green-600">Completed</span>
+                  <BsCheck2Circle className="text-green-500 mt-2 text-4xl" />
                 ) : (
-                  <BsClock className="text-red-500 text-2xl" />
+                  <BsClock className="text-red-500 mt-2 text-4xl" />
                 )}
-              </div>
+              </Link>
             )}
 
             {/* Documents Uploaded Status */}
             {item.statusname === "documents uploaded" && (
-              <div className="flex items-center gap-2">
-                <span className="font-semibold">Documents:</span>
+              <Link className="flex items-center gap-2">
+                <span className="text-3xl max-sm:text-2xl">Documents:</span>
                 {item.completed ? (
-                  <span className="text-green-600">Uploaded</span>
+                  <BsCheck2Circle className="text-green-500 mt-2 text-4xl" />
                 ) : (
-                  <BsClock className="text-red-500 text-2xl" />
+                  <BsClock className="text-red-500 mt-2 text-4xl" />
                 )}
-              </div>
+              </Link>
             )}
 
             {/* Verification Status */}
             {item.statusname === "verified" && (
-              <div className="flex items-center gap-2">
-                <span className="font-semibold">Verification:</span>
+              <Link className="flex items-center gap-2">
+                <span className="text-3xl max-sm:text-2xl">Verification:</span>
                 {item.verified ? (
-                  <span className="text-green-600">Verified</span>
+                  <BsCheck2Circle className="text-green-500 mt-2 text-4xl" />
                 ) : (
-                  <BsClock className="text-red-500 text-2xl" />
+                  <BsClock className="text-red-500 mt-2 text-4xl" />
                 )}
-              </div>
+              </Link>
             )}
 
             {/* Application Completion Status */}
             {item.statusname === "completed" && (
-              <div className="flex items-center gap-2">
-                <span className="font-semibold">Application Status:</span>
+              <Link className="flex items-center gap-2">
+                <span className="text-3xl max-sm:text-2xl">
+                  Application Status:
+                </span>
                 {item.completed ? (
-                  <span className="text-green-600">Completed</span>
+                  <BsCheck2Circle className="text-green-500 mt-2 text-4xl" />
                 ) : (
-                  <BsClock className="text-red-500 text-2xl" />
+                  <BsClock className="text-red-500 mt-2 text-4xl" />
                 )}
-              </div>
+              </Link>
             )}
           </div>
         ))}
