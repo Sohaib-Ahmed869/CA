@@ -5,6 +5,8 @@ import {
   FaEye,
   FaFolderOpen,
   FaPlusCircle,
+  FaUser,
+  FaBell,
 } from "react-icons/fa";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "../../firebase";
@@ -14,7 +16,8 @@ import Loader from "./loader";
 import customer from "../../assets/customer.png";
 import { getApplications } from "../Services/customerApplication";
 import SpinnerLoader from "./spinnerLoader";
-import Timeline from "./Timeline";
+import ImprovedTimeline from "./Timeline";
+
 const CustomerDashboard = () => {
   const [userId, setUserId] = useState("");
   const [applications, setApplications] = useState([]);
@@ -22,6 +25,7 @@ const CustomerDashboard = () => {
   const [timeline, setTimeline] = useState([]);
   const [loading, setLoading] = useState(true);
   const [submissionLoading, setSubmissionLoading] = useState(false);
+  const [userName, setUserName] = useState(""); // Added for personalization
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -34,6 +38,8 @@ const CustomerDashboard = () => {
     const authListener = onAuthStateChanged(auth, (user) => {
       if (user) {
         setUserId(user.uid);
+        // Get user's display name if available
+        setUserName(user.displayName || "");
         console.log("User ID:", user.uid);
       } else {
         navigate("/login");
@@ -79,7 +85,7 @@ const CustomerDashboard = () => {
       setTimeline(
         statuses.map((status) => ({
           statusname: status,
-          time: lastApplication.status.some((s) => s.statusname === status),
+          time: lastApplication.status?.some((s) => s.statusname === status),
         }))
       );
     }
@@ -90,67 +96,173 @@ const CustomerDashboard = () => {
   const navigateToNewApplication = () => navigate("/new-application");
 
   return (
-    <div className="min-h-screen mt-20 lg:mt-10">
+    <div className="min-h-screen bg-gray-50">
       {loading && <Loader />}
       {submissionLoading && <SpinnerLoader />}
       <Navbar />
-      <div className="flex flex-col max-sm:flex-col-reverse">
-        <div className="rounded-lg lg:full w-full mt-10 hidden lg:block">
-          {lastApplication ? (
-            <Timeline
-              timeline={timeline}
-              applications={applications}
-              applicationId={lastApplication.applicationId}
-              applicationName={
-                lastApplication.initialForm.lookingForWhatQualification
-              }
-              paid={lastApplication.paid}
-            />
-          ) : (
-            <p className=""></p>
-          )}
-        </div>
-        <div className="flex flex-col items-center lg:p-10 lg:w-full w-full mt-5 max-sm:p-5">
-          <div className="flex flex-col items-center text-left w-full">
-            <img src={customer} alt="Customer" className="h-24" />
-            <div className="text-center">
-              <h1 className="text-2xl lg:text-3xl font-bold ">
-                Hello and Welcome to Certified Australia!
+
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-12">
+        {/* Welcome Header Card */}
+        <div className="bg-gradient-to-r from-emerald-600 to-emerald-800 rounded-xl shadow-lg overflow-hidden mb-8">
+          <div className="flex flex-col md:flex-row items-center p-6 md:p-8">
+            <div className="flex-shrink-0 mb-4 md:mb-0 md:mr-6">
+              <div className="bg-white p-3 rounded-full">
+                <img src={customer} alt="Customer" className="h-20 w-20" />
+              </div>
+            </div>
+            <div className="text-center md:text-left text-white">
+              <h1 className="text-2xl md:text-3xl font-bold mb-2">
+                Welcome to Certified Australia{userName ? `, ${userName}` : "!"}
               </h1>
-              <p className="text-md  mb-3 lg:mb-8">
-                We are here to help you with your certificate needs. Please
-                select from the following options to get started.
+              <p className="text-emerald-100 max-w-2xl">
+                We're here to help you with your certification journey. Track
+                your progress below or start a new application today.
               </p>
             </div>
           </div>
-          <div className="rounded-lg lg:full w-full mt-10 lg:hidden">
-            {lastApplication ? (
-              <Timeline
-                timeline={timeline}
-                applicationId={lastApplication.applicationId}
-              />
-            ) : (
-              <p className="">No applications found.</p>
-            )}
-          </div>
-          <div className="grid grid-cols-1 sm:g rid-cols-2 lg:grid-cols-2 gap-6 w-1/2 max-sm:w-full">
-            <div
-              className="bg-white rounded-lg shadow-lg p-6 flex flex-col items-center text-center hover:scale-105 transition-transform duration-300 cursor-pointer"
-              onClick={navigateToNewApplication}
-            >
-              <FaPlusCircle className="text-primary mb-4 text-2xl md:text-5xl" />
-              <h2 className="text-xl font-semibold mb-2 ">New Application</h2>
-              <p className="">Start a new application.</p>
+        </div>
+
+        {/* Main Grid Layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Timeline Section - Takes more space now */}
+          <div className="lg:col-span-2 order-2 lg:order-1">
+            <div className="bg-white rounded-xl shadow-md overflow-hidden">
+              <div className="p-1">
+                {applications && applications.length > 0 ? (
+                  <ImprovedTimeline
+                    applications={applications}
+                    timeline={timeline}
+                    applicationName={
+                      lastApplication?.initialForm?.lookingForWhatQualification
+                    }
+                    paid={lastApplication?.paid}
+                  />
+                ) : (
+                  <div className="py-12 px-6 text-center">
+                    <div className="inline-block p-4 rounded-full bg-emerald-100 mb-4">
+                      <FaFileAlt className="text-emerald-600 text-3xl" />
+                    </div>
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">
+                      No Applications Yet
+                    </h3>
+                    <p className="text-gray-500 mb-6">
+                      Create your first application to start your certification
+                      journey.
+                    </p>
+                    <button
+                      onClick={navigateToNewApplication}
+                      className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500"
+                    >
+                      <FaPlusCircle className="mr-2" /> Start New Application
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
-            <div
-              className="bg-white rounded-lg shadow-lg p-6 flex flex-col items-center text-center hover:scale-105 transition-transform duration-300 cursor-pointer"
-              onClick={navigateToExistingApplications}
-            >
-              <FaFolderOpen className="text-primary mb-4 text-2xl md:text-5xl" />
-              <h2 className="text-xl font-semibold  mb-2">
-                Existing Applications
-              </h2>
-              <p className="">View and manage your existing applications.</p>
+          </div>
+
+          {/* Action Cards Section */}
+          <div className="lg:col-span-1 order-1 lg:order-2">
+            <div className="space-y-6">
+              {/* Card 1: New Application */}
+              <div
+                className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 transform hover:-translate-y-1 cursor-pointer"
+                onClick={navigateToNewApplication}
+              >
+                <div className="p-6">
+                  <div className="flex items-center">
+                    <div className="bg-emerald-100 p-3 rounded-full">
+                      <FaPlusCircle className="text-emerald-600 text-xl" />
+                    </div>
+                    <div className="ml-4">
+                      <h2 className="text-lg font-semibold text-gray-900">
+                        New Application
+                      </h2>
+                      <p className="text-sm text-gray-500">
+                        Start your certification process
+                      </p>
+                    </div>
+                  </div>
+                  <div className="mt-4">
+                    <p className="text-sm text-gray-600">
+                      Begin a new certification application with our streamlined
+                      process.
+                    </p>
+                  </div>
+                  <div className="mt-5 flex justify-end">
+                    <span className="inline-flex items-center text-sm font-medium text-emerald-600">
+                      Get Started <FaEye className="ml-1" />
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Card 2: Existing Applications */}
+              <div
+                className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 transform hover:-translate-y-1 cursor-pointer"
+                onClick={navigateToExistingApplications}
+              >
+                <div className="p-6">
+                  <div className="flex items-center">
+                    <div className="bg-emerald-100 p-3 rounded-full">
+                      <FaFolderOpen className="text-emerald-600 text-xl" />
+                    </div>
+                    <div className="ml-4">
+                      <h2 className="text-lg font-semibold text-gray-900">
+                        Existing Applications
+                      </h2>
+                      <p className="text-sm text-gray-500">
+                        Review and manage applications
+                      </p>
+                    </div>
+                  </div>
+                  <div className="mt-4">
+                    <p className="text-sm text-gray-600">
+                      View, edit, and track all your current certification
+                      applications.
+                    </p>
+                  </div>
+                  <div className="mt-5 flex justify-end">
+                    <span className="inline-flex items-center text-sm font-medium text-emerald-600">
+                      View All <FaEye className="ml-1" />
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Card 3: Help Resources */}
+              <div className="bg-white rounded-xl shadow-md overflow-hidden">
+                <div className="p-6">
+                  <div className="flex items-center">
+                    <div className="bg-emerald-100 p-3 rounded-full">
+                      <FaBell className="text-emerald-600 text-xl" />
+                    </div>
+                    <div className="ml-4">
+                      <h2 className="text-lg font-semibold text-gray-900">
+                        Help & Resources
+                      </h2>
+                      <p className="text-sm text-gray-500">Support materials</p>
+                    </div>
+                  </div>
+                  <div className="mt-4">
+                    <ul className="space-y-2 text-sm text-gray-600">
+                      <li className="flex items-center">
+                        <div className="w-2 h-2 rounded-full bg-emerald-500 mr-2"></div>
+                        <span>Documentation requirements</span>
+                      </li>
+                      <li className="flex items-center">
+                        <div className="w-2 h-2 rounded-full bg-emerald-500 mr-2"></div>
+                        <span>Payment options</span>
+                      </li>
+                      <li className="flex items-center">
+                        <div className="w-2 h-2 rounded-full bg-emerald-500 mr-2"></div>
+                        <span>Certificate validation</span>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
