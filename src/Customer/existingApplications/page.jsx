@@ -35,30 +35,34 @@ const ExistingApplications = () => {
   const navigate = useNavigate();
   const [applications, setApplications] = useState([]);
   const [submissionLoading, setSubmissionLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterStatus, setFilterStatus] = useState("");
+  const [sortBy, setSortBy] = useState("date");
+  const [sortOrder, setSortOrder] = useState("desc");
+
   const statuses = [
     "Waiting for Verification",
     "Waiting for Payment",
     "Student Intake Form",
     "Upload Documents",
     "Sent to RTO",
-    "Certficated Generated",
+    "Certificate Generated",
     "Dispatched",
     "Completed",
   ];
 
   const [showCheckoutModal, setShowCheckoutModal] = useState(false);
-  const [loading, setLoading] = React.useState(true);
-
   const [price, setPrice] = useState(0);
   const [applicationId, setApplicationId] = useState("");
-
   const [partialScheme, setPartialScheme] = useState(false);
   const [paid, setPaid] = useState(false);
   const [payment1, setPayment1] = useState(0);
   const [payment2, setPayment2] = useState(0);
   const [full_paid, setFullPaid] = useState(false);
 
-  React.useEffect(() => {
+  useEffect(() => {
     setTimeout(() => {
       setLoading(false);
     }, 0);
@@ -137,13 +141,16 @@ const ExistingApplications = () => {
 
   const getUserApplications = async (userId) => {
     setSubmissionLoading(true);
+    setIsRefreshing(true);
     try {
       const response = await getApplications(userId);
       console.log(response);
       setApplications(response);
-      setSubmissionLoading(false);
     } catch (error) {
       console.log(error);
+    } finally {
+      setSubmissionLoading(false);
+      setIsRefreshing(false);
     }
   };
 
@@ -178,168 +185,497 @@ const ExistingApplications = () => {
     return cleanPrice - discount;
   };
 
+  // Filter and sort applications
+  const filteredApplications = applications
+    .filter((app) => {
+      // Apply search filter
+      const searchLower = searchTerm.toLowerCase();
+      const appIdMatch =
+        app.applicationId?.toLowerCase().includes(searchLower) || false;
+      const industryMatch =
+        app.initialForm?.industry?.toLowerCase().includes(searchLower) || false;
+      const qualificationMatch =
+        app.initialForm?.lookingForWhatQualification
+          ?.toLowerCase()
+          .includes(searchLower) || false;
+      const statusMatch =
+        app.currentStatus?.toLowerCase().includes(searchLower) || false;
+
+      // Apply status filter
+      const statusFilterMatch = filterStatus
+        ? app.currentStatus === filterStatus
+        : true;
+
+      return (
+        (appIdMatch || industryMatch || qualificationMatch || statusMatch) &&
+        statusFilterMatch
+      );
+    })
+    .sort((a, b) => {
+      // Apply sorting
+      if (sortBy === "date") {
+        const dateA =
+          a.status && a.status[0]?.time
+            ? new Date(a.status[0].time)
+            : new Date(0);
+        const dateB =
+          b.status && b.status[0]?.time
+            ? new Date(b.status[0].time)
+            : new Date(0);
+        return sortOrder === "asc" ? dateA - dateB : dateB - dateA;
+      } else if (sortBy === "status") {
+        return sortOrder === "asc"
+          ? (a.currentStatus || "").localeCompare(b.currentStatus || "")
+          : (b.currentStatus || "").localeCompare(a.currentStatus || "");
+      } else if (sortBy === "price") {
+        const priceA = parseFloat(a.price?.toString().replace(/,/g, "") || 0);
+        const priceB = parseFloat(b.price?.toString().replace(/,/g, "") || 0);
+        return sortOrder === "asc" ? priceA - priceB : priceB - priceA;
+      }
+      return 0;
+    });
+
+  // Function to get status color and icon
+  const getStatusDisplay = (status) => {
+    switch (status) {
+      case "Waiting for Verification":
+        return {
+          bgColor: "bg-yellow-300",
+          textColor: "text-black",
+          icon: <BsClock className="text-black" />,
+        };
+      case "Waiting for Payment":
+        return {
+          bgColor: "bg-green-400",
+          textColor: "text-white",
+          icon: <BsClock className="text-white" />,
+        };
+      case "Student Intake Form":
+        return {
+          bgColor: "bg-blue-900",
+          textColor: "text-white",
+          icon: <BiUser className="text-white" />,
+        };
+      case "Upload Documents":
+        return {
+          bgColor: "bg-red-900",
+          textColor: "text-white",
+          icon: <BiUpload className="text-white" />,
+        };
+      case "Certificate Generated":
+        return {
+          bgColor: "bg-primary",
+          textColor: "text-white",
+          icon: <FaCertificate className="text-white" />,
+        };
+      case "Sent to RTO":
+      case "Sent to Assessor":
+        return {
+          bgColor: "bg-red-800",
+          textColor: "text-white",
+          icon: <BsArrowUpRight className="text-white" />,
+        };
+      case "Completed":
+        return {
+          bgColor: "bg-green-500",
+          textColor: "text-white",
+          icon: <BiCheck className="text-white" />,
+        };
+      default:
+        return {
+          bgColor: "bg-gray-500",
+          textColor: "text-white",
+          icon: <BiCheck className="text-white" />,
+        };
+    }
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return "N/A";
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  };
+
+  // Function to toggle sort order
+  const handleSort = (field) => {
+    if (sortBy === field) {
+      setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+    } else {
+      setSortBy(field);
+      setSortOrder("desc");
+    }
+  };
+
   return (
-    <div>
+    <div className="min-h-screen bg-gray-50">
       {loading && <Loader />}
       {submissionLoading && <SpinnerLoader />}
       <Navbar />
-      <div className="p-3 lg:p-20 overflow-x-auto">
-        <div className="flex items-center gap-4 mb-5 lg:flex-row flex-col max-sm:mt-24">
-          <img src={applicationsimg} alt="Applications" className="h-36" />
-          <div className="flex flex-col lg:w-1/2 w-full">
-            <h1 className="text-3xl font-bold max-sm:text-xl">Applications</h1>
-            <p className="text-sm mt-2">
-              Here you can view all the applications and their statuses.
+
+      <div className="container mx-auto p-4 lg:p-8 mt-20">
+        <div className="flex items-center gap-4 mb-6 lg:flex-row flex-col max-sm:mt-24">
+          <img
+            src={applicationsimg}
+            alt="Applications"
+            className="h-24 lg:h-36"
+          />
+          <div className="flex flex-col w-full">
+            <h1 className="text-3xl font-bold max-sm:text-2xl text-gray-800">
+              My Applications
+            </h1>
+            <p className="text-sm mt-2 text-gray-600">
+              View and manage all your qualification applications in one place.
             </p>
           </div>
         </div>
-        <div className="w-full flex justify-between items-center gap-4 mb-10">
-          <button
-            className="btn btn-sm text-white btn-primary"
-            onClick={() => navigate("/new-application")}
-          >
-            <BiEnvelopeOpen />
-            New Application
-          </button>
-          <button
-            className="btn btn-sm text-white btn-primary"
-            onClick={() => getUserApplications(userId)}
-          >
-            Refresh
-          </button>
-        </div>
-        <div className="max-sm:max-w-[500px] overflow-y-auto overflow-x-auto border border-gray-300 rounded-md p-3">
-          <div className="table mx-auto max-sm:overflow-x-auto">
-            <div className="table-row-group">
-              <div className="table-row bg-gray-200">
-                <div className="table-cell font-semibold p-5 min-w-40">
-                  Application ID
-                </div>
-                <div className="table-cell font-semibold min-w-40">
-                  Date Created
-                </div>
-                <div className="table-cell font-semibold w-52 text-center">
-                  Certificate
-                </div>
-                <div className="table-cell font-semibold min-w-40 text-center">
-                  Industry
-                </div>
-                <div className="table-cell font-semibold text-center min-w-96">
-                  Status
-                </div>
-                <div className="table-cell font-semibold text-center min-w-40">
-                  Payment Status
-                </div>
 
-                <div className="table-cell font-semibold  text-center">
-                  Actions
+        {/* Legend */}
+        <div className="bg-white rounded-lg shadow p-4 mb-6">
+          <h3 className="text-gray-700 font-medium mb-3">
+            Application Status Guide
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="flex items-center gap-2 p-2 rounded bg-gray-50">
+              <BiCheckCircle className="text-green-500 text-xl" />
+              <div>
+                <p className="font-medium">Paid</p>
+                <p className="text-xs text-gray-500">Payment complete</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 p-2 rounded bg-gray-50">
+              <FaTimesCircle className="text-red-500 text-xl" />
+              <div>
+                <p className="font-medium">Unpaid</p>
+                <p className="text-xs text-gray-500">Payment pending</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 p-2 rounded bg-gray-50">
+              <div className="flex items-center justify-center w-5 h-5 rounded-full bg-primary text-white text-xs">
+                !
+              </div>
+              <div>
+                <p className="font-medium">Next Step</p>
+                <p className="text-xs text-gray-500">Required action</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Filters and Controls */}
+        <div className="bg-white rounded-lg shadow p-4 mb-6">
+          <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-4">
+            <div className="flex gap-3">
+              <button
+                className="btn btn-sm text-white btn-primary flex items-center gap-2 shadow-md hover:shadow-lg transition-all"
+                onClick={() => navigate("/new-application")}
+              >
+                <BiEnvelopeOpen />
+                New Application
+              </button>
+              <button
+                className={`btn btn-sm ${
+                  isRefreshing ? "bg-gray-400" : "btn-outline btn-primary"
+                } flex items-center gap-2 shadow hover:shadow-md transition-all`}
+                onClick={() => getUserApplications(userId)}
+                disabled={isRefreshing}
+              >
+                <svg
+                  className={`w-4 h-4 ${isRefreshing ? "animate-spin" : ""}`}
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                  />
+                </svg>
+                {isRefreshing ? "Refreshing..." : "Refresh"}
+              </button>
+            </div>
+            <div className="flex flex-col lg:flex-row gap-3 w-full lg:w-auto">
+              <div className="relative flex-grow lg:min-w-[250px]">
+                <input
+                  type="text"
+                  placeholder="Search applications..."
+                  className="input input-bordered w-full pr-10 shadow-sm focus:shadow transition-shadow"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+                <div className="absolute inset-y-0 right-3 flex items-center">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-5 w-5 text-gray-400"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                    />
+                  </svg>
                 </div>
               </div>
-              {applications.map((application) => (
+              <select
+                className="select select-bordered shadow-sm"
+                value={filterStatus}
+                onChange={(e) => setFilterStatus(e.target.value)}
+              >
+                <option value="">All Statuses</option>
+                {statuses.map((status) => (
+                  <option key={status} value={status}>
+                    {status}
+                  </option>
+                ))}
+              </select>
+              <div className="flex gap-2">
+                <select
+                  className="select select-bordered shadow-sm"
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                >
+                  <option value="date">Sort by Date</option>
+                  <option value="status">Sort by Status</option>
+                  <option value="price">Sort by Price</option>
+                </select>
+                <button
+                  className="btn btn-square btn-sm shadow hover:shadow-md transition-all"
+                  onClick={() =>
+                    setSortOrder(sortOrder === "asc" ? "desc" : "asc")
+                  }
+                >
+                  {sortOrder === "asc" ? "↑" : "↓"}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex justify-between items-center mt-2">
+            <div className="text-sm text-gray-500">
+              {filteredApplications.length} application
+              {filteredApplications.length !== 1 ? "s" : ""} found
+            </div>
+          </div>
+        </div>
+
+        {/* Applications Grid */}
+        {filteredApplications.length === 0 ? (
+          <div className="bg-white p-10 rounded-lg shadow text-center">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-16 w-16 mx-auto text-gray-400"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1}
+                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+              />
+            </svg>
+            <h3 className="mt-4 text-lg font-medium">No applications found</h3>
+            <p className="mt-1 text-gray-500">
+              {searchTerm || filterStatus
+                ? "Try adjusting your search or filter criteria"
+                : "Start by creating a new application"}
+            </p>
+            <button
+              className="btn btn-primary mt-4 shadow-md hover:shadow-lg transition-all"
+              onClick={() => navigate("/new-application")}
+            >
+              <BiEnvelopeOpen className="mr-2" />
+              Create New Application
+            </button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+            {filteredApplications.map((application) => {
+              const statusDisplay = getStatusDisplay(application.currentStatus);
+              const paymentStatus = application.partialScheme
+                ? application.full_paid
+                  ? true
+                  : false
+                : application.paid
+                ? true
+                : false;
+
+              // Determine primary action based on status
+              let primaryAction = null;
+              if (application.currentStatus === "Waiting for Verification") {
+                primaryAction = {
+                  label: "Verify Now",
+                  icon: <IoCall />,
+                  action: () => handleVerifyNow(application.id),
+                  color: "btn-primary",
+                };
+              } else if (application.currentStatus === "Student Intake Form") {
+                primaryAction = {
+                  label: "Fill Student Form",
+                  icon: <BiUser />,
+                  action: () => onClickStudentForm(application.id),
+                  color: "btn-primary",
+                };
+              } else if (application.currentStatus === "Upload Documents") {
+                primaryAction = {
+                  label: "Upload Documents",
+                  icon: <BiUpload />,
+                  action: () =>
+                    onClickUpload(
+                      application.id,
+                      application.initialForm.industry
+                    ),
+                  color: "btn-primary",
+                };
+              } else if (
+                application.currentStatus === "Certificate Generated" ||
+                application.currentStatus === "Completed"
+              ) {
+                primaryAction = {
+                  label: "Download Certificate",
+                  icon: <BiDownload />,
+                  action: () => onClickDownload(application.certificateId),
+                  color: "btn-primary",
+                };
+              }
+
+              return (
                 <div
                   key={application.id}
-                  className="table-row max-sm:overflow-x-auto"
+                  className="bg-white rounded-lg shadow overflow-hidden hover:shadow-lg transition-all duration-300"
                 >
-                  <div className="table-cell p-5">
-                    {application.applicationId
-                      ? application.applicationId
-                      : application.id}
-                  </div>
-                  <div className="table-cell">
-                    {application.status[0].time ? (
-                      application.status[0].time.split("T")[0]
-                    ) : (
-                      <span className="text-sm">N/A</span>
-                    )}
-                  </div>
-                  <div className="table-cell">
-                    {application.initialForm.lookingForWhatQualification}
-                  </div>
-                  <div className="table-cell text-center">
-                    {application.initialForm.industry}
-                  </div>
-                  <div className="w-full p-2 flex items-center justify-center sm:flex-col min-w-96">
-                    {application.currentStatus === "Sent to RTO" ? (
-                      application.paid ? (
-                        <div className="p-1 text rounded-full bg-red-600 text-white flex items-center justify-center w-2/3 gap-2">
-                          <BsArrowUpRight className="text-white" />
-                          Waiting Approval
-                        </div>
-                      ) : (
-                        <div
-                          className="p-1 rounded-full bg-red-700 text-white flex items-center justify-center w-2/3 gap-2"
-                          onClick={() =>
-                            onClickPayment(
-                              application.price,
-                              application.discount,
-                              application.id
-                            )
-                          }
-                        >
-                          <MdPayment className="text-white" />
-                          Payment Awaiting
-                        </div>
-                      )
-                    ) : application.currentStatus ===
-                      "Waiting for Verification" ? (
-                      <div className="p-1 rounded-full bg-yellow-300 text-black flex items-center justify-center w-2/3 gap-2">
-                        <BsClock className="text-black" />
+                  {/* Card Header */}
+                  <div className="bg-gray-100 p-5 border-b border-gray-200">
+                    <div className="flex justify-between items-start mb-3">
+                      <h3 className="font-bold text-xl text-primary">
+                        #{application.applicationId || application.id}
+                      </h3>
+                      <div className="flex items-center">
+                        {paymentStatus ? (
+                          <div className="flex items-center bg-green-100 text-green-800 text-xs font-semibold px-2 py-1 rounded-full">
+                            <BiCheckCircle className="text-green-600 mr-1" />
+                            PAID
+                          </div>
+                        ) : (
+                          <div className="flex items-center bg-red-100 text-red-800 text-xs font-semibold px-2 py-1 rounded-full">
+                            <FaTimesCircle className="text-red-600 mr-1" />
+                            UNPAID
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex justify-between items-center">
+                      <div className="text-sm text-gray-600">
+                        Created: {formatDate(application.status?.[0]?.time)}
+                      </div>
+
+                      {/* Current Status Tag */}
+                      <div
+                        className={`px-3 py-1 rounded-md text-xs font-medium ${statusDisplay.bgColor} ${statusDisplay.textColor}`}
+                      >
                         {application.currentStatus}
                       </div>
-                    ) : application.currentStatus === "Waiting for Payment" ? (
-                      <div className="p-1 rounded-full bg-green-400 text-white flex items-center justify-center w-2/3 gap-2">
-                        <BsClock className="text-white" />
-                        <p className="text-white">Payment Awaiting</p>
-                      </div>
-                    ) : application.currentStatus === "Student Intake Form" ? (
-                      <div className="p-1 rounded-full bg-blue-900 text-white flex items-center justify-center w-2/3 gap-2">
-                        <BiUser className="text-white" />
-                        {application.currentStatus}
-                      </div>
-                    ) : application.currentStatus === "Upload Documents" ? (
-                      <div className="p-1 rounded-full bg-red-900 text-white flex items-center justify-center w-2/3 gap-2">
-                        <BiUpload className="text-white" />
-                        {application.currentStatus}
-                      </div>
-                    ) : application.currentStatus ===
-                      "Certificate Generated" ? (
-                      <div className="p-1 rounded-full bg-primary text-white flex items-center justify-center w-2/3 gap-2">
-                        <FaCertificate className="text-white" />
-                        {application.currentStatus}
-                      </div>
-                    ) : application.currentStatus === "Sent to Assessor" ? (
-                      <div className="p-1 rounded-full bg-red-800 text-white flex items-center justify-center w-2/3 gap-2">
-                        <BsArrowUpRight className="text-white" />
-                        Waiting Approval
-                      </div>
-                    ) : (
-                      application.currentStatus === "Completed" && (
-                        <div className="p-1 rounded-full bg-green-500 text-white flex items-center justify-center w-2/3 gap-2">
-                          <BiCheck className="text-white" />
-                          {application.currentStatus}
-                        </div>
-                      )
-                    )}
-                  </div>
-                  <div className="table-cell p-2">
-                    {application.partialScheme ? (
-                      application.full_paid ? (
-                        <BiCheckCircle className="text-green-500 text-xl text-center w-full" />
-                      ) : (
-                        <FaTimesCircle className="text-red-500 text-xl text-center w-full" />
-                      )
-                    ) : application.paid ? (
-                      <BiCheckCircle className="text-green-500 text-xl text-center w-full" />
-                    ) : (
-                      <FaTimesCircle className="text-red-500 text-xl text-center w-full" />
-                    )}
+                    </div>
                   </div>
 
-                  <div className="flex  justify-center flex-col gap-2 w-40">
-                    {application.currentStatus === "Sent to RTO" ? (
-                      application.paid === false ? (
+                  {/* Card Body */}
+                  <div className="p-6">
+                    {/* Application Details */}
+                    <div className="grid grid-cols-2 gap-x-4 gap-y-5 mb-6">
+                      <div>
+                        <p className="text-gray-500 text-sm mb-1">Industry</p>
+                        <p className="font-medium">
+                          {application.initialForm?.industry || "N/A"}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-gray-500 text-sm mb-1">
+                          Qualification
+                        </p>
+                        <p
+                          className="font-medium truncate"
+                          title={
+                            application.initialForm?.lookingForWhatQualification
+                          }
+                        >
+                          {application.initialForm
+                            ?.lookingForWhatQualification || "N/A"}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-gray-500 text-sm mb-1">Price</p>
+                        <p className="font-medium flex items-center">
+                          <span>
+                            $
+                            {application.price
+                              ? parseFloat(application.price).toLocaleString()
+                              : "0"}
+                          </span>
+                          {application.discount ? (
+                            <span className="text-green-600 text-xs ml-2 bg-green-50 px-2 py-0.5 rounded">
+                              - $
+                              {parseFloat(
+                                application.discount
+                              ).toLocaleString()}{" "}
+                              Discount
+                            </span>
+                          ) : null}
+                        </p>
+                      </div>
+                      {application.partialScheme && (
+                        <div>
+                          <p className="text-gray-500 text-sm mb-1">
+                            Payment Plan
+                          </p>
+                          <p className="font-medium">
+                            ${application.payment1 || 0} + $
+                            {application.payment2 || 0}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Next Step Section */}
+                    {primaryAction && (
+                      <div className="border-t border-b border-gray-100 py-4 mb-5">
+                        <div className="flex justify-between items-center mb-2">
+                          <p className="font-medium flex items-center">
+                            <span className="flex items-center justify-center mr-2 w-5 h-5 rounded-full bg-primary text-white text-xs">
+                              !
+                            </span>
+                            Next Step:
+                          </p>
+                          <p className="text-sm text-gray-500">
+                            {application.currentStatus}
+                          </p>
+                        </div>
                         <button
-                          className="btn btn-sm text-white btn-primary"
+                          className={`btn ${primaryAction.color} w-full text-white flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all`}
+                          onClick={primaryAction.action}
+                        >
+                          {primaryAction.icon} {primaryAction.label}
+                        </button>
+                      </div>
+                    )}
+
+                    {/* Action Buttons */}
+                    <div className="grid grid-cols-1 gap-3">
+                      {/* Payment Button */}
+                      {!paymentStatus && (
+                        <button
+                          className="btn btn-success w-full text-white flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all"
                           onClick={() =>
                             onClickPayment(
                               application.price,
@@ -354,104 +690,27 @@ const ExistingApplications = () => {
                             )
                           }
                         >
-                          Pay Now
+                          <MdPayment className="text-lg" /> Make Payment
                         </button>
-                      ) : null
-                    ) : null}
-                    {application.paid === false &&
-                    application.currentStatus !== "Sent to RTO" ? (
-                      <button
-                        className="btn btn-sm text-white btn-primary"
-                        onClick={() =>
-                          onClickPayment(
-                            application.price,
-                            application.discount,
-                            application.id,
-                            application.userId,
-                            application.partialScheme,
-                            application.paid,
-                            application.payment1,
-                            application.payment2,
-                            application.full_paid
-                          )
-                        }
-                      >
-                        Pay Now
-                      </button>
-                    ) : null}
-                    {application.currentStatus ===
-                    "Waiting for Verification" ? null : application.currentStatus === // ) //   </button> //     Verify Now //     <IoCall /> //   <button onClick={() => handleVerifyNow(application.id)}> //    ( //   className="btn btn-sm text-white btn-primary"
-                      "Student Intake Form" ? (
-                      <>
-                        <button
-                          className="btn btn-sm text-white btn-primary"
-                          onClick={() => onClickStudentForm(application.id)}
-                        >
-                          Fill Form
-                        </button>
-                      </>
-                    ) : application.currentStatus === "Upload Documents" ? (
-                      <button
-                        className="btn btn-sm text-white btn-primary"
-                        onClick={() =>
-                          onClickUpload(
-                            application.id,
-                            application.initialForm.industry
-                          )
-                        }
-                      >
-                        <BiUpload className="max-sm:hidden" /> Upload
-                      </button>
-                    ) : application.currentStatus ===
-                      "Certificate Generated" ? (
-                      <button
-                        className="btn btn-sm text-white btn-primary"
-                        onClick={() =>
-                          onClickDownload(application.certificateId)
-                        }
-                      >
-                        <BiDownload /> Download
-                      </button>
-                    ) : application.currentStatus === "Dispatched" ? (
-                      <div className="flex gap-2 max-sm:flex-col">
-                        <button className="btn btn-sm text-white btn-primary">
-                          <CgTrack /> Track
-                        </button>
-                        <button className="btn btn-sm text-white btn-primary">
-                          <BiDownload /> Download
-                        </button>
-                      </div>
-                    ) : (
-                      application.currentStatus === "Completed" && (
-                        <div className="flex gap-2 max-sm:flex-col">
-                          <button
-                            className="btn btn-sm text-white btn-primary"
-                            onClick={() =>
-                              onClickDownload(application.certificateId)
-                            }
-                          >
-                            <BiDownload /> Download
-                          </button>
-                          <button className="btn btn-sm text-white btn-primary">
-                            <BsEye /> View
-                          </button>
-                        </div>
-                      )
-                    )}
+                      )}
 
-                    <Link
-                      to={`/view-application/${application.userId}/${application.id}`}
-                      className="btn btn-sm text-white btn-primary"
-                    >
-                      View Application
-                    </Link>
+                      {/* View Application Button */}
+                      <Link
+                        to={`/view-application/${application.userId}/${application.id}`}
+                        className="btn btn-outline w-full flex items-center justify-center gap-2 shadow-sm hover:shadow transition-all"
+                      >
+                        <BsEye /> View Complete Details
+                      </Link>
+                    </div>
                   </div>
                 </div>
-              ))}
-            </div>
+              );
+            })}
           </div>
-        </div>
+        )}
       </div>
+
+      {/* Payment Modal */}
       {showCheckoutModal && (
         <div className="modal modal-open">
           <div className="modal-box max-w-lg">
@@ -481,6 +740,7 @@ const ExistingApplications = () => {
           </div>
         </div>
       )}
+
       <Footer />
     </div>
   );
