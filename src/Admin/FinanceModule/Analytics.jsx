@@ -12,11 +12,17 @@ import {
 import SpinnerLoader from "../../Customer/components/spinnerLoader";
 import toast from "react-hot-toast";
 import { Toaster } from "react-hot-toast";
-import { FaDollarSign } from "react-icons/fa";
-import { BiMoney } from "react-icons/bi";
-import { MdPayments } from "react-icons/md";
-import { IoWalletOutline } from "react-icons/io5";
 import analyticsImg from "../../assets/applications.png";
+
+// Import Lucide React icons for consistent styling
+import {
+  DollarSign,
+  Wallet,
+  TrendingUp,
+  TrendingDown,
+  BarChart3,
+  Calendar,
+} from "lucide-react";
 
 const URL = import.meta.env.VITE_REACT_BACKEND_URL;
 
@@ -60,7 +66,7 @@ const Analytics = () => {
 
       // Calculate total payments
       const totalPayment = filteredApplications.reduce((sum, app) => {
-        let CleanPrice = app.price.replace(/[^0-9.-]+/g, "");
+        let CleanPrice = app.price?.replace(/[^0-9.-]+/g, "") || 0;
         let price = app.partialScheme ? app.amount_paid : CleanPrice;
         //convert to int
         return sum + parseFloat(price || 0);
@@ -167,93 +173,132 @@ const Analytics = () => {
     calculateMetrics(selectedMonth);
   }, [selectedMonth]);
 
-  const StatCard = ({ title, value, icon: Icon, color }) => (
-    <div className={`bg-white p-6 rounded-lg shadow-md border-l-4 ${color}`}>
+  const StatCard = ({
+    title,
+    value,
+    icon: Icon,
+    color,
+    bgColor,
+    textColor,
+  }) => (
+    <div
+      className={`bg-white rounded-xl shadow-sm border border-${color}-50 p-6`}
+    >
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-sm text-gray-500 mb-1">{title}</p>
-          <p className="text-2xl font-bold">${value.toFixed(2)}</p>
+          <p className={`text-sm text-${textColor}-600 font-medium mb-1`}>
+            {title}
+          </p>
+          <p className={`text-2xl font-bold text-${textColor}-800`}>
+            ${value.toFixed(2)}
+          </p>
         </div>
-        <div
-          className={`p-3 rounded-full ${color
-            .replace("border-", "bg-")
-            .replace("500", "100")}`}
-        >
-          <Icon className={`text-xl ${color.replace("border-", "text-")}`} />
+        <div className={`p-3 rounded-lg bg-${bgColor}-50`}>
+          <Icon className={`h-6 w-6 text-${color}-600`} />
         </div>
       </div>
     </div>
   );
 
   return (
-    <div className="p-3">
+    <div className="min-h-screen bg-gray-50 p-4 md:p-8 xl:p-10 w-full animate-fade">
       {submissionLoading && <SpinnerLoader />}
       <Toaster />
 
-      <div className="flex items-center gap-4 mb-5 lg:flex-row flex-col">
-        <img src={analyticsImg} alt="Analytics" className="h-36" />
-        <div className="flex flex-col lg:w-1/2 w-full">
-          <h1 className="text-3xl font-bold">Financial Analytics</h1>
-          <p className="text-sm mt-2">
-            Track and analyze your financial metrics over time.
-          </p>
+      {/* Header Section */}
+      <div className="bg-gradient-to-r from-green-800 to-green-600 rounded-xl shadow-md mb-6">
+        <div className="flex items-center gap-6 flex-col sm:flex-row p-6">
+          <div className="bg-white p-4 rounded-full flex-shrink-0">
+            <img
+              src={analyticsImg}
+              alt="Analytics"
+              className="h-16 w-16 object-contain"
+            />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-white">
+              Financial Analytics
+            </h1>
+            <p className="text-green-100 mt-1">
+              Track and analyze your financial metrics over time
+            </p>
+          </div>
         </div>
       </div>
 
-      <div className="mb-6">
-        <label className="text-sm font-medium text-gray-700">
-          Select Time Period
-        </label>
-        <select
-          className="mt-1 block w-64 p-2 border border-gray-300 rounded-md shadow-sm"
-          value={selectedMonth}
-          onChange={(e) => setSelectedMonth(e.target.value)}
-        >
-          <option value="all">All Time</option>
-          {monthlyData.map((data) => (
-            <option key={data.month} value={data.month}>
-              {new Date(data.month + "-01").toLocaleString("default", {
-                month: "long",
-                year: "numeric",
-              })}
-            </option>
-          ))}
-        </select>
+      {/* Time Period Selector */}
+      <div className="bg-white rounded-xl shadow-sm p-6 border border-green-50 mb-6">
+        <div className="flex items-center">
+          <Calendar className="mr-2 text-green-700" size={20} />
+          <label className="text-sm font-medium text-gray-700 mr-4">
+            Select Time Period
+          </label>
+          <select
+            className="block w-64 p-2 border border-gray-200 rounded-md shadow-sm focus:ring-2 focus:ring-green-500 focus:border-green-500"
+            value={selectedMonth}
+            onChange={(e) => setSelectedMonth(e.target.value)}
+          >
+            <option value="all">All Time</option>
+            {monthlyData.map((data) => (
+              <option key={data.month} value={data.month}>
+                {new Date(data.month + "-01").toLocaleString("default", {
+                  month: "long",
+                  year: "numeric",
+                })}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <StatCard
           title="Total Payments"
           value={metrics.totalPayment}
-          icon={MdPayments}
-          color="border-blue-500"
+          icon={Wallet}
+          color="green"
+          bgColor="green"
+          textColor="green"
         />
         <StatCard
           title="Total Profit"
           value={metrics.totalProfit}
-          icon={FaDollarSign}
-          color="border-green-500"
+          icon={TrendingUp}
+          color="green"
+          bgColor="green"
+          textColor="green"
         />
         <StatCard
           title="Total Expenses"
           value={metrics.totalExpense}
-          icon={BiMoney}
-          color="border-red-500"
+          icon={TrendingDown}
+          color="red"
+          bgColor="red"
+          textColor="red"
         />
         <StatCard
           title="This Month's Profit"
           value={metrics.currentMonthProfit}
-          icon={IoWalletOutline}
-          color="border-purple-500"
+          icon={DollarSign}
+          color="yellow"
+          bgColor="yellow"
+          textColor="yellow"
         />
       </div>
 
-      <div className="bg-white p-6 rounded-lg shadow-md">
-        <h2 className="text-xl font-semibold mb-4">Financial Trends</h2>
+      {/* Chart */}
+      <div className="bg-white rounded-xl shadow-sm p-6 border border-green-50">
+        <div className="flex items-center mb-4">
+          <BarChart3 className="mr-2 text-green-700" size={20} />
+          <h2 className="text-lg font-semibold text-gray-800">
+            Financial Trends
+          </h2>
+        </div>
         <div className="h-[400px]">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={monthlyData}>
-              <CartesianGrid strokeDasharray="3 3" />
+              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
               <XAxis
                 dataKey="month"
                 tickFormatter={(value) => {
@@ -263,8 +308,9 @@ const Analytics = () => {
                     year: "2-digit",
                   });
                 }}
+                stroke="#6b7280"
               />
-              <YAxis />
+              <YAxis stroke="#6b7280" />
               <Tooltip
                 formatter={(value) => [`$${value.toFixed(2)}`, null]}
                 labelFormatter={(label) => {
@@ -274,24 +320,37 @@ const Analytics = () => {
                     year: "numeric",
                   });
                 }}
+                contentStyle={{
+                  backgroundColor: "rgba(255, 255, 255, 0.96)",
+                  borderRadius: "6px",
+                  boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
+                  border: "none",
+                  padding: "12px",
+                }}
               />
               <Legend />
               <Line
                 type="monotone"
                 dataKey="payments"
-                stroke="#3B82F6"
+                stroke="#047857"
+                strokeWidth={2}
+                activeDot={{ r: 6 }}
                 name="Payments"
               />
               <Line
                 type="monotone"
                 dataKey="expenses"
-                stroke="#EF4444"
+                stroke="#ef4444"
+                strokeWidth={2}
+                activeDot={{ r: 6 }}
                 name="Expenses"
               />
               <Line
                 type="monotone"
                 dataKey="profit"
-                stroke="#10B981"
+                stroke="#10b981"
+                strokeWidth={3}
+                activeDot={{ r: 8 }}
                 name="Profit"
               />
             </LineChart>

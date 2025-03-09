@@ -1,15 +1,39 @@
 import React, { useState, useEffect } from "react";
-import { GoVerified } from "react-icons/go";
-import paymentsimg from "../../assets/payments.png";
-import {
-  getApplications,
-  markApplicationAsPaid,
-} from "../../Customer/Services/adminServices";
-import toast from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
+import toast, { Toaster } from "react-hot-toast";
+import { getApplications } from "../../Customer/Services/adminServices";
 import SpinnerLoader from "../../Customer/components/spinnerLoader";
-import { Toaster } from "react-hot-toast";
+import {
+  FaFileDownload,
+  FaFilter,
+  FaChartBar,
+  FaChevronDown,
+} from "react-icons/fa";
+import { BiRefresh, BiTime } from "react-icons/bi";
+import { HiOutlineSearch } from "react-icons/hi";
+import { AiOutlineFileSearch } from "react-icons/ai";
+import {
+  MdPayment,
+  MdAttachMoney,
+  MdLocalAtm,
+  MdOutlinePayments,
+} from "react-icons/md";
+import { BsCalendarCheck, BsWallet2 } from "react-icons/bs";
+import paymentsimg from "../../assets/payments.png";
 
-const PaymentApproval = () => {
+const PaymentsPage = () => {
+  const navigate = useNavigate();
+  const [applications, setApplications] = useState([]);
+  const [filteredApplications, setFilteredApplications] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [submissionLoading, setSubmissionLoading] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [sortBy, setSortBy] = useState("date");
+  const [sortDirection, setSortDirection] = useState("desc");
+  const [activeFilter, setActiveFilter] = useState("All Payments");
+  const [showFiltersPanel, setShowFiltersPanel] = useState(false);
+
+  // Payment status options for filtering
   const statuses = [
     "All Payments",
     "Payments Completed",
@@ -17,13 +41,10 @@ const PaymentApproval = () => {
     "Partial Payment",
   ];
 
-  const [activeFilter, setActiveFilter] = useState("Waiting for Payment");
-  const paymentSuccess = () => toast.success("Payment approved successfully");
-  const paymentError = () => toast.error("Failed to approve payment");
-  const [applications, setApplications] = useState([]);
-  const [unpaidApplications, setUnpaidApplications] = useState([]);
-  const [submissionLoading, setSubmissionLoading] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
+  // Fetch applications which contain payment information
+  useEffect(() => {
+    fetchApplications();
+  }, []);
 
   const fetchApplications = async () => {
     setSubmissionLoading(true);
@@ -34,39 +55,16 @@ const PaymentApproval = () => {
         return new Date(b.status[0].time) - new Date(a.status[0].time);
       });
       setApplications(sortedApplications);
-      setUnpaidApplications(
-        sortedApplications.filter(
-          (application) => application.currentStatus === "Waiting for Payment"
-        )
-      );
+      setFilteredApplications(sortedApplications);
       setSubmissionLoading(false);
     } catch (err) {
-      console.log(err);
+      console.error("Error fetching applications:", err);
+      toast.error("Failed to fetch payment data");
       setSubmissionLoading(false);
     }
   };
 
-  useEffect(() => {
-    fetchApplications();
-  }, []);
-
-  const [application, setApplication] = useState({});
-  const [showModal, setShowModal] = useState(false);
-
-  const onClick = (application) => {
-    setApplication(application);
-    setShowModal(true);
-  };
-
-  const approvePayment = async (id) => {
-    const response = await markApplicationAsPaid(id);
-    if (response) {
-      paymentSuccess();
-      fetchApplications();
-      setShowModal(false);
-    }
-  };
-
+  // Apply filters based on status and search term
   useEffect(() => {
     let filtered = [...applications];
 
@@ -77,183 +75,770 @@ const PaymentApproval = () => {
       filtered = filtered.filter((application) => application.paid === false);
     } else if (activeFilter === "Partial Payment") {
       filtered = filtered.filter(
-        (application) => application.partialScheme || application.amount_paid
+        (application) =>
+          application.partialScheme &&
+          application.paid &&
+          !application.full_paid
       );
     }
 
     // Apply search filter
     if (searchTerm.trim()) {
       const searchLower = searchTerm.toLowerCase();
-      filtered = filtered.filter((application) =>
-        (application.user.firstName + " " + application.user.lastName)
-          .toLowerCase()
-          .includes(searchLower)
+      filtered = filtered.filter(
+        (application) =>
+          (application.user?.firstName + " " + application.user?.lastName)
+            ?.toLowerCase()
+            .includes(searchLower) ||
+          application.applicationId?.toLowerCase().includes(searchLower) ||
+          (application.isf?.lookingForWhatQualification || "")
+            ?.toLowerCase()
+            .includes(searchLower)
       );
     }
 
-    setUnpaidApplications(filtered);
-  }, [activeFilter, applications, searchTerm]);
+    // Sort applications
+    filtered = filtered.sort((a, b) => {
+      if (sortBy === "date") {
+        return sortDirection === "asc"
+          ? new Date(a.status[0].time) - new Date(b.status[0].time)
+          : new Date(b.status[0].time) - new Date(a.status[0].time);
+      } else if (sortBy === "amount") {
+        const aPrice = parseFloat(a.price?.toString().replace(/,/g, "") || 0);
+        const bPrice = parseFloat(b.price?.toString().replace(/,/g, "") || 0);
+        return sortDirection === "asc" ? aPrice - bPrice : bPrice - aPrice;
+      } else if (sortBy === "name") {
+        const aName = a.user?.firstName + " " + a.user?.lastName || "";
+        const bName = b.user?.firstName + " " + b.user?.lastName || "";
+        return sortDirection === "asc"
+          ? aName.localeCompare(bName)
+          : bName.localeCompare(aName);
+      }
+      return 0;
+    });
 
-  const calculateDiscountedPrice = (price, discount) => {
-    if (!price) return 0;
-    if (!discount) return "N/A";
-    const cleanPrice = parseFloat(price.toString().replace(/,/g, ""));
-    return cleanPrice - discount;
+    setFilteredApplications(filtered);
+  }, [activeFilter, applications, searchTerm, sortBy, sortDirection]);
+
+  // Format date in a user-friendly way
+  const formatDate = (dateString) => {
+    if (!dateString) return "N/A";
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return "Invalid Date";
+
+      const day = String(date.getDate()).padStart(2, "0");
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const year = date.getFullYear();
+
+      return `${day}/${month}/${year}`;
+    } catch (error) {
+      return "Error";
+    }
+  };
+
+  const parseFloatTogetPrice = (price) => {
+    return parseFloat(price.toString().replace(/,/g, ""));
+  };
+  // Calculate payment statistics for KPIs
+  const calculateStats = () => {
+    const totalApplications = applications.length;
+    const completedPayments = applications.filter(
+      (app) => app.paid && !app.partialScheme
+    ).length;
+    const partialPayments = applications.filter(
+      (app) => app.partialScheme && app.paid && !app.full_paid
+    ).length;
+    const fullPaidPayments = applications.filter(
+      (app) => app.partialScheme && app.full_paid
+    ).length;
+    const pendingPayments = applications.filter((app) => !app.paid).length;
+
+    // Calculate total revenue
+    let totalRevenue = 0;
+    applications.forEach((app) => {
+      if (app.paid) {
+        if (app.discount) {
+          // If there's a discount
+          const price = parseFloatTogetPrice(app.price);
+          totalRevenue += price - app.discount;
+        } else if (app.partialScheme) {
+          // If it's a partial payment scheme
+          if (app.full_paid) {
+            // Both payments made
+            totalRevenue +=
+              (parseFloatTogetPrice(app.payment1) || 0) +
+              (parseFloatTogetPrice(app.payment2) || 0);
+          } else {
+            // Only first payment made
+            totalRevenue += parseFloatTogetPrice(app.payment1);
+          }
+        } else {
+          // Regular full payment
+          totalRevenue += parseFloat(
+            app.price?.toString().replace(/,/g, "") || 0
+          );
+        }
+      }
+    });
+
+    console.log("Total Revenue:", totalRevenue);
+
+    return {
+      totalApplications,
+      completedPayments,
+      partialPayments,
+      fullPaidPayments,
+      pendingPayments,
+      totalRevenue: totalRevenue.toFixed(2),
+    };
+  };
+
+  const stats = calculateStats();
+
+  // Format currency
+  const formatCurrency = (amount) => {
+    if (amount === undefined || amount === null) return "N/A";
+
+    return new Intl.NumberFormat("en-AU", {
+      style: "currency",
+      currency: "AUD",
+      minimumFractionDigits: 2,
+    }).format(amount);
+  };
+
+  // Calculate discounted price or show correct amount based on payment scheme
+  const calculateFinalPrice = (application) => {
+    if (!application.price) return "N/A";
+
+    if (application.discount) {
+      const cleanPrice = parseFloat(
+        application.price.toString().replace(/,/g, "")
+      );
+      return formatCurrency(cleanPrice - application.discount);
+    }
+
+    return formatCurrency(
+      parseFloat(application.price.toString().replace(/,/g, ""))
+    );
+  };
+
+  // Determine amount paid based on payment scheme
+  const getAmountPaid = (application) => {
+    if (!application.paid) return formatCurrency(0);
+
+    if (application.partialScheme) {
+      if (application.full_paid) {
+        return `${formatCurrency(
+          application.payment1 + application.payment2
+        )} (Full)`;
+      } else {
+        return `${formatCurrency(application.payment1)} (Partial)`;
+      }
+    }
+
+    if (application.discount) {
+      const cleanPrice = parseFloat(
+        application.price.toString().replace(/,/g, "")
+      );
+      return formatCurrency(cleanPrice - application.discount);
+    }
+
+    return formatCurrency(
+      parseFloat(application.price.toString().replace(/,/g, ""))
+    );
+  };
+
+  // Get payment status display text
+  const getPaymentStatus = (application) => {
+    if (application.paid) {
+      if (application.partialScheme) {
+        return application.full_paid ? "Fully Paid" : "Partial Paid";
+      }
+      return "Paid";
+    }
+    return "Not Paid";
+  };
+
+  // Get payment status class for styling
+  const getStatusClass = (application) => {
+    if (application.paid) {
+      if (application.partialScheme && !application.full_paid) {
+        return "bg-yellow-100 text-yellow-800";
+      }
+      return "bg-green-100 text-green-800";
+    }
+    return "bg-red-100 text-red-800";
+  };
+
+  // Export payments to CSV
+  const exportPayments = () => {
+    // Create CSV content
+    const headers = [
+      "Application ID",
+      "Date",
+      "Customer",
+      "Qualification",
+      "Original Price",
+      "Final Price",
+      "Paid Amount",
+      "Status",
+    ];
+
+    const csvContent = [
+      headers.join(","),
+      ...filteredApplications.map((app) =>
+        [
+          app.applicationId || app.id || "",
+          app.status?.[0]?.time ? formatDate(app.status[0].time) : "",
+          app.user?.firstName + " " + app.user?.lastName || "",
+          app.isf?.lookingForWhatQualification || "",
+          app.price || 0,
+          app.discount ? parseFloat(app.price) - app.discount : app.price,
+          app.paid
+            ? app.partialScheme
+              ? app.full_paid
+                ? app.payment1 + app.payment2
+                : app.payment1
+              : app.discount
+              ? parseFloat(app.price) - app.discount
+              : app.price
+            : 0,
+          getPaymentStatus(app),
+        ]
+          .map((value) => `"${value}"`)
+          .join(",")
+      ),
+    ].join("\n");
+
+    // Create and download blob
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute(
+      "download",
+      `payments-export-${new Date().toISOString().split("T")[0]}.csv`
+    );
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    toast.success("Payment data exported successfully");
+  };
+
+  // Toggle sort direction when clicking on the same column
+  const handleSort = (field) => {
+    if (sortBy === field) {
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+    } else {
+      setSortBy(field);
+      setSortDirection("desc");
+    }
   };
 
   return (
-    <div className="flex flex-col animate-fade">
+    <div className="min-h-screen bg-gray-50 animate-fade">
       {submissionLoading && <SpinnerLoader />}
       <Toaster position="bottom-right" reverseOrder={false} />
 
-      <div className="flex items-center gap-4 mb-5 lg:flex-row flex-col">
-        <img src={paymentsimg} alt="Payments" className="h-36" />
-        <div className="flex flex-col lg:w-1/2">
-          <h1 className="text-3xl font-bold">Payment Approval</h1>
-          <p className="text-sm mt-2">
-            Here you can approve payments for the applications that are pending
-            for payment.
-          </p>
+      {/* Header */}
+      <div className="bg-gradient-to-r from-emerald-600 to-emerald-800 shadow-lg mb-6 pt-8 pb-10 relative overflow-hidden">
+        <div className="absolute inset-0 opacity-20">
+          <svg
+            className="h-full w-full"
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 800 800"
+          >
+            <path
+              fill="none"
+              stroke="white"
+              strokeWidth="2"
+              d="M769 229L1037 260.9M927 880L731 737 520 660 309 538 40 599 295 764 126.5 879.5 40 599-197 493 102 382-31 229 126.5 79.5-69-63"
+            />
+            <path
+              fill="none"
+              stroke="white"
+              strokeWidth="2"
+              d="M-31 229L237 261 390 382 603 493 308.5 537.5 101.5 381.5M370 905L295 764"
+            />
+            <path
+              fill="none"
+              stroke="white"
+              strokeWidth="2"
+              d="M520 660L578 842 731 737 840 599 603 493 520 660 295 764 309 538 390 382 539 269 769 229 577.5 41.5 370 105 295 -36 126.5 79.5 237 261 102 382 40 599 -69 737 127 880"
+            />
+            <path
+              fill="none"
+              stroke="white"
+              strokeWidth="1"
+              d="M520-140L578.5 42.5 731-63M603 493L539 269 237 261 370 105M902 382L539 269M390 382L102 382"
+            />
+            <path
+              fill="none"
+              stroke="white"
+              strokeWidth="1"
+              d="M-31 229L237 261 390 382 603 493 308.5 537.5 101.5 381.5M370 905L295 764"
+            />
+            <path
+              fill="none"
+              stroke="white"
+              strokeWidth="1"
+              d="M520 660L578 842 731 737 840 599 603 493 520 660 295 764 309 538 390 382 539 269 769 229 577.5 41.5 370 105 295 -36 126.5 79.5 237 261 102 382 40 599 -69 737 127 880"
+            />
+          </svg>
         </div>
-      </div>
-
-      <div className="flex flex-col gap-4 mb-10">
-        <div className="flex flex-row w-full gap-6 max-sm:flex-col">
-          {statuses.map((status) => (
-            <button
-              key={status}
-              onClick={() => setActiveFilter(status)}
-              className={`btn ${
-                activeFilter === status ? "btn-primary" : "btn-secondary"
-              }`}
-            >
-              {status}
-            </button>
-          ))}
-        </div>
-
-        <div className="w-full">
-          <input
-            type="text"
-            placeholder="Search by customer name..."
-            className="input input-bordered w-full max-w-full mt-5"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
-      </div>
-
-      <div className="overflow-x-auto max-sm:border">
-        <table className="table">
-          <thead className="sticky top-0 bg-gray-200">
-            <tr>
-              <th>ID</th>
-              <th>Customer Name</th>
-              <th>Date Created</th>
-              <th>Payment Amount</th>
-              <th>Discounted Price</th>
-              <th>Amount Paid</th>
-              <th>Status</th>
-              <th>Payment Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {unpaidApplications.length === 0 && (
-              <tr>
-                <td colSpan="5" className="text-center">
-                  No applications found
-                </td>
-              </tr>
-            )}
-            {unpaidApplications.map((application) => (
-              <tr key={application.id}>
-                <td>
-                  {application.applicationId
-                    ? application.applicationId
-                    : application.id}
-                </td>
-                <td>
-                  {application.user.firstName + " " + application.user.lastName}
-                </td>
-                <td>{application.status[0].time.split("T")[0]}</td>
-                <td>{application.price}</td>
-                <td>
-                  {calculateDiscountedPrice(
-                    application.price,
-                    application.discount
-                  )}
-                </td>
-                <td>
-                  {application.partialScheme ? (
-                    <div className="flex items-center gap-2">
-                      <span>
-                        {application.amount_paid
-                          ? application.amount_paid
-                          : "0"}
-                      </span>
-                    </div>
-                  ) : application.discount ? (
-                    <div className="flex items-center gap-2">
-                      <span>
-                        {calculateDiscountedPrice(
-                          application.price,
-                          application.discount
-                        )}
-                      </span>
-                    </div>
-                  ) : (
-                    <div className="flex items-center gap-2">
-                      <span>
-                        {application.amount_paid
-                          ? application.amount_paid
-                          : "0"}
-                      </span>
-                    </div>
-                  )}
-                </td>
-                <td>{application.currentStatus}</td>
-                <td>
-                  {application.paid
-                    ? application.amount_paid
-                      ? application.full_paid
-                        ? "Full Paid"
-                        : "Partial Paid"
-                      : "Paid"
-                    : "Not Paid"}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      {showModal && (
-        <dialog className="modal modal-open">
-          <div className="modal-box">
-            <h2 className="text-xl font-bold mb-5">Approve Payment</h2>
-            <p className="mb-5">
-              Are you sure you want to approve payment for application ID{" "}
-              {application.id}?
-            </p>
-            <div className="flex items-center justify-end gap-4">
-              <button
-                onClick={() => setShowModal(false)}
-                className="btn bg-red-600 text-white"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => approvePayment(application.id)}
-                className="btn btn-primary text-white"
-              >
-                Approve
-              </button>
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="flex-shrink-0 mb-6 md:mb-0 md:mr-8">
+            <div className="bg-white p-3 rounded-xl shadow-md transform">
+              <img src={paymentsimg} alt="Payments" className="h-32 w-auto" />
             </div>
           </div>
-        </dialog>
-      )}
+          <div className="text-center md:text-left text-white">
+            <h1 className="text-3xl md:text-4xl font-bold mb-2">
+              Payment Management
+            </h1>
+            <p className="text-emerald-100 max-w-3xl text-lg">
+              Track and manage all payment transactions. Verify payment status,
+              process refunds, and generate reports for accounting purposes.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* KPI Stats Cards */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {/* Total Revenue */}
+          <div className="bg-white rounded-xl shadow-md overflow-hidden transform transition duration-300 hover:shadow-lg hover:-translate-y-1">
+            <div className="p-6">
+              <div className="flex items-center">
+                <div className="flex-shrink-0 bg-emerald-100 p-4 rounded-full">
+                  <MdAttachMoney className="h-8 w-8 text-emerald-600" />
+                </div>
+                <div className="ml-5">
+                  <p className="text-gray-500 text-sm font-medium">
+                    Total Revenue
+                  </p>
+                  <h3 className="text-2xl font-bold text-gray-900">
+                    {formatCurrency(stats.totalRevenue)}
+                  </h3>
+                </div>
+              </div>
+              <div className="mt-3 pt-3 border-t border-gray-100">
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-gray-500">
+                    From{" "}
+                    {stats.completedPayments +
+                      stats.partialPayments +
+                      stats.fullPaidPayments}{" "}
+                    payments
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Full Payments */}
+          <div className="bg-white rounded-xl shadow-md overflow-hidden transform transition duration-300 hover:shadow-lg hover:-translate-y-1">
+            <div className="p-6">
+              <div className="flex items-center">
+                <div className="flex-shrink-0 bg-green-100 p-4 rounded-full">
+                  <MdOutlinePayments className="h-8 w-8 text-green-600" />
+                </div>
+                <div className="ml-5">
+                  <p className="text-gray-500 text-sm font-medium">
+                    Completed Payments
+                  </p>
+                  <h3 className="text-2xl font-bold text-gray-900">
+                    {stats.completedPayments + stats.fullPaidPayments}
+                  </h3>
+                </div>
+              </div>
+              <div className="mt-3 pt-3 border-t border-gray-100">
+                <div className="text-sm text-gray-500 flex items-center">
+                  <div className="w-2 h-2 rounded-full bg-green-500 mr-2"></div>
+                  <span>
+                    {Math.round(
+                      ((stats.completedPayments + stats.fullPaidPayments) /
+                        stats.totalApplications) *
+                        100
+                    )}
+                    % of total applications
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Partial Payments */}
+          <div className="bg-white rounded-xl shadow-md overflow-hidden transform transition duration-300 hover:shadow-lg hover:-translate-y-1">
+            <div className="p-6">
+              <div className="flex items-center">
+                <div className="flex-shrink-0 bg-yellow-100 p-4 rounded-full">
+                  <BsWallet2 className="h-8 w-8 text-yellow-600" />
+                </div>
+                <div className="ml-5">
+                  <p className="text-gray-500 text-sm font-medium">
+                    Partial Payments
+                  </p>
+                  <h3 className="text-2xl font-bold text-gray-900">
+                    {stats.partialPayments}
+                  </h3>
+                </div>
+              </div>
+              <div className="mt-3 pt-3 border-t border-gray-100">
+                <div className="text-sm text-gray-500 flex items-center">
+                  <div className="w-2 h-2 rounded-full bg-yellow-500 mr-2"></div>
+                  <span>Awaiting second installment</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Pending Payments */}
+          <div className="bg-white rounded-xl shadow-md overflow-hidden transform transition duration-300 hover:shadow-lg hover:-translate-y-1">
+            <div className="p-6">
+              <div className="flex items-center">
+                <div className="flex-shrink-0 bg-red-100 p-4 rounded-full">
+                  <BiTime className="h-8 w-8 text-red-600" />
+                </div>
+                <div className="ml-5">
+                  <p className="text-gray-500 text-sm font-medium">
+                    Awaiting Payments
+                  </p>
+                  <h3 className="text-2xl font-bold text-gray-900">
+                    {stats.pendingPayments}
+                  </h3>
+                </div>
+              </div>
+              <div className="mt-3 pt-3 border-t border-gray-100">
+                <div className="text-sm text-gray-500 flex items-center">
+                  <div className="w-2 h-2 rounded-full bg-red-500 mr-2"></div>
+                  <span>
+                    {Math.round(
+                      (stats.pendingPayments / stats.totalApplications) * 100
+                    )}
+                    % of total applications
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Main content */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Controls and filters */}
+        <div className="bg-white rounded-xl shadow-md overflow-hidden mb-6">
+          <div className="p-6">
+            <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+              <div className="flex flex-wrap gap-3 w-full md:w-auto">
+                {statuses.map((status) => (
+                  <button
+                    key={status}
+                    onClick={() => setActiveFilter(status)}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                      activeFilter === status
+                        ? "bg-emerald-600 text-white shadow-md"
+                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                    }`}
+                  >
+                    {status}
+                  </button>
+                ))}
+              </div>
+
+              <div className="flex gap-2 w-full md:w-auto">
+                <button
+                  className="flex items-center justify-center px-4 py-2 bg-emerald-600 text-white rounded-lg shadow-sm hover:bg-emerald-700 transition-colors text-sm font-medium"
+                  onClick={fetchApplications}
+                >
+                  <BiRefresh className="mr-2" />
+                  Refresh
+                </button>
+                <button
+                  className="flex items-center justify-center px-4 py-2 bg-gray-100 text-gray-700 rounded-lg shadow-sm hover:bg-gray-200 transition-colors text-sm font-medium"
+                  onClick={exportPayments}
+                >
+                  <FaFileDownload className="mr-2" />
+                  Export
+                </button>
+                <button
+                  className="flex items-center justify-center px-4 py-2 bg-gray-100 text-gray-700 rounded-lg shadow-sm hover:bg-gray-200 transition-colors text-sm font-medium"
+                  onClick={() => setShowFiltersPanel(!showFiltersPanel)}
+                >
+                  <FaFilter className="mr-2" />
+                  Filters
+                </button>
+              </div>
+            </div>
+
+            {/* Advanced filters panel */}
+            {showFiltersPanel && (
+              <div className="bg-gray-50 p-4 rounded-lg mb-6 animate-fadeIn">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Sort By
+                    </label>
+                    <div className="flex gap-2">
+                      <select
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-white"
+                        value={sortBy}
+                        onChange={(e) => setSortBy(e.target.value)}
+                      >
+                        <option value="date">Date</option>
+                        <option value="amount">Amount</option>
+                        <option value="name">Customer Name</option>
+                      </select>
+                      <button
+                        className="inline-flex items-center justify-center w-10 h-10 border border-gray-300 rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none transition-all"
+                        onClick={() =>
+                          setSortDirection(
+                            sortDirection === "asc" ? "desc" : "asc"
+                          )
+                        }
+                      >
+                        {sortDirection === "asc" ? "↑" : "↓"}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Search
+                    </label>
+                    <div className="relative">
+                      <HiOutlineSearch className="absolute left-3 top-3 text-gray-400 text-xl" />
+                      <input
+                        type="text"
+                        className="w-full border border-gray-300 rounded-lg pl-10 pr-4 py-2 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-white"
+                        placeholder="Search by customer name, application ID or qualification..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <div className="flex items-center text-sm text-gray-500">
+              <FaChartBar className="mr-2 text-gray-400" />
+              Showing {filteredApplications.length} payment transactions
+              {searchTerm && (
+                <span className="ml-1">matching "{searchTerm}"</span>
+              )}
+              {activeFilter !== "All Payments" && (
+                <span className="ml-1">with status "{activeFilter}"</span>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Payments Table */}
+        <div className="bg-white rounded-xl shadow-md overflow-hidden mb-8">
+          {filteredApplications.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-16 px-4">
+              <div className="p-6 rounded-full bg-gray-100 mb-6 flex items-center justify-center">
+                <AiOutlineFileSearch className="h-16 w-16 text-gray-400" />
+              </div>
+              <h3 className="text-xl font-medium text-gray-700 mb-2">
+                No payment transactions found
+              </h3>
+              <p className="text-gray-500 mb-6 text-center max-w-md">
+                {searchTerm || activeFilter !== "All Payments"
+                  ? "Try adjusting your search criteria or filters to see more payment transactions."
+                  : "When payments are processed, they will appear here for management and tracking."}
+              </p>
+              {(searchTerm || activeFilter !== "All Payments") && (
+                <button
+                  onClick={() => {
+                    setSearchTerm("");
+                    setActiveFilter("All Payments");
+                  }}
+                  className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none transition-all"
+                >
+                  Clear filters
+                </button>
+              )}
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="sticky top-0 bg-gray-50 z-10">
+                  <tr>
+                    <th
+                      scope="col"
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
+                      onClick={() => handleSort("date")}
+                    >
+                      <div className="flex items-center">
+                        <span>Application ID</span>
+                        {sortBy === "date" && (
+                          <span className="ml-1">
+                            {sortDirection === "asc" ? "↑" : "↓"}
+                          </span>
+                        )}
+                        <span className="ml-2 text-gray-400">/ Date</span>
+                      </div>
+                    </th>
+                    <th
+                      scope="col"
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
+                      onClick={() => handleSort("name")}
+                    >
+                      <div className="flex items-center">
+                        <span>Customer</span>
+                        {sortBy === "name" && (
+                          <span className="ml-1">
+                            {sortDirection === "asc" ? "↑" : "↓"}
+                          </span>
+                        )}
+                      </div>
+                    </th>
+                    <th
+                      scope="col"
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    >
+                      Qualification
+                    </th>
+                    <th
+                      scope="col"
+                      className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
+                      onClick={() => handleSort("amount")}
+                    >
+                      <div className="flex items-center justify-end">
+                        <span>Price</span>
+                        {sortBy === "amount" && (
+                          <span className="ml-1">
+                            {sortDirection === "asc" ? "↑" : "↓"}
+                          </span>
+                        )}
+                      </div>
+                    </th>
+                    <th
+                      scope="col"
+                      className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    >
+                      Paid Amount
+                    </th>
+                    <th
+                      scope="col"
+                      className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    >
+                      Status
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {filteredApplications.map((application) => (
+                    <tr key={application.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex flex-col">
+                          <div className="text-sm font-medium text-gray-900">
+                            #{application.applicationId || application.id}
+                          </div>
+                          <div className="text-xs text-gray-500 mt-1 flex items-center">
+                            <BsCalendarCheck className="mr-1" />
+                            {formatDate(application.status?.[0]?.time)}
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center">
+                          <div className="flex-shrink-0 h-10 w-10 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-600 font-medium">
+                            {application.user?.firstName?.[0] || ""}
+                            {application.user?.lastName?.[0] || ""}
+                          </div>
+                          <div className="ml-4">
+                            <div className="text-sm font-medium text-gray-900">
+                              {application.user?.firstName}{" "}
+                              {application.user?.lastName}
+                            </div>
+                            <div className="text-xs text-gray-500">
+                              {application.user?.email}
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-900">
+                          {application.isf?.lookingForWhatQualification ||
+                            "N/A"}
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          {application.isf?.industry || "N/A"}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-right">
+                        <div className="text-sm font-medium text-gray-900">
+                          {formatCurrency(
+                            parseFloat(
+                              application.price?.toString().replace(/,/g, "") ||
+                                0
+                            )
+                          )}
+                        </div>
+                        {application.discount && (
+                          <div className="text-xs text-green-600 font-medium">
+                            Discount: {formatCurrency(application.discount)}
+                          </div>
+                        )}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-right">
+                        <div className="text-sm font-medium text-gray-900">
+                          {getAmountPaid(application)}
+                        </div>
+                        {application.partialScheme && (
+                          <div className="text-xs text-gray-500">
+                            {application.full_paid
+                              ? `${formatCurrency(
+                                  application.payment1
+                                )} + ${formatCurrency(application.payment2)}`
+                              : `Next: ${formatCurrency(
+                                  application.payment2 || 0
+                                )}`}
+                          </div>
+                        )}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex justify-center">
+                          <span
+                            className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusClass(
+                              application
+                            )}`}
+                          >
+                            {getPaymentStatus(application)}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-right">
+                        <div className="flex space-x-2 justify-end">
+                          {!application.paid && (
+                            <button
+                              className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs rounded-md text-white bg-emerald-600 hover:bg-emerald-700"
+                              onClick={() =>
+                                navigate(`/payment-approval/${application.id}`)
+                              }
+                            >
+                              Approve Payment
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 };
 
-export default PaymentApproval;
+export default PaymentsPage;

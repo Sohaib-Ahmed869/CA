@@ -10,20 +10,29 @@ import Analytics from "../FinanceModule/Analytics";
 import Dashboard from "../dashboard/page";
 import Industries from "../Industries/page";
 import ArchivedApplications from "../archived/page";
-import { MdDashboard } from "react-icons/md";
-import { FaCheckSquare } from "react-icons/fa";
-import { BsClock } from "react-icons/bs";
-import { BiLogOut } from "react-icons/bi";
-import { GiHamburgerMenu } from "react-icons/gi";
-import { FaMoneyBill1Wave } from "react-icons/fa6";
+import {
+  MdDashboard,
+  MdKeyboardArrowDown,
+  MdOutlineAnalytics,
+  MdOutlineSettings,
+} from "react-icons/md";
+import {
+  FaCheckSquare,
+  FaFileArchive,
+  FaIndustry,
+  FaMoneyBillWave,
+  FaUserFriends,
+  FaChartPie,
+} from "react-icons/fa";
+import { BsClock, BsClockHistory, BsFileEarmarkText } from "react-icons/bs";
+import { BiLogOut, BiMenu, BiX } from "react-icons/bi";
 import { getAuth, signOut } from "firebase/auth";
-import { FaIndustry } from "react-icons/fa";
-import { RiMoneyDollarCircleLine } from "react-icons/ri";
-import { MdKeyboardArrowDown } from "react-icons/md";
+import { RiMoneyDollarCircleLine, RiLockPasswordLine } from "react-icons/ri";
+import { motion, AnimatePresence } from "framer-motion"; // Add framer-motion for animations
 
 import ChangePassword from "../ChangePassword/page";
-import { CgPassword } from "react-icons/cg";
 import { getDashboardStats } from "../../Customer/Services/adminServices";
+
 const AdminSidebar = () => {
   const navigate = useNavigate();
   const [currentUserId, setCurrentUserId] = useState(null);
@@ -32,6 +41,7 @@ const AdminSidebar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isFinanceOpen, setIsFinanceOpen] = useState(false);
   const auth = getAuth();
+
   const onClickLogout = async () => {
     await signOut(auth);
     navigate("/login");
@@ -39,7 +49,7 @@ const AdminSidebar = () => {
 
   const hasFinanceAccess = () => {
     const allowedUserIds = [
-      "SE6BCPgaNzOFAD3N181iia2iCUG2",
+      "IPWEpuB7KVhnjGYIorpGJayGjqp1",
       "wJ1LPS7YLDMpGzKY6HHVm9na9wA2",
     ];
     return allowedUserIds.includes(currentUserId);
@@ -55,351 +65,429 @@ const AdminSidebar = () => {
 
     return () => unsubscribe();
   }, []);
+
   const handleFinanceClick = (option) => {
     setActive("Finances");
     setActiveFinance(option);
     setIsOpen(false);
   };
 
-  useEffect(() => {
-    console.log(isOpen);
-  }, [isOpen]);
+  // Sidebar menu item component for cleaner code
+  const MenuItem = ({
+    icon,
+    label,
+    isActive,
+    onClick,
+    hasBorder = true,
+    badge = null,
+  }) => (
+    <li
+      className={`cursor-pointer transition-all duration-200 ease-in-out 
+      ${hasBorder ? "border-b border-emerald-600/20" : ""} 
+      ${
+        isActive
+          ? "bg-emerald-700/30 text-white"
+          : "text-emerald-50 hover:bg-emerald-700/20"
+      } 
+      rounded-xl my-1`}
+      onClick={onClick}
+    >
+      <div className="p-3 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div
+            className={`${
+              isActive ? "bg-emerald-500" : "bg-emerald-700/50"
+            } p-2 rounded-lg`}
+          >
+            {icon}
+          </div>
+          <span className="font-medium">{label}</span>
+        </div>
+        {badge && (
+          <span className="bg-emerald-500 text-white text-xs font-bold px-2 py-1 rounded-full">
+            {badge}
+          </span>
+        )}
+      </div>
+    </li>
+  );
+
+  // Finance dropdown items
+  const FinanceDropdownItem = ({ label, isActive, onClick }) => (
+    <button
+      className={`w-full text-left p-2 pl-12 my-1 rounded-lg transition-colors duration-200 flex items-center gap-2 
+      ${
+        isActive
+          ? "bg-emerald-700/30 text-white"
+          : "text-emerald-50 hover:bg-emerald-700/20"
+      }`}
+      onClick={onClick}
+    >
+      <div className="w-1.5 h-1.5 rounded-full bg-emerald-400"></div>
+      <span>{label}</span>
+    </button>
+  );
 
   const renderFinanceDropdown = () => (
-    <div
-      className={`ml-8 overflow-hidden transition-all duration-300 ease-in-out ${
-        isFinanceOpen ? "max-h-40" : "max-h-0"
-      }`}
-    >
-      <div className="py-2">
-        <button
-          className={`w-full text-left p-2 rounded-lg transition-colors duration-200 flex items-center gap-2 ${
-            activeFinance === "Management"
-              ? "bg-gray-100 bg-opacity-15"
-              : "hover:bg-gray-100 hover:bg-opacity-10"
-          }`}
-          onClick={() => handleFinanceClick("Management")}
+    <AnimatePresence>
+      {isFinanceOpen && (
+        <motion.div
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: "auto" }}
+          exit={{ opacity: 0, height: 0 }}
+          transition={{ duration: 0.3 }}
+          className="overflow-hidden"
         >
-          <div className="w-1 h-1 rounded-full bg-white"></div>
-          Finance Management
-        </button>
-        <button
-          className={`w-full text-left p-2 rounded-lg transition-colors duration-200 flex items-center gap-2 ${
-            activeFinance === "Expenses"
-              ? "bg-gray-100 bg-opacity-15"
-              : "hover:bg-gray-100 hover:bg-opacity-10"
-          }`}
-          onClick={() => handleFinanceClick("Expenses")}
-        >
-          <div className="w-1 h-1 rounded-full bg-white"></div>
-          View Expenses
-        </button>
-        <button
-          className={`w-full text-left p-2 rounded-lg transition-colors duration-200 flex items-center gap-2 ${
-            activeFinance === "Analytics"
-              ? "bg-gray-100 bg-opacity-15"
-              : "hover:bg-gray-100 hover:bg-opacity-10"
-          }`}
-          onClick={() => handleFinanceClick("Analytics")}
-        >
-          <div className="w-1 h-1 rounded-full bg-white"></div>
-          View Analytics
-        </button>
-      </div>
-    </div>
+          <div className="py-1 px-3">
+            <FinanceDropdownItem
+              label="Finance Management"
+              isActive={activeFinance === "Management"}
+              onClick={() => handleFinanceClick("Management")}
+            />
+            <FinanceDropdownItem
+              label="View Expenses"
+              isActive={activeFinance === "Expenses"}
+              onClick={() => handleFinanceClick("Expenses")}
+            />
+            <FinanceDropdownItem
+              label="View Analytics"
+              isActive={activeFinance === "Analytics"}
+              onClick={() => handleFinanceClick("Analytics")}
+            />
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 
   const renderFinanceSection = () => {
     if (!hasFinanceAccess()) return null;
 
     return (
-      <li className="border-b border-base-300">
-        <button
-          className={`w-full cursor-pointer p-3 flex items-center justify-between ${
-            active === "Finances" ? "bg-gray-100 bg-opacity-15 rounded-xl" : ""
-          }`}
+      <li
+        className={`cursor-pointer transition-all duration-200 ease-in-out 
+          border-b border-emerald-600/20 
+          ${
+            active === "Finances"
+              ? "bg-emerald-700/30 text-white"
+              : "text-emerald-50 hover:bg-emerald-700/20"
+          } 
+          rounded-xl my-1`}
+      >
+        <div
+          className="p-3 flex items-center justify-between"
           onClick={() => setIsFinanceOpen(!isFinanceOpen)}
         >
-          <div className="flex items-center gap-2">
-            <RiMoneyDollarCircleLine className="text-xl" />
+          <div className="flex items-center gap-3">
+            <div
+              className={`${
+                active === "Finances" ? "bg-emerald-500" : "bg-emerald-700/50"
+              } p-2 rounded-lg`}
+            >
+              <RiMoneyDollarCircleLine className="text-xl" />
+            </div>
             <span className="font-medium">Finances</span>
           </div>
           <MdKeyboardArrowDown
-            className={`transform transition-transform duration-200 ${
+            className={`transform transition-transform duration-300 ${
               isFinanceOpen ? "rotate-180" : ""
             }`}
           />
-        </button>
+        </div>
         {renderFinanceDropdown()}
       </li>
     );
   };
+
   return (
-    <div className="flex animate-fade-right">
-      {/*hambuger menu button */}
-      <div className="lg:hidden">
-        <div className="flex items-center justify-between p-4 fixed z-50">
-          <GiHamburgerMenu
-            className="text-2xl text-black cursor-pointer"
-            onClick={() => setIsOpen(!isOpen)}
-          />
-        </div>
+    <div className="flex">
+      {/* Mobile menu button */}
+      <div className="lg:hidden fixed top-4 left-4 z-50">
+        <button
+          className="p-2 bg-emerald-600 text-white rounded-lg shadow-lg focus:outline-none"
+          onClick={() => setIsOpen(!isOpen)}
+          aria-label="Toggle menu"
+        >
+          {isOpen ? (
+            <BiX className="text-2xl" />
+          ) : (
+            <BiMenu className="text-2xl" />
+          )}
+        </button>
       </div>
 
-      {/*mobile menu */}
-      {isOpen && (
-        <div className="lg:hidden sm:block">
-          <div className="bg-secondary w-72 top-6 left-6 shadow-lg rounded-2xl fixed z-50">
-            <ul className="text-white p-4 text-sm ">
-              <li
-                className={`cursor-pointer p-3 flex items-center gap-2 ${
-                  active === "Dashboard"
-                    ? "bg-gray-100 bg-opacity-15 rounded-xl"
-                    : ""
-                }`}
-                onClick={() => {
-                  setActive("Dashboard");
-                  setIsOpen(false);
-                }}
-              >
-                <MdDashboard className="text-xl" />
-                <button className="font-medium">Dashboard</button>
-              </li>
-              <li
-                className={`cursor-pointer p-3 flex items-center gap-2 ${
-                  active === "Customers"
-                    ? "bg-gray-100 bg-opacity-15 rounded-xl"
-                    : ""
-                }`}
-                onClick={() => {
-                  setActive("Customers");
-                  setIsOpen(false);
-                }}
-              >
-                <FaCheckSquare className="text-xl" />
-                <button className="font-medium">Customers</button>
-              </li>
-              <li
-                className={`cursor-pointer p-3 flex items-center gap-2 ${
-                  active === "Archived Applications"
-                    ? "bg-gray-100 bg-opacity-15 rounded-xl"
-                    : ""
-                }`}
-                onClick={() => {
-                  setActive("Archived Applications");
-                  setIsOpen(false);
-                }}
-              >
-                <FaCheckSquare className="text-xl" />
-                <button className="font-medium">Archived Applications</button>
-              </li>
+      {/* Mobile sidebar */}
+      <AnimatePresence>
+        {isOpen && (
+          <>
+            <motion.div
+              initial={{ x: "-100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "-100%" }}
+              transition={{ type: "spring", damping: 25, stiffness: 200 }}
+              className="fixed inset-0 z-40 w-72 bg-gradient-to-b from-emerald-800 to-emerald-900 shadow-2xl lg:hidden overflow-y-auto"
+            >
+              <div className="py-6 px-3">
+                <div className="flex justify-center mb-8">
+                  <img
+                    src={certifiedAustralia}
+                    alt="Certified Australia"
+                    className="h-16"
+                  />
+                </div>
 
-              <li
-                className={`cursor-pointer p-3 flex items-center gap-2 ${
-                  active === "Applications"
-                    ? "bg-gray-100 bg-opacity-15 rounded-xl"
-                    : ""
-                }`}
-                onClick={() => {
-                  setActive("Applications");
-                  setIsOpen(false);
-                }}
-              >
-                <BsClock className="text-xl" />
-                <button className="font-medium">Applications</button>
-              </li>
-              <li
-                className={`cursor-pointer p-3 flex items-center gap-2 ${
-                  active === "Payments"
-                    ? "bg-gray-100 bg-opacity-15 rounded-xl"
-                    : ""
-                }`}
-                onClick={() => {
-                  setActive("Payments");
-                  setIsOpen(false);
-                }}
-              >
-                <FaMoneyBill1Wave className="text-xl" />
-                <button className="font-medium">Payments</button>
-              </li>
-              {renderFinanceSection()}
+                <div className="mb-8 px-4">
+                  <h2 className="text-emerald-100 text-xs uppercase tracking-wider mb-2">
+                    Management
+                  </h2>
+                  <ul className="space-y-1">
+                    <MenuItem
+                      icon={<MdDashboard className="text-xl" />}
+                      label="Dashboard"
+                      isActive={active === "Dashboard"}
+                      onClick={() => {
+                        setActive("Dashboard");
+                        setIsOpen(false);
+                      }}
+                      hasBorder={false}
+                    />
+                    <MenuItem
+                      icon={<FaUserFriends className="text-xl" />}
+                      label="Customers"
+                      isActive={active === "Customers"}
+                      onClick={() => {
+                        setActive("Customers");
+                        setIsOpen(false);
+                      }}
+                      hasBorder={false}
+                    />
+                    <MenuItem
+                      icon={<BsClockHistory className="text-xl" />}
+                      label="Applications"
+                      isActive={active === "Applications"}
+                      onClick={() => {
+                        setActive("Applications");
+                        setIsOpen(false);
+                      }}
+                      hasBorder={false}
+                    />
+                    <MenuItem
+                      icon={<FaFileArchive className="text-xl" />}
+                      label="Archived"
+                      isActive={active === "Archived Applications"}
+                      onClick={() => {
+                        setActive("Archived Applications");
+                        setIsOpen(false);
+                      }}
+                      hasBorder={false}
+                    />
+                  </ul>
+                </div>
 
-              <li
-                className={`cursor-pointer p-3 flex items-center gap-2 ${
-                  active === "Industries"
-                    ? "bg-gray-100 bg-opacity-15 rounded-xl"
-                    : ""
-                }`}
-                onClick={() => {
-                  setActive("Industries");
-                  setIsOpen(false);
-                }}
-              >
-                <FaIndustry className="text-xl" />
-                <button className="font-medium">Industries</button>
-              </li>
-              <li
-                className={`cursor-pointer p-3 flex items-center gap-2 ${
-                  active === "Change Password"
-                    ? "bg-gray-100 bg-opacity-15 rounded-xl"
-                    : ""
-                }`}
-                onClick={() => {
-                  setActive("Change Password");
-                  setIsOpen(false);
-                }}
-              >
-                <CgPassword className="text-xl" />
-                <button className="font-medium">Change Password</button>
-              </li>
+                <div className="mb-8 px-4">
+                  <h2 className="text-emerald-100 text-xs uppercase tracking-wider mb-2">
+                    Finance
+                  </h2>
+                  <ul className="space-y-1">
+                    <MenuItem
+                      icon={<FaMoneyBillWave className="text-xl" />}
+                      label="Payments"
+                      isActive={active === "Payments"}
+                      onClick={() => {
+                        setActive("Payments");
+                        setIsOpen(false);
+                      }}
+                      hasBorder={false}
+                    />
+                    {hasFinanceAccess() && (
+                      <li
+                        className={`cursor-pointer transition-all duration-200 ease-in-out 
+                          ${
+                            active === "Finances"
+                              ? "bg-emerald-700/30 text-white"
+                              : "text-emerald-50 hover:bg-emerald-700/20"
+                          } 
+                          rounded-xl`}
+                      >
+                        <div
+                          className="p-3 flex items-center justify-between"
+                          onClick={() => setIsFinanceOpen(!isFinanceOpen)}
+                        >
+                          <div className="flex items-center gap-3">
+                            <div
+                              className={`${
+                                active === "Finances"
+                                  ? "bg-emerald-500"
+                                  : "bg-emerald-700/50"
+                              } p-2 rounded-lg`}
+                            >
+                              <RiMoneyDollarCircleLine className="text-xl" />
+                            </div>
+                            <span className="font-medium">Finances</span>
+                          </div>
+                          <MdKeyboardArrowDown
+                            className={`transform transition-transform duration-300 ${
+                              isFinanceOpen ? "rotate-180" : ""
+                            }`}
+                          />
+                        </div>
+                        {renderFinanceDropdown()}
+                      </li>
+                    )}
+                  </ul>
+                </div>
 
-              <li
-                className="cursor-pointer p-3 flex items-center gap-2"
-                onClick={onClickLogout}
-              >
-                <BiLogOut className="text-xl" />
-                <button className="font-medium">Logout</button>
-              </li>
-            </ul>
-          </div>
-        </div>
-      )}
+                <div className="mb-8 px-4">
+                  <h2 className="text-emerald-100 text-xs uppercase tracking-wider mb-2">
+                    Configuration
+                  </h2>
+                  <ul className="space-y-1">
+                    <MenuItem
+                      icon={<FaIndustry className="text-xl" />}
+                      label="Industries"
+                      isActive={active === "Industries"}
+                      onClick={() => {
+                        setActive("Industries");
+                        setIsOpen(false);
+                      }}
+                      hasBorder={false}
+                    />
+                    <MenuItem
+                      icon={<RiLockPasswordLine className="text-xl" />}
+                      label="Change Password"
+                      isActive={active === "Change Password"}
+                      onClick={() => {
+                        setActive("Change Password");
+                        setIsOpen(false);
+                      }}
+                      hasBorder={false}
+                    />
+                  </ul>
+                </div>
 
-      {/* Sidebar */}
-      <div
-        className={`flex flex-col min-h-screen bg-secondary w-72 fixed hidden lg:block lg:static transform ${
-          isOpen ? "translate-x-0" : "-translate-x-full"
-        } transition-transform duration-300 lg:translate-x-0`}
-      >
-        <ul className="text-white p-4 text-sm mt-2">
-          <li className="flex items-center justify-center mb-10">
+                <div className="px-4 pt-6 border-t border-emerald-700">
+                  <button
+                    className="flex items-center gap-3 w-full p-3 text-red-200 hover:bg-red-900/20 rounded-xl transition-colors"
+                    onClick={onClickLogout}
+                  >
+                    <div className="bg-red-900/50 p-2 rounded-lg">
+                      <BiLogOut className="text-xl" />
+                    </div>
+                    <span className="font-medium">Logout</span>
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="fixed inset-0 bg-black/50 z-30 lg:hidden"
+              onClick={() => setIsOpen(false)}
+            />
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* Desktop Sidebar */}
+      <div className="hidden lg:block w-72 min-h-screen bg-gradient-to-b from-emerald-800 to-emerald-900 shadow-xl relative">
+        <div className="py-6 h-full flex flex-col">
+          <div className="flex justify-center items-center mb-8 px-4">
             <img
               src={certifiedAustralia}
               alt="Certified Australia"
               className="h-20"
             />
-          </li>
+          </div>
 
-          <li
-            className={`border-b border-base-300 cursor-pointer p-3 flex items-center gap-2 ${
-              active === "Dashboard"
-                ? "bg-gray-100 bg-opacity-15 rounded-xl"
-                : ""
-            }`}
-            onClick={() => {
-              setActive("Dashboard");
-              setIsOpen(false);
-            }}
-          >
-            <MdDashboard className="text-xl" />
-            <button className="font-medium">Dashboard</button>
-          </li>
-          <li
-            className={`border-b border-base-300 cursor-pointer p-3 flex items-center gap-2 ${
-              active === "Customers"
-                ? "bg-gray-100 bg-opacity-15 rounded-xl"
-                : ""
-            }`}
-            onClick={() => {
-              setActive("Customers");
-              setIsOpen(false);
-            }}
-          >
-            <FaCheckSquare className="text-xl" />
-            <button className="font-medium">Customers</button>
-          </li>
-          <li
-            className={`border-b border-base-300 cursor-pointer p-3 flex items-center gap-2 ${
-              active === "Archived Applications"
-                ? "bg-gray-100 bg-opacity-15 rounded-xl"
-                : ""
-            }`}
-            onClick={() => {
-              setActive("Archived Applications");
-              setIsOpen(false);
-            }}
-          >
-            <FaCheckSquare className="text-xl" />
-            <button className="font-medium">Archived Applications</button>
-          </li>
+          <div className="px-4 mb-8">
+            <h2 className="text-emerald-100 text-xs uppercase tracking-wider mb-3 ml-2">
+              Management
+            </h2>
+            <ul>
+              <MenuItem
+                icon={<MdDashboard className="text-xl" />}
+                label="Dashboard"
+                isActive={active === "Dashboard"}
+                onClick={() => setActive("Dashboard")}
+                badge="New"
+              />
+              <MenuItem
+                icon={<FaUserFriends className="text-xl" />}
+                label="Customers"
+                isActive={active === "Customers"}
+                onClick={() => setActive("Customers")}
+              />
+              <MenuItem
+                icon={<BsClockHistory className="text-xl" />}
+                label="Applications"
+                isActive={active === "Applications"}
+                onClick={() => setActive("Applications")}
+              />
+              <MenuItem
+                icon={<FaFileArchive className="text-xl" />}
+                label="Archived Applications"
+                isActive={active === "Archived Applications"}
+                onClick={() => setActive("Archived Applications")}
+              />
+            </ul>
+          </div>
 
-          <li
-            className={`border-b border-base-300 cursor-pointer p-3 flex items-center gap-2 ${
-              active === "Applications"
-                ? "bg-gray-100 bg-opacity-15 rounded-xl"
-                : ""
-            }`}
-            onClick={() => {
-              setActive("Applications");
-              setIsOpen(false);
-            }}
-          >
-            <BsClock className="text-xl" />
-            <button className="font-medium">Applications</button>
-          </li>
-          <li
-            className={`border-b border-base-300 cursor-pointer p-3 flex items-center gap-2 ${
-              active === "Payments"
-                ? "bg-gray-100 bg-opacity-15 rounded-xl"
-                : ""
-            }`}
-            onClick={() => {
-              setActive("Payments");
-              setIsOpen(false);
-            }}
-          >
-            <FaMoneyBill1Wave className="text-xl" />
-            <button className="font-medium">Payments</button>
-          </li>
-          {renderFinanceSection()}
+          <div className="px-4 mb-8">
+            <h2 className="text-emerald-100 text-xs uppercase tracking-wider mb-3 ml-2">
+              Finance
+            </h2>
+            <ul>
+              <MenuItem
+                icon={<FaMoneyBillWave className="text-xl" />}
+                label="Payments"
+                isActive={active === "Payments"}
+                onClick={() => setActive("Payments")}
+              />
+              {renderFinanceSection()}
+            </ul>
+          </div>
 
-          <li
-            className={`border-b border-base-300 cursor-pointer p-3 flex items-center gap-2 ${
-              active === "Industries"
-                ? "bg-gray-100 bg-opacity-15 rounded-xl"
-                : ""
-            }`}
-            onClick={() => {
-              setActive("Industries");
-              setIsOpen(false);
-            }}
-          >
-            <FaIndustry className="text-xl" />
-            <button className="font-medium">Industries</button>
-          </li>
+          <div className="px-4 mb-8">
+            <h2 className="text-emerald-100 text-xs uppercase tracking-wider mb-3 ml-2">
+              Configuration
+            </h2>
+            <ul>
+              <MenuItem
+                icon={<FaIndustry className="text-xl" />}
+                label="Industries"
+                isActive={active === "Industries"}
+                onClick={() => setActive("Industries")}
+              />
+              <MenuItem
+                icon={<RiLockPasswordLine className="text-xl" />}
+                label="Change Password"
+                isActive={active === "Change Password"}
+                onClick={() => setActive("Change Password")}
+                hasBorder={false}
+              />
+            </ul>
+          </div>
 
-          <li
-            className={`border-b border-base-300 cursor-pointer p-3 flex items-center gap-2 ${
-              active === "Change Password"
-                ? "bg-gray-100 bg-opacity-15 rounded-xl"
-                : ""
-            }`}
-            onClick={() => {
-              setActive("Change Password");
-              setIsOpen(false);
-            }}
-          >
-            <CgPassword className="text-xl" />
-            <button className="font-medium">Change Password</button>
-          </li>
-
-          <li
-            className="border-b border-base-300 cursor-pointer p-3 flex items-center gap-2"
-            onClick={() => {
-              onClickLogout();
-            }}
-          >
-            <BiLogOut className="text-xl" />
-            <button className="font-medium">Logout</button>
-          </li>
-        </ul>
+          <div className="mt-auto px-4 pt-6 border-t border-emerald-700">
+            <button
+              className="flex items-center gap-3 w-full p-3 text-red-200 hover:bg-red-900/20 rounded-xl transition-colors"
+              onClick={onClickLogout}
+            >
+              <div className="bg-red-900/50 p-2 rounded-lg">
+                <BiLogOut className="text-xl" />
+              </div>
+              <span className="font-medium">Logout</span>
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* Main Content */}
-      <div
-        className="flex-1 p-4 mt-10 lg:mt-0 max-sm:overflow-x-hidden"
-        onClick={() => setIsOpen(false)}
-      >
+      <div className="flex-1 p-4 lg:p-6 mt-14 lg:mt-0 max-sm:overflow-x-hidden">
         {active === "Dashboard" && <Dashboard />}
         {active === "Customers" && <CustomersInfo />}
         {active === "Applications" && <ExistingApplicationsAdmin />}
@@ -417,13 +505,6 @@ const AdminSidebar = () => {
           <Analytics />
         )}
       </div>
-
-      {isOpen && (
-        <div
-          className="fixed top-0 left-0 bg-black bg-opacity-50 min-h-screen z-40 w-auto"
-          onClick={() => setIsOpen(false)}
-        ></div>
-      )}
     </div>
   );
 };

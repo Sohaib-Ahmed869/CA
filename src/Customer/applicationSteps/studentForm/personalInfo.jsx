@@ -66,28 +66,59 @@ const PersonalInfo = ({ personalInfo, setPersonalInfo }) => {
     maxLength,
     placeholder,
     ...props
-  }) => (
-    <div className="space-y-2">
-      <label htmlFor={name} className="block text-sm font-medium text-gray-700">
-        {label} {required && <span className="text-red-500">*</span>}
-      </label>
-      <input
-        id={name}
-        name={name}
-        type={type}
-        value={value}
-        onChange={onChange}
-        maxLength={maxLength}
-        placeholder={placeholder}
-        className={`w-full h-11 px-3 py-2 border ${
-          error ? "border-red-500" : "border-gray-300"
-        } rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-200 focus:border-green-500`}
-        {...props}
-      />
-      {error && <p className="text-red-500 text-xs">{error}</p>}
-    </div>
-  );
+  }) => {
+    // Create a unique ID for tracking focus state
+    const inputId = `${name}-input`;
 
+    // Use a ref to maintain focus
+    const ref = React.useRef();
+
+    // Track if this input is focused
+    React.useEffect(() => {
+      const handleFocus = () => {
+        if (document.activeElement === ref.current) {
+          // This is the active element, make sure it stays focused after render
+          setTimeout(() => {
+            ref.current?.focus();
+          }, 0);
+        }
+      };
+
+      // Set up focus tracking
+      ref.current?.addEventListener("focus", handleFocus);
+
+      // Clean up
+      return () => {
+        ref.current?.removeEventListener("focus", handleFocus);
+      };
+    }, []);
+
+    return (
+      <div className="space-y-2">
+        <label
+          htmlFor={name}
+          className="block text-sm font-medium text-gray-700"
+        >
+          {label} {required && <span className="text-red-500">*</span>}
+        </label>
+        <input
+          id={name}
+          name={name}
+          type={type}
+          value={value}
+          onChange={onChange}
+          maxLength={maxLength}
+          placeholder={placeholder}
+          autoFocus={document.activeElement?.id === name} // This preserves focus
+          className={`w-full h-11 px-3 py-2 border ${
+            error ? "border-red-500" : "border-gray-300"
+          } rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-200 focus:border-green-500`}
+          {...props}
+        />
+        {error && <p className="text-red-500 text-xs">{error}</p>}
+      </div>
+    );
+  };
   return (
     <div className="mb-10 animate-fade">
       <div className="flex items-center mb-6 border-b pb-2">

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   FaUserEdit,
   FaFileUpload,
@@ -47,12 +48,18 @@ const ImprovedTimeline = ({
   timeline,
   applicationName,
   paid,
+  // Add new props for action handlers
+  onPaymentClick,
+  onStudentFormClick,
+  onUploadClick,
+  onCertificateClick,
 }) => {
   const [selectedId, setSelectedId] = useState(null);
   const [selectedApp, setSelectedApp] = useState(null);
   const [completedSteps, setCompletedSteps] = useState(0);
   const [timelineData, setTimelineData] = useState([]);
   const [isExpanded, setIsExpanded] = useState(false);
+  const navigate = useNavigate();
 
   // Set the most recent application as selected by default
   useEffect(() => {
@@ -68,40 +75,49 @@ const ImprovedTimeline = ({
   useEffect(() => {
     if (!selectedApp) return;
 
-    // Extract key statuses
+    // Simple checks for completion status - matching ExistingApplications logic
     const isFormFilled =
-      selectedApp.studentIntakeFormSubmitted ||
-      (selectedApp.studentForm &&
-        Object.keys(selectedApp.studentForm).length > 3);
+      selectedApp.studentForm &&
+      Object.keys(selectedApp.studentForm).length > 0 &&
+      selectedApp.studentForm.firstName;
 
     const isDocumentsUploaded =
-      selectedApp.documentsUploaded ||
-      (selectedApp.documentsForm &&
-        Object.keys(selectedApp.documentsForm).length > 3);
+      selectedApp.documentsForm &&
+      Object.keys(selectedApp.documentsForm).length > 0 &&
+      (selectedApp.documentsForm.resume ||
+        selectedApp.documentsForm.creditcard);
 
-    const isPaymentDone = selectedApp.paid || selectedApp.full_paid;
+    const isPaymentDone =
+      selectedApp.paid ||
+      (selectedApp.partialScheme === true && selectedApp.full_paid === true);
 
     const isCertificateGenerated =
+      selectedApp.certificateId ||
       selectedApp.currentStatus === "Certificate Generated" ||
-      selectedApp.currentStatus === "Completed" ||
-      selectedApp.certificateId;
+      selectedApp.currentStatus === "Completed";
 
     // Create timeline data
     const timeline = [
       {
         id: "form",
-        title: "Intake Form",
+        title: "Student Intake Form",
         subtitle: "Personal Details",
         status: isFormFilled ? "done" : "pending",
         date: getStepDate(selectedApp, "Student Intake Form"),
-        link: isFormFilled
-          ? null
-          : `/student-intake-form/${
-              selectedApp.id || selectedApp.applicationId
-            }`,
         icon: <FaUserEdit className="text-white" />,
         description:
           "Complete your personal information and qualification requirements.",
+        action: () => {
+          if (onStudentFormClick) {
+            onStudentFormClick(selectedApp.id || selectedApp.applicationId);
+          } else {
+            navigate(
+              `/student-intake-form/${
+                selectedApp.id || selectedApp.applicationId
+              }`
+            );
+          }
+        },
       },
       {
         id: "documents",
@@ -113,12 +129,21 @@ const ImprovedTimeline = ({
           ? "current"
           : "pending",
         date: getStepDate(selectedApp, "Sent to RTO"),
-        link: isDocumentsUploaded
-          ? null
-          : `/upload-documents/${selectedApp.id || selectedApp.applicationId}`,
         icon: <FaFileUpload className="text-white" />,
         description:
           "Upload your identification and required supporting documents.",
+        action: () => {
+          if (onUploadClick) {
+            onUploadClick(
+              selectedApp.id || selectedApp.applicationId,
+              selectedApp.initialForm?.industry
+            );
+          } else {
+            navigate(
+              `/upload-documents/${selectedApp.id || selectedApp.applicationId}`
+            );
+          }
+        },
       },
       {
         id: "payment",
@@ -136,6 +161,22 @@ const ImprovedTimeline = ({
         description: `Complete your payment of $${formatPrice(
           selectedApp.price || "0"
         )} to proceed with certification.`,
+        action: () => {
+          if (onPaymentClick) {
+            // Pass all necessary payment data
+            onPaymentClick(
+              selectedApp.price,
+              selectedApp.discount,
+              selectedApp.id || selectedApp.applicationId,
+              selectedApp.userId,
+              selectedApp.partialScheme,
+              selectedApp.paid,
+              selectedApp.payment1,
+              selectedApp.payment2,
+              selectedApp.full_paid
+            );
+          }
+        },
       },
       {
         id: "certificate",
@@ -147,18 +188,29 @@ const ImprovedTimeline = ({
           ? "current"
           : "pending",
         date: getStepDate(selectedApp, "Certificate Generated"),
-        link: isCertificateGenerated
-          ? `/certificate/${selectedApp.certificateId}`
-          : null,
         icon: <FaCertificate className="text-white" />,
         description:
           "Your certificate will be generated and ready for download once all steps are completed.",
+        action: () => {
+          if (onCertificateClick && selectedApp.certificateId) {
+            onCertificateClick(selectedApp.certificateId);
+          } else if (selectedApp.certificateId) {
+            window.open(selectedApp.certificateId, "_blank");
+          }
+        },
       },
     ];
 
     setTimelineData(timeline);
     setCompletedSteps(timeline.filter((item) => item.status === "done").length);
-  }, [selectedApp]);
+  }, [
+    selectedApp,
+    onPaymentClick,
+    onStudentFormClick,
+    onUploadClick,
+    onCertificateClick,
+    navigate,
+  ]);
 
   // Helper to get the date for a specific status step
   const getStepDate = (application, statusName) => {
@@ -210,16 +262,18 @@ const ImprovedTimeline = ({
     }
   };
 
-  // Get the next pending step
-  const getNextPendingStep = () => {
-    return timelineData.find(
-      (step) =>
-        step.status === "current" ||
-        (step.status === "pending" &&
-          timelineData.some(
-            (prevStep) => prevStep.id < step.id && prevStep.status === "done"
-          ))
-    );
+  // Get the next action step
+  const getNextActionStep = () => {
+    // First check for any "current" steps
+    const currentStep = timelineData.find((step) => step.status === "current");
+    if (currentStep) return currentStep;
+
+    // If no current steps, find the first pending step
+    const pendingStep = timelineData.find((step) => step.status === "pending");
+    if (pendingStep) return pendingStep;
+
+    // If all steps are done, return the certificate step
+    return timelineData.find((step) => step.id === "certificate");
   };
 
   // Add the CSS animation to the document
@@ -252,10 +306,8 @@ const ImprovedTimeline = ({
     );
   }
 
-  // Find the active step (current or first pending)
-  const activeStep =
-    timelineData.find((step) => step.status === "current") ||
-    timelineData.find((step) => step.status === "pending");
+  // Get the active next step (current or first pending)
+  const activeStep = getNextActionStep();
 
   return (
     <div className="bg-white rounded-xl overflow-hidden">
@@ -282,8 +334,8 @@ const ImprovedTimeline = ({
 
         {/* Application ID Pills */}
         {applications.length > 1 && (
-          <div className=" mb-4 hide-scrollbar">
-            <div className="flex flex-wrap overflow-x-auto hide-scrollbar gap-2"> 
+          <div className="mb-4 hide-scrollbar">
+            <div className="flex flex-wrap overflow-x-auto hide-scrollbar gap-2">
               {applications.map((app, index) => (
                 <button
                   key={app.id || app.applicationId || index}
@@ -372,14 +424,14 @@ const ImprovedTimeline = ({
                         step.status === "done"
                           ? "bg-emerald-100 text-emerald-800"
                           : step.status === "current"
-                          ? "bg-blue-100 text-blue-800"
+                          ? "bg-red-200 text-red-800"
                           : "bg-gray-100 text-gray-600"
                       }`}
                     >
                       {step.status === "done"
                         ? "Completed"
                         : step.status === "current"
-                        ? "In Progress"
+                        ? "Required"
                         : "Pending"}
                     </span>
                   </div>
@@ -388,29 +440,61 @@ const ImprovedTimeline = ({
                 {/* Step Description */}
                 <p className="text-sm text-gray-600 mt-1">{step.description}</p>
 
-                {/* Action Button if applicable */}
-                {step.link &&
-                  (step.status === "current" ||
-                    (step.status === "pending" &&
-                      index === completedSteps)) && (
-                    <a
-                      href={step.link}
-                      className="mt-2 inline-flex items-center text-sm font-medium text-emerald-600 hover:text-emerald-800 transition-colors"
-                    >
-                      {step.id === "form" && "Complete Form"}
-                      {step.id === "documents" && "Upload Files"}
-                      {step.id === "payment" && "Make Payment"}
-                      {step.id === "certificate" && "View Certificate"}
-                      <FaArrowRight className="ml-1 text-xs" />
-                    </a>
-                  )}
+                {/* Action Button if applicable - now using the defined action handler */}
+                {step.status === "current" ||
+                (step.status === "pending" && index === completedSteps) ||
+                (step.id === "payment" && step.status === "pending") ? (
+                  <button
+                    onClick={step.action}
+                    className="mt-2 inline-flex items-center text-sm font-medium text-emerald-600 hover:text-emerald-800 transition-colors"
+                  >
+                    {step.id === "form" && "Complete Student Form"}
+                    {step.id === "documents" && "Upload Files"}
+                    {step.id === "payment" && "Make Payment"}
+                    {step.id === "certificate" && "View Certificate"}
+                    <FaArrowRight className="ml-1 text-xs" />
+                  </button>
+                ) : null}
+                {/* Add payment info to the payment step description when partial payment */}
+                {step.id === "payment" && selectedApp?.partialScheme && (
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {selectedApp.paid && !selectedApp.full_paid ? (
+                      <>
+                        <div className="bg-green-100 text-green-800 text-xs font-semibold px-2 py-0.5 rounded-full">
+                          <span>Paid: ${selectedApp.payment1 || 0}</span>
+                        </div>
+                        <div className="bg-yellow-100 text-yellow-800 text-xs font-semibold px-2 py-0.5 rounded-full">
+                          <span>Remaining: ${selectedApp.payment2 || 0}</span>
+                        </div>
+                      </>
+                    ) : selectedApp.full_paid ? (
+                      <div className="bg-green-100 text-green-800 text-xs font-semibold px-2 py-0.5 rounded-full">
+                        <span>
+                          Fully Paid: $
+                          {parseFloat(selectedApp.payment1 || 0) +
+                            parseFloat(selectedApp.payment2 || 0)}
+                        </span>
+                      </div>
+                    ) : (
+                      <div className="text-xs text-gray-600">
+                        Initial: ${selectedApp.payment1 || 0} / Final: $
+                        {selectedApp.payment2 || 0}
+                      </div>
+                    )}
+                    {selectedApp.discount > 0 && (
+                      <div className="bg-emerald-100 text-emerald-800 text-xs font-semibold px-2 py-0.5 rounded-full">
+                        <span>Discount: ${selectedApp.discount}</span>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           ))}
         </div>
 
-        {/* Next Action Card */}
-        {activeStep && (
+        {/* Next Action Card - only shows if there's a required step */}
+        {activeStep && activeStep.status !== "done" && (
           <div className="bg-emerald-50 p-4 rounded-lg border border-emerald-100 flex items-start mt-4 animate-fadeIn">
             <div className="bg-emerald-100 rounded-full p-2 mr-3 flex-shrink-0">
               <FaExclamationCircle className="text-emerald-700 text-sm" />
@@ -429,17 +513,15 @@ const ImprovedTimeline = ({
                   : "Your certificate will be generated once all steps are complete."}
               </p>
 
-              {activeStep.link && (
-                <a
-                  href={activeStep.link}
-                  className="mt-3 inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 shadow-sm transition-colors"
-                >
-                  {activeStep.id === "form" && "Complete Form"}
-                  {activeStep.id === "documents" && "Upload Documents"}
-                  {activeStep.id === "payment" && "Make Payment"}
-                  {activeStep.id === "certificate" && "View Certificate"}
-                </a>
-              )}
+              <button
+                onClick={activeStep.action}
+                className="mt-3 inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 shadow-sm transition-colors"
+              >
+                {activeStep.id === "form" && "Complete Student Form"}
+                {activeStep.id === "documents" && "Upload Documents"}
+                {activeStep.id === "payment" && "Make Payment"}
+                {activeStep.id === "certificate" && "View Certificate"}
+              </button>
             </div>
           </div>
         )}
@@ -449,7 +531,7 @@ const ImprovedTimeline = ({
           <div className="text-xs text-gray-500 mt-2">
             Need assistance with your application? Contact our support team at{" "}
             <span className="text-emerald-600">
-              support@certifiedaustralia.com
+              info@certifiedaustralia.com
             </span>
           </div>
         </div>

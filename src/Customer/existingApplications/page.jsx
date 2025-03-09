@@ -1,34 +1,40 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { BiCheckCircle } from "react-icons/bi";
-import { FaTimesCircle } from "react-icons/fa";
-import Navbar from "../components/navbar";
-import { BsEye } from "react-icons/bs";
-import { BiDownload } from "react-icons/bi";
-import { BiEnvelopeOpen } from "react-icons/bi";
-import PaymentPage from "../checkoutForm";
-import { BsArrowUpRight } from "react-icons/bs";
-import { BsClock } from "react-icons/bs";
-import { BiUser } from "react-icons/bi";
-import { BiUpload } from "react-icons/bi";
-import { FaCertificate } from "react-icons/fa";
-import { BsTruck } from "react-icons/bs";
-import { BiCheck } from "react-icons/bi";
-import { CgTrack } from "react-icons/cg";
-import { GrFormAdd } from "react-icons/gr";
+import {
+  FaTimesCircle,
+  FaFileAlt,
+  FaCertificate,
+  FaSignOutAlt,
+  FaPhoneAlt,
+  FaEnvelope,
+  FaCog,
+  FaUser,
+  FaBars,
+  FaTimes,
+  FaArrowLeft,
+} from "react-icons/fa";
+import { BsEye, BsClock, BsTruck } from "react-icons/bs";
+import { BiDownload, BiUser, BiUpload, BiCheck } from "react-icons/bi";
 import { IoCall } from "react-icons/io5";
 import { MdPayment } from "react-icons/md";
+import { GrFormAdd } from "react-icons/gr";
+import { CgTrack } from "react-icons/cg";
+import PaymentPage from "../checkoutForm";
 import { auth } from "../../firebase";
-import { onAuthStateChanged, signInWithCustomToken } from "firebase/auth";
+import {
+  onAuthStateChanged,
+  signInWithCustomToken,
+  signOut,
+} from "firebase/auth";
 import { getApplications } from "../Services/customerApplication";
 import SpinnerLoader from "../components/spinnerLoader";
 import Loader from "../components/loader";
 import Footer from "../components/footer";
+import Modal from "../components/modal";
 import { initiateVerificationCall } from "../Services/twilioService";
 
-import certificate from "../../assets/certificate.pdf";
-import applicationsimg from "../../assets/applications.png";
-
 import { Link, useNavigate } from "react-router-dom";
+import applicationsimg from "../../assets/applications.png";
 
 const ExistingApplications = () => {
   const [userId, setUserId] = useState("");
@@ -38,9 +44,13 @@ const ExistingApplications = () => {
   const [loading, setLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [filterStatus, setFilterStatus] = useState("");
   const [sortBy, setSortBy] = useState("date");
   const [sortOrder, setSortOrder] = useState("desc");
+  const [userName, setUserName] = useState("");
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isUpdatePhoneOpen, setIsUpdatePhoneOpen] = useState(false);
+  const [isUpdateEmailOpen, setIsUpdateEmailOpen] = useState(false);
+  const menuRef = useRef(null);
 
   const statuses = [
     "Waiting for Verification",
@@ -61,11 +71,26 @@ const ExistingApplications = () => {
   const [payment1, setPayment1] = useState(0);
   const [payment2, setPayment2] = useState(0);
   const [full_paid, setFullPaid] = useState(false);
+  const [discount, setDiscount] = useState(0);
 
   useEffect(() => {
     setTimeout(() => {
       setLoading(false);
-    }, 0);
+    }, 1000); // Match the dashboard loading time
+  }, []);
+
+  // Close menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setIsMenuOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
   }, []);
 
   const onClickPayment = (
@@ -79,17 +104,31 @@ const ExistingApplications = () => {
     payment2,
     full_paid
   ) => {
-    if (!discount) {
-      setPrice(price);
+    // For partial payment schemes, set the correct price based on payment status
+    if (partialScheme) {
+      if (paid && !full_paid) {
+        // If partially paid, set price to payment2 for the second payment
+        setPrice(payment2);
+      } else {
+        // If not paid at all, set price to payment1 for the first payment
+        setPrice(payment1);
+      }
     } else {
-      setPrice(calculateDiscountedPrice(price, discount));
+      // For regular payments, handle discount if present
+      if (!discount) {
+        setPrice(price);
+      } else {
+        setPrice(calculateDiscountedPrice(price, discount));
+      }
     }
+
     setApplicationId(applicationId);
     setPartialScheme(partialScheme);
     setPaid(paid);
     setPayment1(payment1);
     setPayment2(payment2);
     setFullPaid(full_paid);
+    setDiscount(discount);
 
     setShowCheckoutModal(true);
   };
@@ -131,6 +170,7 @@ const ExistingApplications = () => {
     const authListener = onAuthStateChanged(auth, (user) => {
       if (user) {
         setUserId(user.uid);
+        setUserName(user.displayName || "");
         console.log("User ID:", user.uid);
       } else {
         navigate("/login");
@@ -160,6 +200,16 @@ const ExistingApplications = () => {
     }
   }, [userId]);
 
+  // Handle logout
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      navigate("/login");
+    } catch (error) {
+      console.error("Error signing out:", error);
+    }
+  };
+
   // Function to initiate the call for verification
   const handleVerifyNow = async (applicationId) => {
     try {
@@ -185,10 +235,59 @@ const ExistingApplications = () => {
     return cleanPrice - discount;
   };
 
+  // Get payment status details
+  const getPaymentStatus = (application) => {
+    // For applications with partial payment scheme
+    if (application.partialScheme) {
+      if (application.full_paid) {
+        return {
+          status: "FULLY PAID",
+          color: "bg-green-100 text-green-800",
+          icon: <BiCheckCircle className="text-green-600 mr-1" />,
+          cardColorClass: "bg-green-50",
+        };
+      } else if (application.paid) {
+        return {
+          status: "PARTIALLY PAID",
+          color: "bg-yellow-100 text-yellow-800",
+          icon: <BiCheckCircle className="text-yellow-600 mr-1" />,
+          cardColorClass: "bg-yellow-50",
+        };
+      } else {
+        return {
+          status: "UNPAID",
+          color: "bg-red-100 text-red-800",
+          icon: <FaTimesCircle className="text-red-600 mr-1" />,
+          cardColorClass: "",
+        };
+      }
+    }
+    // For regular applications
+    else {
+      if (application.paid) {
+        return {
+          status: "PAID",
+          color: "bg-green-100 text-green-800",
+          icon: <BiCheckCircle className="text-green-600 mr-1" />,
+          cardColorClass: "bg-green-50",
+        };
+      } else {
+        return {
+          status: "UNPAID",
+          color: "bg-red-100 text-red-800",
+          icon: <FaTimesCircle className="text-red-600 mr-1" />,
+          cardColorClass: "",
+        };
+      }
+    }
+  };
+
   // Check if all required steps are completed
   const checkAllStepsCompleted = (application) => {
-    // Get completion statuses
-    const isPaymentDone = application.paid;
+    // Get payment status - for partial scheme, consider both partial and full payment
+    const isPaymentDone = application.partialScheme
+      ? application.full_paid
+      : application.paid;
 
     // Check if student form is filled - simplified check, can be enhanced
     const isStudentFormFilled =
@@ -228,15 +327,7 @@ const ExistingApplications = () => {
       const statusMatch =
         app.currentStatus?.toLowerCase().includes(searchLower) || false;
 
-      // Apply status filter
-      const statusFilterMatch = filterStatus
-        ? app.currentStatus === filterStatus
-        : true;
-
-      return (
-        (appIdMatch || industryMatch || qualificationMatch || statusMatch) &&
-        statusFilterMatch
-      );
+      return appIdMatch || industryMatch || qualificationMatch || statusMatch;
     })
     .sort((a, b) => {
       // Apply sorting
@@ -299,7 +390,7 @@ const ExistingApplications = () => {
         label: "Fill Student Form",
         icon: <BiUser />,
         action: () => onClickStudentForm(application.id),
-        color: "btn-primary",
+        color: "bg-emerald-600 hover:bg-emerald-700",
         priority: 2,
       });
     }
@@ -310,12 +401,56 @@ const ExistingApplications = () => {
         icon: <BiUpload />,
         action: () =>
           onClickUpload(application.id, application.initialForm?.industry),
-        color: "btn-primary",
+        color: "bg-emerald-600 hover:bg-emerald-700",
         priority: 3,
       });
     }
 
-    if (!isPaymentDone) {
+    // For partial payment scheme
+    if (application.partialScheme) {
+      if (!application.paid) {
+        // First payment not made yet
+        buttons.push({
+          label: "Make Initial Payment",
+          icon: <MdPayment />,
+          action: () =>
+            onClickPayment(
+              application.price,
+              application.discount,
+              application.id,
+              application.userId,
+              application.partialScheme,
+              application.paid,
+              application.payment1,
+              application.payment2,
+              application.full_paid
+            ),
+          color: "bg-emerald-600 hover:bg-emerald-700",
+          priority: 1,
+        });
+      } else if (!application.full_paid) {
+        // First payment made, but not fully paid
+        buttons.push({
+          label: "Make Final Payment",
+          icon: <MdPayment />,
+          action: () =>
+            onClickPayment(
+              application.price,
+              application.discount,
+              application.id,
+              application.userId,
+              application.partialScheme,
+              application.paid,
+              application.payment1,
+              application.payment2,
+              application.full_paid
+            ),
+          color: "bg-emerald-600 hover:bg-emerald-700",
+          priority: 1,
+        });
+      }
+    } else if (!isPaymentDone) {
+      // Regular payment (not a scheme)
       buttons.push({
         label: "Make Payment",
         icon: <MdPayment />,
@@ -331,7 +466,7 @@ const ExistingApplications = () => {
             application.payment2,
             application.full_paid
           ),
-        color: "btn-success",
+        color: "bg-emerald-600 hover:bg-emerald-700",
         priority: 1,
       });
     }
@@ -345,7 +480,7 @@ const ExistingApplications = () => {
         label: "Download Certificate",
         icon: <BiDownload />,
         action: () => onClickDownload(application.certificateId),
-        color: "btn-primary",
+        color: "bg-emerald-600 hover:bg-emerald-700",
         priority: 0,
       });
     }
@@ -356,7 +491,7 @@ const ExistingApplications = () => {
         label: "Verify Now",
         icon: <IoCall />,
         action: () => handleVerifyNow(application.id),
-        color: "btn-primary",
+        color: "bg-emerald-600 hover:bg-emerald-700",
         priority: 0,
       });
     }
@@ -369,138 +504,137 @@ const ExistingApplications = () => {
     <div className="min-h-screen bg-gray-50">
       {loading && <Loader />}
       {submissionLoading && <SpinnerLoader />}
-      <Navbar />
 
-      <div className="container mx-auto p-4 lg:p-8 lg:py-28">
-        <div className="flex items-center gap-4 mb-6 lg:flex-row flex-col max-sm:mt-24">
-          <img
-            src={applicationsimg}
-            alt="Applications"
-            className="h-24 lg:h-36"
-          />
-          <div className="flex flex-col w-full">
-            <h1 className="text-3xl font-bold max-sm:text-2xl text-gray-800">
-              My Applications
-            </h1>
-            <p className="text-sm mt-2 text-gray-600">
+      {/* Header Section */}
+      <div className="bg-gradient-to-r from-emerald-600 to-emerald-800 py-16 px-4 sm:px-6 lg:px-8 relative">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center">
+          <div className="flex-shrink-0 mb-6 md:mb-0 md:mr-8 bg-white p-4 rounded-full">
+            <img
+              src={applicationsimg}
+              alt="Applications"
+              className="h-20 w-20 md:h-24 md:w-24"
+            />
+          </div>
+          <div className="text-center md:text-left text-white">
+            <h1 className="text-3xl font-bold mb-2">My Applications</h1>
+            <p className="text-emerald-100 max-w-2xl">
               View and manage all your qualification applications in one place.
+              Track your progress, make payments, and update your documentation.
             </p>
           </div>
-        </div>
 
-        {/* Legend */}
-        <div className="bg-white rounded-lg shadow p-4 mb-6 hidden md:block">
-          <h3 className="text-gray-700 font-medium mb-3">
-            Application Status Guide
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="flex items-center gap-2 p-2 rounded bg-gray-50">
-              <BiCheckCircle className="text-green-500 text-xl" />
-              <div>
-                <p className="font-medium">Paid</p>
-                <p className="text-xs text-gray-500">Payment complete</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2 p-2 rounded bg-gray-50">
-              <FaTimesCircle className="text-red-500 text-xl" />
-              <div>
-                <p className="font-medium">Unpaid</p>
-                <p className="text-xs text-gray-500">Payment pending</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2 p-2 rounded bg-gray-50">
-              <BiUser className="text-blue-500 text-xl" />
-              <div>
-                <p className="font-medium">Student Form</p>
-                <p className="text-xs text-gray-500">Personal details</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2 p-2 rounded bg-gray-50">
-              <BiUpload className="text-red-500 text-xl" />
-              <div>
-                <p className="font-medium">Documents</p>
-                <p className="text-xs text-gray-500">Required files</p>
-              </div>
-            </div>
-          </div>
-        </div>
+          {/* Hamburger Menu */}
+          <div className="absolute top-6 right-6" ref={menuRef}>
+            <button
+              className="flex items-center justify-center w-10 h-10 rounded-full bg-emerald-700 hover:bg-emerald-800 text-white transition-colors duration-200"
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              aria-label={isMenuOpen ? "Close menu" : "Open menu"}
+            >
+              {isMenuOpen ? (
+                <FaTimes className="text-xl" />
+              ) : (
+                <FaBars className="text-xl" />
+              )}
+            </button>
 
-        {/* Filters and Controls */}
-        <div className="bg-white rounded-lg shadow p-4 mb-6">
-          <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-4">
-            <div className="flex gap-3">
-              <button
-                className="btn btn-sm text-white btn-primary flex items-center gap-2 shadow-md hover:shadow-lg transition-all"
-                onClick={() => navigate("/new-application")}
-              >
-                <BiEnvelopeOpen />
-                New Application
-              </button>
-              <button
-                className={`btn btn-sm ${
-                  isRefreshing ? "bg-gray-400" : "btn-outline btn-primary"
-                } flex items-center gap-2 shadow hover:shadow-md transition-all`}
-                onClick={() => getUserApplications(userId)}
-                disabled={isRefreshing}
-              >
-                <svg
-                  className={`w-4 h-4 ${isRefreshing ? "animate-spin" : ""}`}
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                  />
-                </svg>
-                {isRefreshing ? "Refreshing..." : "Refresh"}
-              </button>
-            </div>
-            <div className="flex flex-col lg:flex-row gap-3 w-full lg:w-auto">
-              <div className="relative flex-grow lg:min-w-[250px]">
-                <input
-                  type="text"
-                  placeholder="Search applications..."
-                  className="input input-bordered w-full pr-10 shadow-sm focus:shadow transition-shadow"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-                <div className="absolute inset-y-0 right-3 flex items-center">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-5 w-5 text-gray-400"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
+            {/* Dropdown Menu */}
+            {isMenuOpen && (
+              <div className="absolute right-0 top-12 w-56 rounded-lg shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5 z-50 overflow-visible">
+                <div className="px-4 py-3 border-b border-gray-100">
+                  <p className="text-sm text-gray-500">Signed in as</p>
+                  <p className="text-sm font-medium text-gray-900 truncate">
+                    {auth.currentUser?.email || "User"}
+                  </p>
+                </div>
+
+                <div className="py-1">
+                  <button
+                    className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    onClick={() => {
+                      setIsUpdateEmailOpen(true);
+                      setIsMenuOpen(false);
+                    }}
                   >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                    />
-                  </svg>
+                    <FaEnvelope className="mr-3 text-emerald-600" />
+                    Update Email
+                  </button>
+
+                  <button
+                    className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    onClick={() => {
+                      setIsUpdatePhoneOpen(true);
+                      setIsMenuOpen(false);
+                    }}
+                  >
+                    <FaPhoneAlt className="mr-3 text-emerald-600" />
+                    Update Phone
+                  </button>
+                </div>
+
+                <div className="py-1 border-t border-gray-100">
+                  <button
+                    className="flex items-center w-full px-4 py-2 text-sm text-red-700 hover:bg-gray-100"
+                    onClick={handleLogout}
+                  >
+                    <FaSignOutAlt className="mr-3 text-red-600" />
+                    Logout
+                  </button>
                 </div>
               </div>
-              {/* <select
-                className="select select-bordered shadow-sm"
-                value={filterStatus}
-                onChange={(e) => setFilterStatus(e.target.value)}
-              >
-                <option value="">All Statuses</option>
-                {statuses.map((status) => (
-                  <option key={status} value={status}>
-                    {status}
-                  </option>
-                ))}
-              </select> */}
-              <div className="gap-2 hidden lg:flex">
+            )}
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto p-4 mt-4 sm:px-6 lg:px-8">
+        {/* Filters and Controls */}
+        <div className="bg-white rounded-xl  shadow-md overflow-hidden mb-8">
+          <div className="p-6">
+            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-4">
+              <div className="flex gap-3">
+                <button
+                  className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition-all"
+                  onClick={() => navigate("/")}
+                >
+                  <FaArrowLeft className="mr-2" />
+                  Home
+                </button>
+                <button
+                  className="inline-flex  items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition-all"
+                  onClick={() => navigate("/new-application")}
+                >
+                  <GrFormAdd className="mr-2 text-white" />
+                  New Application
+                </button>
+              </div>
+              <div className="flex flex-col lg:flex-row gap-3 w-full lg:w-auto">
+                <div className="relative flex-grow lg:min-w-[250px]">
+                  <input
+                    type="text"
+                    placeholder="Search applications..."
+                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                  <div className="absolute inset-y-0 right-3 flex items-center">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-5 w-5 text-gray-400"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                      />
+                    </svg>
+                  </div>
+                </div>
                 <select
-                  className="select select-bordered shadow-sm"
+                  className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value)}
                 >
@@ -509,7 +643,7 @@ const ExistingApplications = () => {
                   <option value="price">Sort by Price</option>
                 </select>
                 <button
-                  className="btn btn-square btn-sm shadow hover:shadow-md transition-all"
+                  className="inline-flex items-center px-3 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition-all"
                   onClick={() =>
                     setSortOrder(sortOrder === "asc" ? "desc" : "asc")
                   }
@@ -518,57 +652,42 @@ const ExistingApplications = () => {
                 </button>
               </div>
             </div>
-          </div>
 
-          <div className="flex justify-between items-center mt-2">
-            <div className="text-sm text-gray-500">
-              {filteredApplications.length} application
-              {filteredApplications.length !== 1 ? "s" : ""} found
+            <div className="flex justify-between items-center mt-2">
+              <div className="text-sm text-gray-500">
+                {filteredApplications.length} application
+                {filteredApplications.length !== 1 ? "s" : ""} found
+              </div>
             </div>
           </div>
         </div>
 
         {/* Applications Grid */}
         {filteredApplications.length === 0 ? (
-          <div className="bg-white p-10 rounded-lg shadow text-center">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-16 w-16 mx-auto text-gray-400"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={1}
-                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-              />
-            </svg>
-            <h3 className="mt-4 text-lg font-medium">No applications found</h3>
-            <p className="mt-1 text-gray-500">
-              {searchTerm || filterStatus
-                ? "Try adjusting your search or filter criteria"
+          <div className="bg-white rounded-xl shadow-md overflow-hidden p-10 text-center">
+            <div className="inline-block p-4 rounded-full bg-emerald-100 mb-4">
+              <FaFileAlt className="text-emerald-600 text-3xl" />
+            </div>
+            <h3 className="mt-4 text-lg font-medium text-gray-900 mb-2">
+              No applications found
+            </h3>
+            <p className="text-gray-500 mb-6">
+              {searchTerm
+                ? "Try adjusting your search criteria"
                 : "Start by creating a new application"}
             </p>
             <button
-              className="btn btn-primary mt-4 shadow-md hover:shadow-lg transition-all"
+              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition-all"
               onClick={() => navigate("/new-application")}
             >
-              <BiEnvelopeOpen className="mr-2" />
-              Create New Application
+              <GrFormAdd className="mr-2 text-white" /> Create New Application
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredApplications.map((application) => {
-              const paymentStatus = application.partialScheme
-                ? application.full_paid
-                  ? true
-                  : false
-                : application.paid
-                ? true
-                : false;
+              // Get payment status using our new function
+              const paymentStatusInfo = getPaymentStatus(application);
 
               // Get completion status of all required steps
               const completionStatus = checkAllStepsCompleted(application);
@@ -580,29 +699,44 @@ const ExistingApplications = () => {
               const primaryAction =
                 actionButtons.length > 0 ? actionButtons[0] : null;
 
+              // Determine status color based on application status
+              let statusColor = "bg-gray-100 text-gray-800";
+              let statusIcon = <CgTrack className="mr-1" />;
+
+              if (application.currentStatus === "Waiting for Verification") {
+                statusColor = "bg-yellow-100 text-yellow-800";
+                statusIcon = <BsClock className="mr-1" />;
+              } else if (
+                application.currentStatus === "Certificate Generated"
+              ) {
+                statusColor = "bg-green-100 text-green-800";
+                statusIcon = <FaCertificate className="mr-1" />;
+              } else if (application.currentStatus === "Dispatched") {
+                statusColor = "bg-blue-100 text-blue-800";
+                statusIcon = <BsTruck className="mr-1" />;
+              } else if (application.currentStatus === "Completed") {
+                statusColor = "bg-emerald-100 text-emerald-800";
+                statusIcon = <BiCheck className="mr-1" />;
+              }
+
               return (
                 <div
                   key={application.id}
-                  className="bg-white rounded-lg shadow overflow-hidden hover:shadow-lg transition-all duration-300"
+                  className={`bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1`}
                 >
                   {/* Card Header */}
-                  <div className="bg-gray-100 p-5 border-b border-gray-200">
+                  <div className="bg-gray-50 p-5 border-b border-gray-200">
                     <div className="flex justify-between items-start mb-3">
-                      <h3 className="font-bold text-xl text-primary">
+                      <h3 className="font-bold text-xl text-emerald-600">
                         #{application.applicationId || application.id}
                       </h3>
                       <div className="flex items-center">
-                        {paymentStatus ? (
-                          <div className="flex items-center bg-green-100 text-green-800 text-xs font-semibold px-2 py-1 rounded-full">
-                            <BiCheckCircle className="text-green-600 mr-1" />
-                            PAID
-                          </div>
-                        ) : (
-                          <div className="flex items-center bg-red-100 text-red-800 text-xs font-semibold px-2 py-1 rounded-full">
-                            <FaTimesCircle className="text-red-600 mr-1" />
-                            UNPAID
-                          </div>
-                        )}
+                        <div
+                          className={`flex items-center ${paymentStatusInfo.color} text-xs font-semibold px-2 py-1 rounded-full`}
+                        >
+                          {paymentStatusInfo.icon}
+                          {paymentStatusInfo.status}
+                        </div>
                       </div>
                     </div>
 
@@ -610,15 +744,6 @@ const ExistingApplications = () => {
                       <div className="text-sm text-gray-600">
                         Created: {formatDate(application.status?.[0]?.time)}
                       </div>
-                      {/*
-                       if all steps are completed, show a badge that says "Waiting for Verification"
-                       */}
-                      {completionStatus.allCompleted && (
-                        <div className="flex items-center bg-yellow-100 text-yellow-800 text-xs font-semibold px-2 py-1 rounded-full">
-                          <BsClock className="text-yellow-600 mr-1" />
-                          Waiting for Verification
-                        </div>
-                      )}
                     </div>
                   </div>
 
@@ -666,15 +791,44 @@ const ExistingApplications = () => {
                           ) : null}
                         </p>
                       </div>
+                    </div>
+                    <div className="border-t border-b border-gray-100 py-4">
                       {application.partialScheme && (
                         <div>
                           <p className="text-gray-500 text-sm mb-1">
                             Payment Plan
                           </p>
                           <p className="font-medium">
-                            ${application.payment1 || 0} + $
-                            {application.payment2 || 0}
+                            <span className="bg-blue-50 text-blue-800 text-xs font-semibold px-2 py-0.5 rounded-full mr-1">
+                              1st
+                            </span>
+                            ${application.payment1 || 0} +
+                            <span className="bg-blue-50 text-blue-800 text-xs font-semibold px-2 py-0.5 rounded-full mx-1">
+                              2nd
+                            </span>
+                            ${application.payment2 || 0}
                           </p>
+                          <div>
+                            {application.paid && !application.full_paid && (
+                              <div className="mt-2">
+                                <p className="text-gray-500 text-xs">
+                                  Payment Status
+                                </p>
+                                <div className="flex items-center gap-2 mt-1">
+                                  <div className="bg-green-100 text-green-800 text-xs font-semibold px-2 py-0.5 rounded-full">
+                                    <span>
+                                      Paid: ${application.payment1 || 0}
+                                    </span>
+                                  </div>
+                                  <div className="bg-yellow-100 text-yellow-800 text-xs font-semibold px-2 py-0.5 rounded-full">
+                                    <span>
+                                      Remaining: ${application.payment2 || 0}
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+                          </div>
                         </div>
                       )}
                     </div>
@@ -688,14 +842,14 @@ const ExistingApplications = () => {
                         <div
                           className={`p-2 border rounded-md text-center ${
                             completionStatus.isStudentFormFilled
-                              ? "bg-green-200 border-green-200"
+                              ? "bg-emerald-100 border-emerald-200"
                               : "bg-gray-50 border-gray-200"
                           }`}
                         >
                           <BiUser
                             className={`mx-auto text-lg ${
                               completionStatus.isStudentFormFilled
-                                ? "text-green-500"
+                                ? "text-emerald-600"
                                 : "text-gray-400"
                             }`}
                           />
@@ -704,14 +858,14 @@ const ExistingApplications = () => {
                         <div
                           className={`p-2 border rounded-md text-center ${
                             completionStatus.areDocumentsUploaded
-                              ? "bg-green-200 border-green-200"
+                              ? "bg-emerald-100 border-emerald-200"
                               : "bg-gray-50 border-gray-200"
                           }`}
                         >
                           <BiUpload
                             className={`mx-auto text-lg ${
                               completionStatus.areDocumentsUploaded
-                                ? "text-green-500"
+                                ? "text-emerald-600"
                                 : "text-gray-400"
                             }`}
                           />
@@ -720,18 +874,30 @@ const ExistingApplications = () => {
                         <div
                           className={`p-2 border rounded-md text-center ${
                             completionStatus.isPaymentDone
-                              ? "bg-green-200 border-green-200"
+                              ? application.partialScheme &&
+                                !application.full_paid
+                                ? "bg-yellow-100 border-yellow-200"
+                                : "bg-emerald-100 border-emerald-200"
                               : "bg-gray-50 border-gray-200"
                           }`}
                         >
                           <MdPayment
                             className={`mx-auto text-lg ${
                               completionStatus.isPaymentDone
-                                ? "text-green-500"
+                                ? application.partialScheme &&
+                                  !application.full_paid
+                                  ? "text-yellow-600"
+                                  : "text-emerald-600"
                                 : "text-gray-400"
                             }`}
                           />
-                          <p className="text-xs mt-1">Payment</p>
+                          <p className="text-xs mt-1">
+                            {application.partialScheme &&
+                            application.paid &&
+                            !application.full_paid
+                              ? "Partial Payment"
+                              : "Payment"}
+                          </p>
                         </div>
                       </div>
                     </div>
@@ -741,7 +907,7 @@ const ExistingApplications = () => {
                       <div className="mb-5">
                         <div className="flex justify-between items-center mb-2">
                           <p className="font-medium flex items-center">
-                            <span className="flex items-center justify-center mr-2 w-5 h-5 rounded-full bg-primary text-white text-xs">
+                            <span className="flex items-center justify-center mr-2 w-5 h-5 rounded-full bg-emerald-600 text-white text-xs">
                               !
                             </span>
                             Next Step:
@@ -751,7 +917,7 @@ const ExistingApplications = () => {
                           </p>
                         </div>
                         <button
-                          className={`btn ${primaryAction.color} w-full text-white flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all`}
+                          className={`w-full text-white flex items-center justify-center gap-2 px-4 py-2 rounded-md ${primaryAction.color} shadow-md hover:shadow-lg transition-all`}
                           onClick={primaryAction.action}
                         >
                           {primaryAction.icon} {primaryAction.label}
@@ -765,7 +931,7 @@ const ExistingApplications = () => {
                         {actionButtons.slice(1).map((button, index) => (
                           <button
                             key={index}
-                            className={`btn ${button.color} w-full flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all`}
+                            className={`w-full text-white flex items-center justify-center gap-2 px-4 py-2 rounded-md ${button.color} shadow-md hover:shadow-lg transition-all`}
                             onClick={button.action}
                           >
                             {button.icon} {button.label}
@@ -777,7 +943,7 @@ const ExistingApplications = () => {
                     {/* View Application Button - Always show this */}
                     <Link
                       to={`/view-application/${application.userId}/${application.id}`}
-                      className="btn btn-outline w-full flex items-center justify-center gap-2 shadow-sm hover:shadow transition-all"
+                      className="w-full border border-gray-300 text-gray-700 flex items-center justify-center gap-2 px-4 py-2 rounded-md hover:bg-gray-50 shadow-sm hover:shadow transition-all"
                     >
                       <BsEye /> View Complete Details
                     </Link>
@@ -791,21 +957,73 @@ const ExistingApplications = () => {
 
       {/* Payment Modal */}
       {showCheckoutModal && (
-        <div className="modal modal-open">
-          <div className="modal-box max-w-lg">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="font-bold text-lg">Payment Details</h3>
+        <div className="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center bg-black bg-opacity-50">
+          <div className="relative bg-white rounded-xl shadow-xl max-w-lg w-full mx-4">
+            <div className="flex justify-between items-center p-4 border-b border-gray-200">
+              <h3 className="font-bold text-lg text-gray-900">
+                {partialScheme
+                  ? paid && !full_paid
+                    ? "Make Final Payment"
+                    : "Make Initial Payment"
+                  : "Make Payment"}
+              </h3>
               <button
                 onClick={() => setShowCheckoutModal(false)}
-                className="btn btn-sm btn-circle"
+                className="text-gray-400 hover:text-gray-500 focus:outline-none"
               >
-                ✕
+                <svg
+                  className="h-6 w-6"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
               </button>
             </div>
 
-            <div className="py-4">
+            <div className="p-4">
+              {partialScheme && (
+                <div className="mb-4 p-3 bg-blue-50 rounded-md text-blue-800 text-sm">
+                  {paid && !full_paid ? (
+                    <div className="flex items-start">
+                      <div className="flex-shrink-0 mt-0.5">
+                        <BsEye className="h-5 w-5 text-blue-600" />
+                      </div>
+                      <div className="ml-3">
+                        <p>
+                          <strong>Final Payment:</strong> You've already made
+                          your initial payment of ${payment1}. This is your
+                          final payment of ${payment2} to complete your
+                          application.
+                        </p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex items-start">
+                      <div className="flex-shrink-0 mt-0.5">
+                        <BsEye className="h-5 w-5 text-blue-600" />
+                      </div>
+                      <div className="ml-3">
+                        <p>
+                          <strong>Payment Plan:</strong> This is your initial
+                          payment of ${payment1}. A second payment of $
+                          {payment2} will be required later to complete your
+                          application.
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
               <PaymentPage
                 price={price}
+                discount={discount}
                 applicationId={applicationId}
                 partialScheme={partialScheme}
                 paid={paid}
@@ -820,6 +1038,16 @@ const ExistingApplications = () => {
           </div>
         </div>
       )}
+
+      {/* Update Phone/Email Modal */}
+      {isUpdateEmailOpen || isUpdatePhoneOpen ? (
+        <Modal
+          isUpdateEmailOpen={isUpdateEmailOpen}
+          setIsUpdateEmailOpen={setIsUpdateEmailOpen}
+          setIsUpdatePhoneOpen={setIsUpdatePhoneOpen}
+          isUpdatePhoneOpen={isUpdatePhoneOpen}
+        />
+      ) : null}
 
       <Footer />
     </div>

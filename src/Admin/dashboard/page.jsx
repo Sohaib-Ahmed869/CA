@@ -1,13 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { MdOutlineContactPage } from "react-icons/md";
-import { BiUser } from "react-icons/bi";
-import { FaMoneyBillWave } from "react-icons/fa";
-import { GoVerified } from "react-icons/go";
-import { BiCheck } from "react-icons/bi";
-import { BiTimeFive } from "react-icons/bi";
-import { BiUserCheck } from "react-icons/bi";
 import { getAuth } from "firebase/auth";
-import { MdPending } from "react-icons/md";
 import {
   getDashboardStats,
   getApplications,
@@ -22,6 +14,20 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
+
+// Import icons
+import {
+  BarChart3,
+  Users,
+  FileText,
+  CreditCard,
+  CheckCircle,
+  Clock,
+  Bookmark,
+  Send,
+  PieChart,
+} from "lucide-react";
+
 const ApplicationFunnel = ({ applications }) => {
   const getFunnelData = () => {
     const statusOrder = [
@@ -32,8 +38,8 @@ const ApplicationFunnel = ({ applications }) => {
       "Certificate Generated",
     ];
 
-    // Colors for each status (in order of appearance)
-    const colors = ["#142E1D", "#089C34", "#FFA000", "#1976D2", "#6D4C41"];
+    // Green color palette
+    const colors = ["#064e3b", "#065f46", "#047857", "#059669", "#10b981"];
 
     // Count applications for each status
     const statusCounts = statusOrder.reduce((acc, status) => {
@@ -52,9 +58,9 @@ const ApplicationFunnel = ({ applications }) => {
       .map((status, index) => ({
         name: status,
         count: statusCounts[status],
-        fill: colors[index], // Assign a specific color for each status
+        fill: colors[index],
       }))
-      .filter((d) => d.count > 0); // Exclude statuses with count = 0
+      .filter((d) => d.count > 0);
   };
 
   const data = React.useMemo(() => getFunnelData(), [applications]);
@@ -62,45 +68,56 @@ const ApplicationFunnel = ({ applications }) => {
   // Fallback for empty data
   if (!data.some((d) => d.count > 0)) {
     return (
-      <div className="bg-white rounded-lg shadow p-4">
-        <h4>No data available for the funnel chart.</h4>
+      <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+        <div className="flex items-center justify-center h-80">
+          <p className="text-gray-500 text-center">
+            No application data available
+          </p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div
-      style={{
-        padding: "5",
-        borderRadius: "8px",
-        boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
-        backgroundColor: "#fff",
-      }}
-    >
-      <h3
-        style={{ fontSize: "16px", fontWeight: "bold", marginBottom: "10px" }}
-      >
-        Application Funnel
-      </h3>
-      <ResponsiveContainer width="100%" height={400}>
+    <div className="bg-white rounded-xl shadow-sm p-6 border border-green-50">
+      <div className="flex items-center mb-4">
+        <PieChart className="mr-2 text-green-700" size={20} />
+        <h3 className="text-lg font-semibold text-gray-800">
+          Application Pipeline
+        </h3>
+      </div>
+      <ResponsiveContainer width="100%" height={350}>
         <FunnelChart>
           <Tooltip
-            formatter={(value) => `${value} applications`}
-            cursor={{ fill: "rgba(0, 0, 0, 0.05)" }}
+            formatter={(value) => [`${value} applications`, "Count"]}
+            contentStyle={{
+              backgroundColor: "rgba(255, 255, 255, 0.96)",
+              borderRadius: "6px",
+              boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
+              border: "none",
+              padding: "12px",
+            }}
+            labelStyle={{ fontWeight: "bold", marginBottom: "4px" }}
           />
           <Funnel
             dataKey="count"
             data={data}
             isAnimationActive
-            fillOpacity={1} // Ensure full color visibility
+            fillOpacity={0.9}
+            stroke="#fff"
+            strokeWidth={2}
           >
-            {/* Display only percentages inside the funnel */}
             <LabelList
-              style={{ fontSize: "12px", fontWeight: "bold", fill: "#000000" }}
+              position="right"
+              style={{
+                fontSize: "13px",
+                fontWeight: "600",
+                fill: "#1f2937",
+              }}
               formatter={(value) => {
                 const total = data.reduce((sum, d) => sum + d.count, 0);
                 const percentage = ((value / total) * 100).toFixed(1);
-                return `${percentage}%`;
+                return `${value} (${percentage}%)`;
               }}
             />
           </Funnel>
@@ -108,33 +125,21 @@ const ApplicationFunnel = ({ applications }) => {
       </ResponsiveContainer>
 
       {/* Legend */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)" }}>
+      <div className="grid grid-cols-2 gap-2 mt-4">
         {data.map((d) => (
-          <div
-            key={d.name}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              marginRight: "15px",
-              fontSize: "14px",
-            }}
-          >
+          <div key={d.name} className="flex items-center text-sm text-gray-700">
             <div
-              style={{
-                width: "12px",
-                height: "12px",
-                backgroundColor: d.fill, // Use the same color as in the funnel
-                marginRight: "5px",
-                borderRadius: "2px",
-              }}
+              className="w-3 h-3 mr-2 rounded-sm"
+              style={{ backgroundColor: d.fill }}
             ></div>
-            {d.name}
+            <span className="truncate">{d.name}</span>
           </div>
         ))}
       </div>
     </div>
   );
 };
+
 const ColorStatusChart = ({ stats }) => {
   const getColorData = () => {
     const hotLeadCount = stats.colorStatusCount?.hotLead || 0;
@@ -154,83 +159,118 @@ const ColorStatusChart = ({ stats }) => {
     };
   };
 
-  // Get fresh data each render
   const data = React.useMemo(() => getColorData(), [stats]);
 
   const chartOptions = React.useMemo(
     () => ({
       labels: data.labels,
-      colors: ["#EF4444", "#F97316", "#6B7280"],
+      colors: ["#166534", "#65a30d", "#1f2937"],
       chart: {
-        type: "pie",
-        events: {
-          dataPointMouseEnter: function (event, chartContext, config) {
-            // Force tooltip update
-            const dataPointIndex = config.dataPointIndex;
-            const count = data.numbers[dataPointIndex];
-            const percentage = data.series[dataPointIndex].toFixed(1);
-          },
+        type: "donut",
+        fontFamily: "'Inter', sans-serif",
+        background: "transparent",
+        dropShadow: {
+          enabled: false,
         },
       },
       legend: {
         position: "bottom",
         fontSize: "14px",
+        fontWeight: 500,
         markers: {
-          fillColors: ["#EF4444", "#F97316", "#6B7280"],
+          width: 10,
+          height: 10,
+          strokeWidth: 0,
+          radius: 4,
+        },
+        itemMargin: {
+          horizontal: 10,
+          vertical: 5,
         },
       },
       plotOptions: {
         pie: {
-          dataLabels: {
-            enabled: true,
-            position: "inside",
-            style: {
-              fontSize: "14px",
-              fontWeight: "bold",
-              colors: ["#fff"],
-            },
-            formatter: function (val, opts) {
-              return data.numbers[opts.seriesIndex].toString();
+          donut: {
+            size: "60%",
+            labels: {
+              show: true,
+              name: {
+                show: true,
+                fontWeight: 600,
+              },
+              value: {
+                show: true,
+                fontWeight: 700,
+                fontSize: "22px",
+              },
+              total: {
+                show: true,
+                fontWeight: 700,
+                label: "Total Leads",
+                formatter: function (w) {
+                  return data.numbers.reduce((a, b) => a + b, 0);
+                },
+              },
             },
           },
+          expandOnClick: false,
         },
+      },
+      dataLabels: {
+        enabled: false,
       },
       tooltip: {
         enabled: true,
-        custom: function ({ seriesIndex }) {
-          const count = data.numbers[seriesIndex];
-          const percentage = data.series[seriesIndex].toFixed(1);
-          const label = data.labels[seriesIndex];
-
-          return `<div class="custom-tooltip" style="padding: 8px;">
-          <span>${label}</span><br/>
-          <span>Count: ${count}</span><br/>
-          <span>Percentage: ${percentage}%</span>
-        </div>`;
+        style: {
+          fontSize: "14px",
+        },
+        y: {
+          formatter: function (val, { seriesIndex }) {
+            return `${data.numbers[seriesIndex]} (${val.toFixed(1)}%)`;
+          },
         },
       },
+      responsive: [
+        {
+          breakpoint: 480,
+          options: {
+            chart: {
+              height: 300,
+            },
+            legend: {
+              position: "bottom",
+            },
+          },
+        },
+      ],
       title: {
         text: "Lead Status Distribution",
         align: "left",
         style: {
           fontSize: "16px",
-          fontWeight: "bold",
+          fontWeight: 600,
+          color: "#1f2937",
         },
       },
     }),
     [data]
   );
 
-  // Force chart to re-render when data changes
   const chartKey = React.useMemo(() => JSON.stringify(data), [data]);
 
   return (
-    <div className="bg-white rounded-lg shadow p-4">
+    <div className="bg-white rounded-xl shadow-sm p-6 border border-green-50">
+      <div className="flex items-center mb-4">
+        <PieChart className="mr-2 text-green-700" size={20} />
+        <h3 className="text-lg font-semibold text-gray-800">
+          Lead Status Distribution
+        </h3>
+      </div>
       <ApexCharts
         key={chartKey}
         options={chartOptions}
         series={data.series}
-        type="pie"
+        type="donut"
         height={350}
       />
     </div>
@@ -279,28 +319,77 @@ const WeeklyChart = ({ applications }) => {
       toolbar: {
         show: false,
       },
+      fontFamily: "'Inter', sans-serif",
     },
     plotOptions: {
       bar: {
         horizontal: false,
-        columnWidth: "55%",
+        columnWidth: "60%",
+        borderRadius: 4,
+        dataLabels: {
+          position: "top",
+        },
       },
     },
-    colors: ["#089C34", "#142E1D"],
+    colors: ["#10b981", "#374151"],
     dataLabels: {
       enabled: false,
     },
     xaxis: {
       categories: data.labels,
+      axisBorder: {
+        show: false,
+      },
+      axisTicks: {
+        show: false,
+      },
+    },
+    grid: {
+      borderColor: "#F3F4F6",
+      strokeDashArray: 4,
+      padding: {
+        top: 0,
+        right: 0,
+        bottom: 0,
+        left: 10,
+      },
+    },
+    yaxis: {
+      labels: {
+        formatter: function (val) {
+          return val.toFixed(0);
+        },
+      },
     },
     fill: {
       opacity: 1,
     },
+    legend: {
+      position: "top",
+      horizontalAlign: "right",
+      markers: {
+        radius: 4,
+      },
+    },
+    title: {
+      text: "Weekly Applications",
+      align: "left",
+      style: {
+        fontSize: "16px",
+        fontWeight: 600,
+        color: "#1f2937",
+      },
+    },
   };
 
   return (
-    <div className="bg-white rounded-lg shadow p-4">
-      <h3 className="text-lg font-semibold mb-4">Weekly Applications</h3>
+    <div className="bg-white rounded-xl shadow-sm p-6 border border-green-50">
+      <div className="flex items-center mb-4">
+        <BarChart3 className="mr-2 text-green-700" size={20} />
+        <h3 className="text-lg font-semibold text-gray-800">
+          Weekly Applications
+        </h3>
+      </div>
       <ApexCharts
         options={chartOptions}
         series={data.series}
@@ -338,95 +427,78 @@ const StatusChart = ({ applications }) => {
 
   const chartOptions = {
     labels: data.labels,
-    colors: ["#142E1D", "#089C34", "#FFA000", "#1976D2", "#6D4C41", "#8E24AA"],
+    colors: ["#064e3b", "#065f46", "#047857", "#059669", "#10b981"],
     chart: {
       type: "pie",
+      fontFamily: "'Inter', sans-serif",
     },
     legend: {
       position: "bottom",
-    },
-  };
-
-  return (
-    <div className="bg-white rounded-lg shadow p-4">
-      <h3 className="text-lg font-semibold mb-4">
-        Application Status Distribution
-      </h3>
-      <ApexCharts
-        options={chartOptions}
-        series={Object.values(data.series)} // Change this line
-        labels={Object.values(data.labels)} // Add this line
-        type="pie"
-        height={350}
-      />
-    </div>
-  );
-};
-
-// Payment Trends Chart
-const PaymentTrends = ({ applications }) => {
-  const getPaymentData = () => {
-    const last7Days = [];
-    const paymentAmounts = new Array(7).fill(0);
-
-    for (let i = 6; i >= 0; i--) {
-      const date = new Date();
-      date.setDate(date.getDate() - i);
-      last7Days.push(date.toISOString().split("T")[0]);
-    }
-
-    applications.forEach((app) => {
-      if (app.paid && app.paymentCompletedAt) {
-        const paymentDate = app.paymentCompletedAt.split("T")[0];
-        const dayIndex = last7Days.indexOf(paymentDate);
-        if (dayIndex !== -1) {
-          const amount =
-            parseFloat(app.price.toString().replace(/,/g, "")) || 0;
-          paymentAmounts[dayIndex] += amount;
-        }
-      }
-    });
-
-    return {
-      dates: last7Days,
-      series: [
-        {
-          name: "Payment Amount",
-          data: paymentAmounts,
-        },
-      ],
-    };
-  };
-
-  const data = getPaymentData();
-
-  const chartOptions = {
-    chart: {
-      type: "area",
-      height: 350,
-      toolbar: {
-        show: false,
+      fontSize: "14px",
+      fontWeight: 500,
+      markers: {
+        width: 10,
+        height: 10,
+        strokeWidth: 0,
+        radius: 4,
+      },
+      itemMargin: {
+        horizontal: 10,
+        vertical: 5,
       },
     },
     dataLabels: {
-      enabled: false,
+      enabled: true,
+      formatter: function (val, opts) {
+        return data.series[opts.seriesIndex];
+      },
+      style: {
+        fontSize: "14px",
+        fontWeight: 600,
+        colors: ["#fff"],
+      },
+      dropShadow: {
+        enabled: false,
+      },
     },
-    stroke: {
-      curve: "smooth",
+    plotOptions: {
+      pie: {
+        expandOnClick: false,
+      },
     },
-    xaxis: {
-      categories: data.dates,
+    title: {
+      text: "Application Status Distribution",
+      align: "left",
+      style: {
+        fontSize: "16px",
+        fontWeight: 600,
+        color: "#1f2937",
+      },
     },
-    colors: ["#089C34"],
+    responsive: [
+      {
+        breakpoint: 480,
+        options: {
+          legend: {
+            position: "bottom",
+          },
+        },
+      },
+    ],
   };
 
   return (
-    <div className="bg-white rounded-lg shadow p-4">
-      <h3 className="text-lg font-semibold mb-4">Payment Trends</h3>
+    <div className="bg-white rounded-xl shadow-sm p-6 border border-green-50">
+      <div className="flex items-center mb-4">
+        <PieChart className="mr-2 text-green-700" size={20} />
+        <h3 className="text-lg font-semibold text-gray-800">
+          Application Status Distribution
+        </h3>
+      </div>
       <ApexCharts
         options={chartOptions}
         series={data.series}
-        type="area"
+        type="pie"
         height={350}
       />
     </div>
@@ -453,9 +525,7 @@ const Dashboard = () => {
 
   const [applications, setApplications] = useState([]);
   const [submissionLoading, setSubmissionLoading] = useState(false);
-
   const [userId, setUserId] = useState(null);
-
   const auth = getAuth();
 
   useEffect(() => {
@@ -464,7 +534,6 @@ const Dashboard = () => {
         setUserId(user.uid);
       }
     });
-
     return () => unsubscribe();
   }, []);
 
@@ -474,8 +543,6 @@ const Dashboard = () => {
 
       try {
         setSubmissionLoading(true);
-
-        // Fetch data in parallel using Promise.all
         const [statsData, appsData] = await Promise.all([
           getDashboardStats({ id: userId }),
           getApplications(),
@@ -485,7 +552,6 @@ const Dashboard = () => {
         setApplications(appsData);
       } catch (err) {
         console.error("Error fetching dashboard data:", err);
-        // You might want to show an error toast here
       } finally {
         setSubmissionLoading(false);
       }
@@ -498,79 +564,129 @@ const Dashboard = () => {
     {
       label: "Total Applications",
       value: stats.totalApplications,
-      Icon: MdOutlineContactPage,
+      Icon: FileText,
+      bgColor: "bg-green-50",
+      textColor: "text-green-800",
+      iconColor: "text-green-700",
     },
     {
       label: "Total Payments",
       value: `$${stats.totalPayments}`,
-      Icon: FaMoneyBillWave,
+      Icon: CreditCard,
+      bgColor: "bg-green-50",
+      textColor: "text-green-800",
+      iconColor: "text-green-700",
     },
-
     {
-      label: "Total Payments on Payment Plans",
+      label: "Payment Plans Total",
       value: `$${stats.totalPaymentsWithPartial}`,
-      Icon: BiUser,
+      Icon: Users,
+      bgColor: "bg-green-50",
+      textColor: "text-green-800",
+      iconColor: "text-green-700",
     },
     {
-      label: "Total Outstandings of Payment Plans",
+      label: "Payment Plans Outstanding",
       value: `$${stats.totalPaymentsWithoutPartial}`,
-      Icon: BiUserCheck,
+      Icon: Users,
+      bgColor: "bg-yellow-50",
+      textColor: "text-yellow-800",
+      iconColor: "text-yellow-700",
     },
     {
       label: "Payments Completed",
       value: stats.paidApplications,
-      Icon: BiCheck,
+      Icon: CheckCircle,
+      bgColor: "bg-green-50",
+      textColor: "text-green-800",
+      iconColor: "text-green-700",
     },
     {
       label: "Payments Pending",
       value: stats.pendingPayments,
-      Icon: MdPending,
+      Icon: Clock,
+      bgColor: "bg-yellow-50",
+      textColor: "text-yellow-800",
+      iconColor: "text-yellow-700",
     },
-
     {
       label: "Certificates Generated",
       value: stats.certificatesGenerated,
-      Icon: GoVerified,
+      Icon: Bookmark,
+      bgColor: "bg-green-50",
+      textColor: "text-green-800",
+      iconColor: "text-green-700",
     },
-    { label: "Sent to RTO", value: stats.rtoApplications, Icon: BiTimeFive },
+    {
+      label: "Sent to RTO",
+      value: stats.rtoApplications,
+      Icon: Send,
+      bgColor: "bg-green-50",
+      textColor: "text-green-800",
+      iconColor: "text-green-700",
+    },
   ];
 
   return (
-    <div className="flex flex-col lg:p-10 w-full justify-between animate-fade">
+    <div className="min-h-screen bg-gray-50 p-4 md:p-8 xl:p-10 w-full animate-fade">
       {submissionLoading && <SpinnerLoader />}
 
-      <div className="flex items-center gap-4 mb-5 lg:flex-row flex-col">
-        <img src={dashb} alt="Dashboard" className="h-36" />
-        <div className="flex flex-col lg:w-1/2 w-full">
-          <h1 className="text-3xl font-bold">Dashboard</h1>
-          <p className="text-sm mt-2">
-            Welcome to the dashboard. Here you can view all statistics related
-            to applications and payments.
-          </p>
+      {/* Header Section */}
+      <div className="bg-gradient-to-r from-green-800 to-green-600 rounded-xl shadow-md mb-6">
+        <div className="flex items-center gap-6 flex-col sm:flex-row p-6">
+          <div className="bg-white p-4 rounded-full flex-shrink-0">
+            <img
+              src={dashb}
+              alt="Dashboard"
+              className="h-16 w-16 object-contain"
+            />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-white">
+              Administration Dashboard
+            </h1>
+            <p className="text-green-100 mt-1">
+              Overview of applications, certifications, and revenue metrics
+            </p>
+          </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      {/* KPI Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {kpiData.map((kpi, index) => (
           <div
             key={index}
-            className="flex flex-col w-full shadow-md p-5 rounded-xl relative"
+            className={`rounded-xl shadow-sm p-6 border border-gray-100 transition-all hover:shadow-md ${kpi.bgColor}`}
           >
-            <label className="text-sm">{kpi.label}</label>
-            <h1 className="text-xl font-bold mt-2">{kpi.value}</h1>
-            <kpi.Icon className="text-4xl absolute right-5 bottom-5" />
+            <div className="flex justify-between items-start">
+              <div>
+                <p className={`text-sm font-medium mb-1 ${kpi.textColor}`}>
+                  {kpi.label}
+                </p>
+                <h3 className={`text-2xl font-bold ${kpi.textColor}`}>
+                  {kpi.value}
+                </h3>
+              </div>
+              <div
+                className={`p-3 rounded-lg ${kpi.iconColor} bg-white bg-opacity-50`}
+              >
+                <kpi.Icon className="h-6 w-6" />
+              </div>
+            </div>
           </div>
         ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-8">
+      {/* Charts Section */}
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mb-6">
         <WeeklyChart applications={applications} />
+        <StatusChart applications={applications} />
+      </div>
+
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
         <ColorStatusChart stats={stats} />
         <ApplicationFunnel applications={applications} />
-      </div>
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-8">
-        <PaymentTrends applications={applications} />
-        <StatusChart applications={applications} />
       </div>
     </div>
   );

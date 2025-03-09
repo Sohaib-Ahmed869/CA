@@ -1,11 +1,373 @@
 import React, { useState, useEffect } from "react";
-import { FaTimes } from "react-icons/fa";
+import {
+  FaTimes,
+  FaEye,
+  FaUser,
+  FaCalendarAlt,
+  FaGraduationCap,
+  FaMoneyBillWave,
+  FaStickyNote,
+  FaFileAlt,
+  FaCertificate,
+  FaDownload,
+} from "react-icons/fa";
+import { BiRefresh, BiSearch } from "react-icons/bi";
 import SpinnerLoader from "../../Customer/components/spinnerLoader";
 import toast from "react-hot-toast";
 import { getApplications } from "../../Customer/Services/adminServices";
+import applicationsImg from "../../assets/applications.png";
+
+const ViewApplicationModal = ({ application, onClose }) => {
+  const formatDate = (dateString) => {
+    if (!dateString) return "N/A";
+    const date = new Date(dateString);
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const year = date.getFullYear();
+    return `${day}-${month}-${year}`;
+  };
+
+  const calculateDiscountedPrice = (price) => {
+    if (!price) return 0;
+    if (!application.discount) return price;
+    const cleanPrice = parseFloat(price.toString().replace(/,/g, ""));
+    return (cleanPrice - application.discount).toFixed(2);
+  };
+
+  const getCertificateGenerationDate = () => {
+    if (!application.status) return "N/A";
+    const certificateStatus = application.status.find(
+      (s) => s.statusname === "Certificate Generated"
+    );
+    return certificateStatus ? formatDate(certificateStatus.time) : "N/A";
+  };
+
+  return (
+    <dialog className="modal modal-open">
+      <div className="modal-box w-11/12 max-w-5xl h-[90vh] overflow-y-auto bg-white rounded-lg shadow-lg">
+        <div className="sticky top-0 bg-white z-10 pb-4 border-b border-gray-200 mb-4">
+          <button
+            onClick={onClose}
+            className="btn btn-sm btn-circle absolute right-2 top-2"
+          >
+            <FaTimes />
+          </button>
+          <h2 className="text-2xl font-bold text-gray-800">
+            Application #{application.applicationId || application.id}
+          </h2>
+          <p className="text-sm text-gray-600">
+            Submitted on {formatDate(application.status?.[0]?.time)}
+          </p>
+        </div>
+
+        <div className="space-y-6 mt-4 px-2">
+          {/* Certificate Information */}
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+            <div className="p-5">
+              <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                <FaCertificate className="mr-2 text-emerald-600" />
+                Certificate Information
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <p className="font-medium text-gray-600">
+                    Certificate Status
+                  </p>
+                  <div className="mt-1">
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                      Generated
+                    </span>
+                  </div>
+                </div>
+                <div>
+                  <p className="font-medium text-gray-600">Generation Date</p>
+                  <p className="text-gray-800">
+                    {getCertificateGenerationDate()}
+                  </p>
+                </div>
+                <div>
+                  <p className="font-medium text-gray-600">Certificate</p>
+                  {application.certificateId && (
+                    <button
+                      onClick={() => window.open(application.certificateId)}
+                      className="mt-1 inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-md text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none"
+                    >
+                      <FaDownload className="mr-1" /> View/Download Certificate
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Status and Payment */}
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+            <div className="p-5">
+              <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                <FaFileAlt className="mr-2 text-emerald-600" />
+                Status and Payment
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <p className="font-medium text-gray-600">Current Status</p>
+                  <div className="mt-1">
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                      {application.currentStatus}
+                    </span>
+                  </div>
+                </div>
+                <div>
+                  <p className="font-medium text-gray-600">Payment Status</p>
+                  <div className="mt-1">
+                    <span
+                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                        application.paid
+                          ? "bg-green-100 text-green-800"
+                          : "bg-red-100 text-red-800"
+                      }`}
+                    >
+                      {application.paid ? "Paid" : "Unpaid"}
+                    </span>
+                  </div>
+                </div>
+                <div>
+                  <p className="font-medium text-gray-600">Original Price</p>
+                  <p className="text-gray-800">${application.price}</p>
+                </div>
+                {application.discount > 0 && (
+                  <>
+                    <div>
+                      <p className="font-medium text-gray-600">
+                        Discount Applied
+                      </p>
+                      <p className="text-gray-800">${application.discount}</p>
+                    </div>
+                    <div>
+                      <p className="font-medium text-gray-600">Final Price</p>
+                      <p className="text-gray-800">
+                        ${calculateDiscountedPrice(application.price)}
+                      </p>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Personal Information */}
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+            <div className="p-5">
+              <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                <FaUser className="mr-2 text-emerald-600" />
+                Personal Information
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <p className="font-medium text-gray-600">Full Name</p>
+                  <p className="text-gray-800">
+                    {application.user?.firstName} {application.user?.lastName}
+                  </p>
+                </div>
+                <div>
+                  <p className="font-medium text-gray-600">Email</p>
+                  <p className="text-gray-800">{application.user?.email}</p>
+                </div>
+                <div>
+                  <p className="font-medium text-gray-600">Phone</p>
+                  <p className="text-gray-800">{application.user?.phone}</p>
+                </div>
+                <div>
+                  <p className="font-medium text-gray-600">Country</p>
+                  <p className="text-gray-800">
+                    {application.user?.country || "Australia"}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Initial Screening */}
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+            <div className="p-5">
+              <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                <FaGraduationCap className="mr-2 text-emerald-600" />
+                Initial Screening
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <p className="font-medium text-gray-600">Industry</p>
+                  <p className="text-gray-800">
+                    {application.isf?.industry || "N/A"}
+                  </p>
+                </div>
+                <div>
+                  <p className="font-medium text-gray-600">
+                    Desired Qualification
+                  </p>
+                  <p className="text-gray-800">
+                    {application.isf?.lookingForWhatQualification || "N/A"}
+                  </p>
+                </div>
+                <div>
+                  <p className="font-medium text-gray-600">
+                    Years of Experience
+                  </p>
+                  <p className="text-gray-800">
+                    {application.isf?.yearsOfExperience || "N/A"}
+                  </p>
+                </div>
+                <div>
+                  <p className="font-medium text-gray-600">
+                    Location of Experience
+                  </p>
+                  <p className="text-gray-800">
+                    {application.isf?.locationOfExperience || "N/A"}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Student Intake Form */}
+          {application.sif && (
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+              <div className="p-5">
+                <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                  <FaFileAlt className="mr-2 text-emerald-600" />
+                  Student Intake Form
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <p className="font-medium text-gray-600">USI</p>
+                    <p className="text-gray-800">
+                      {application.sif.USI || "N/A"}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-600">Gender</p>
+                    <p className="text-gray-800">
+                      {application.sif.gender || "N/A"}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-600">Date of Birth</p>
+                    <p className="text-gray-800">
+                      {application.sif.dob || "N/A"}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-600">Address</p>
+                    <p className="text-gray-800">
+                      {application.sif.homeAddress || "N/A"}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-600">Suburb</p>
+                    <p className="text-gray-800">
+                      {application.sif.suburb || "N/A"}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-600">Postcode</p>
+                    <p className="text-gray-800">
+                      {application.sif.postcode || "N/A"}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-600">State</p>
+                    <p className="text-gray-800">
+                      {application.sif.state || "N/A"}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Assessor Notes */}
+          {application.assessorNote && (
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+              <div className="p-5">
+                <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                  <FaStickyNote className="mr-2 text-emerald-600" />
+                  Assessor Notes
+                </h3>
+                <div className="bg-gray-50 p-4 rounded-md">
+                  <p className="whitespace-pre-wrap text-gray-700">
+                    {application.assessorNote}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Status History */}
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+            <div className="p-5">
+              <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                <FaCalendarAlt className="mr-2 text-emerald-600" />
+                Status History
+              </h3>
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th
+                        scope="col"
+                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      >
+                        Status
+                      </th>
+                      <th
+                        scope="col"
+                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      >
+                        Date
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {application.status &&
+                      application.status.map((status, index) => (
+                        <tr
+                          key={index}
+                          className={
+                            index % 2 === 0 ? "bg-white" : "bg-gray-50"
+                          }
+                        >
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                            {status.statusname}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                            {formatDate(status.time)}
+                          </td>
+                        </tr>
+                      ))}
+                    {(!application.status ||
+                      application.status.length === 0) && (
+                      <tr>
+                        <td
+                          colSpan="2"
+                          className="px-6 py-4 text-center text-sm text-gray-500"
+                        >
+                          No status history available
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </dialog>
+  );
+};
 
 const CertificateApplications = () => {
   const [applications, setApplications] = useState([]);
+  const [filteredApplications, setFilteredApplications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -16,10 +378,25 @@ const CertificateApplications = () => {
     try {
       setLoading(true);
       const response = await getApplications();
+
+      // Filter for applications that have Certificate Generated status
       const certificateApplications = response.filter(
         (app) => app.currentStatus === "Certificate Generated"
       );
+
+      // Sort by newest certificate generation first
+      certificateApplications.sort((a, b) => {
+        const aDate = a.status?.find(
+          (s) => s.statusname === "Certificate Generated"
+        )?.time;
+        const bDate = b.status?.find(
+          (s) => s.statusname === "Certificate Generated"
+        )?.time;
+        return new Date(bDate) - new Date(aDate);
+      });
+
       setApplications(certificateApplications);
+      setFilteredApplications(certificateApplications);
     } catch (error) {
       console.error("Failed to fetch applications:", error);
       toast.error("Failed to load applications");
@@ -32,381 +409,373 @@ const CertificateApplications = () => {
     getApplicationsData();
   }, []);
 
-  const filteredApplications = applications.filter(
-    (app) =>
-      app.applicationId?.toLowerCase().includes(search.toLowerCase()) ||
-      app.user?.firstName?.toLowerCase().includes(search.toLowerCase()) ||
-      app.user?.lastName?.toLowerCase().includes(search.toLowerCase())
-  );
+  // Handle search changes
+  useEffect(() => {
+    if (!search) {
+      setFilteredApplications(applications);
+      setCurrentPage(1);
+      return;
+    }
+
+    const searchLower = search.toLowerCase();
+    const filtered = applications.filter(
+      (app) =>
+        app.applicationId?.toLowerCase().includes(searchLower) ||
+        app.user?.firstName?.toLowerCase().includes(searchLower) ||
+        app.user?.lastName?.toLowerCase().includes(searchLower) ||
+        app.isf?.lookingForWhatQualification
+          ?.toLowerCase()
+          .includes(searchLower)
+    );
+
+    setFilteredApplications(filtered);
+    setCurrentPage(1); // Reset to first page when search changes
+  }, [search, applications]);
 
   const totalPages = Math.ceil(filteredApplications.length / itemsPerPage);
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = filteredApplications.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
+    indexOfFirstItem,
+    indexOfLastItem
   );
 
   const formatDate = (dateString) => {
+    if (!dateString) return "N/A";
     const date = new Date(dateString);
-    return date.toLocaleDateString();
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const year = date.getFullYear();
+    return `${day}-${month}-${year}`;
   };
 
-  const ViewApplicationModal = ({ application, onClose }) => {
-    const formatModalDate = (dateString) => {
-      const date = new Date(dateString);
-      const day = String(date.getDate()).padStart(2, "0");
-      const month = String(date.getMonth() + 1).padStart(2, "0");
-      const year = date.getFullYear();
-      return `${day}-${month}-${year}`;
-    };
-
-    const calculateDiscountedPrice = (price) => {
-      if (!price) return 0;
-      if (!application.discount) return price;
-      const cleanPrice = parseFloat(price.toString().replace(/,/g, ""));
-      return (cleanPrice - application.discount).toFixed(2);
-    };
-
-    return (
-      <dialog className="modal modal-open">
-        <div className="modal-box w-11/12 max-w-5xl h-[90vh] overflow-y-auto">
-          <div className="sticky top-0 bg-white z-10 pb-4">
-            <button
-              onClick={onClose}
-              className="btn btn-sm btn-circle absolute right-2 top-2"
-            >
-              <FaTimes />
-            </button>
-            <h2 className="text-2xl font-bold">
-              Application #{application.applicationId}
-            </h2>
-            <p className="text-sm text-gray-600">
-              Submitted on {formatModalDate(application.status[0].time)}
-            </p>
-          </div>
-
-          <div className="space-y-6 mt-4">
-            {/* Certificate Information */}
-            <div className="card bg-base-100 shadow-sm">
-              <div className="card-body">
-                <h3 className="card-title text-lg">Certificate Information</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <p className="font-semibold">Certificate ID</p>
-                    <p>{application.certificateId || "Not available"}</p>
-                  </div>
-                  <div>
-                    <p className="font-semibold">Certificate Status</p>
-                    <p>Generated</p>
-                  </div>
-                  <div>
-                    <p className="font-semibold">Generation Date</p>
-                    <p>
-                      {formatModalDate(
-                        application.status.find(
-                          (s) => s.statusname === "Certificate Generated"
-                        )?.time
-                      )}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Status and Payment */}
-            <div className="card bg-base-100 shadow-sm">
-              <div className="card-body">
-                <h3 className="card-title text-lg">Status and Payment</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <p className="font-semibold">Current Status</p>
-                    <p>{application.currentStatus}</p>
-                  </div>
-                  <div>
-                    <p className="font-semibold">Payment Status</p>
-                    <span
-                      className={`px-2 py-1 rounded-full text-sm ${
-                        application.paid
-                          ? "bg-green-100 text-green-800"
-                          : "bg-red-100 text-red-800"
-                      }`}
-                    >
-                      {application.paid ? "Paid" : "Unpaid"}
-                    </span>
-                  </div>
-                  <div>
-                    <p className="font-semibold">Original Price</p>
-                    <p>${application.price}</p>
-                  </div>
-                  {application.discount && (
-                    <>
-                      <div>
-                        <p className="font-semibold">Discount Applied</p>
-                        <p>${application.discount}</p>
-                      </div>
-                      <div>
-                        <p className="font-semibold">Final Price</p>
-                        <p>${calculateDiscountedPrice(application.price)}</p>
-                      </div>
-                    </>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* Personal Information */}
-            <div className="card bg-base-100 shadow-sm">
-              <div className="card-body">
-                <h3 className="card-title text-lg">Personal Information</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <p className="font-semibold">Full Name</p>
-                    <p>
-                      {application.user?.firstName} {application.user?.lastName}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="font-semibold">Email</p>
-                    <p>{application.user?.email}</p>
-                  </div>
-                  <div>
-                    <p className="font-semibold">Phone</p>
-                    <p>{application.user?.phone}</p>
-                  </div>
-                  <div>
-                    <p className="font-semibold">Country</p>
-                    <p>{application.user?.country}</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Initial Screening */}
-            <div className="card bg-base-100 shadow-sm">
-              <div className="card-body">
-                <h3 className="card-title text-lg">Initial Screening</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <p className="font-semibold">Industry</p>
-                    <p>{application.isf?.industry}</p>
-                  </div>
-                  <div>
-                    <p className="font-semibold">Desired Qualification</p>
-                    <p>{application.isf?.lookingForWhatQualification}</p>
-                  </div>
-                  <div>
-                    <p className="font-semibold">Years of Experience</p>
-                    <p>{application.isf?.yearsOfExperience}</p>
-                  </div>
-                  <div>
-                    <p className="font-semibold">Location of Experience</p>
-                    <p>{application.isf?.locationOfExperience}</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Student Intake Form */}
-            {application.sif && (
-              <div className="card bg-base-100 shadow-sm">
-                <div className="card-body">
-                  <h3 className="card-title text-lg">Student Intake Form</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <p className="font-semibold">USI</p>
-                      <p>{application.sif.USI}</p>
-                    </div>
-                    <div>
-                      <p className="font-semibold">Gender</p>
-                      <p>{application.sif.gender}</p>
-                    </div>
-                    <div>
-                      <p className="font-semibold">Date of Birth</p>
-                      <p>{application.sif.dob}</p>
-                    </div>
-                    <div>
-                      <p className="font-semibold">Address</p>
-                      <p>{application.sif.homeAddress}</p>
-                    </div>
-                    <div>
-                      <p className="font-semibold">Suburb</p>
-                      <p>{application.sif.suburb}</p>
-                    </div>
-                    <div>
-                      <p className="font-semibold">Postcode</p>
-                      <p>{application.sif.postcode}</p>
-                    </div>
-                    <div>
-                      <p className="font-semibold">State</p>
-                      <p>{application.sif.state}</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Assessor Notes */}
-            {application.assessorNote && (
-              <div className="card bg-base-100 shadow-sm">
-                <div className="card-body">
-                  <h3 className="card-title text-lg">Assessor Notes</h3>
-                  <p className="whitespace-pre-wrap">
-                    {application.assessorNote}
-                  </p>
-                </div>
-              </div>
-            )}
-
-            {/* Status History */}
-            <div className="card bg-base-100 shadow-sm">
-              <div className="card-body">
-                <h3 className="card-title text-lg">Status History</h3>
-                <div className="overflow-x-auto">
-                  <table className="table table-compact w-full">
-                    <thead>
-                      <tr>
-                        <th>Status</th>
-                        <th>Date</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {application.status.map((status, index) => (
-                        <tr key={index}>
-                          <td>{status.statusname}</td>
-                          <td>{formatModalDate(status.time)}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </dialog>
+  const getCertificateGenerationDate = (application) => {
+    if (!application.status) return "N/A";
+    const certificateStatus = application.status.find(
+      (s) => s.statusname === "Certificate Generated"
     );
+    return certificateStatus ? formatDate(certificateStatus.time) : "N/A";
   };
 
   return (
-    <div className="p-6">
+    <div className="min-h-screen bg-gray-50 pb-10">
       {loading && <SpinnerLoader />}
 
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold mb-4">
-          Certificate Generated Applications
-        </h1>
-
-        <div className="flex gap-4 mb-4">
-          <input
-            type="text"
-            className="input input-bordered flex-1"
-            placeholder="Search by ID or Name"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-
-          <select
-            className="select select-bordered"
-            value={itemsPerPage}
-            onChange={(e) => setItemsPerPage(Number(e.target.value))}
-          >
-            <option value={10}>10 per page</option>
-            <option value={20}>20 per page</option>
-            <option value={50}>50 per page</option>
-          </select>
-        </div>
-      </div>
-
-      <div className="overflow-x-auto border rounded-lg">
-        <table className="table w-full">
-          <thead className="bg-gray-100">
-            <tr>
-              <th className="p-4">Application ID</th>
-              <th>Customer Name</th>
-              <th>Certificate ID</th>
-              <th>Generation Date</th>
-              <th>Qualification</th>
-              <th>Payment Status</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {currentItems.map((app) => (
-              <tr key={app.id} className="hover:bg-gray-50">
-                <td className="p-4">{app.applicationId}</td>
-                <td>{`${app.user?.firstName} ${app.user?.lastName}`}</td>
-                <td>{app.certificateId || "N/A"}</td>
-                <td>
-                  {formatDate(
-                    app.status.find(
-                      (s) => s.statusname === "Certificate Generated"
-                    )?.time
-                  )}
-                </td>
-                <td>{app.isf?.lookingForWhatQualification}</td>
-                <td>
-                  <span
-                    className={`px-2 py-1 rounded-full text-sm ${
-                      app.paid
-                        ? "bg-green-100 text-green-800"
-                        : "bg-red-100 text-red-800"
-                    }`}
-                  >
-                    {app.paid ? "Paid" : "Unpaid"}
-                  </span>
-                </td>
-                <td>
-                  <button
-                    onClick={() => setSelectedApplication(app)}
-                    className="btn btn-sm btn-primary text-white"
-                  >
-                    View Details
-                  </button>
-                </td>
-              </tr>
-            ))}
-            {currentItems.length === 0 && (
-              <tr>
-                <td colSpan="7" className="text-center py-4">
-                  No applications found
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
-
-      {totalPages > 1 && (
-        <div className="flex justify-center gap-2 mt-4">
-          <button
-            className="btn btn-sm btn-ghost"
-            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-            disabled={currentPage === 1}
-          >
-            Previous
-          </button>
-          {[...Array(totalPages)].map((_, i) => (
+      {/* Header Section */}
+      <div className="bg-gradient-to-r from-emerald-600 to-emerald-800 py-8 px-4 sm:px-6 lg:px-8 shadow-md mb-8">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center md:justify-between">
+          <div className="flex items-center mb-4 md:mb-0 gap-3">
+            <div className="flex-shrink-0 bg-white p-3 rounded-full">
+              <img
+                src={applicationsImg}
+                alt="Applications"
+                className="h-16 w-16"
+              />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold text-white">
+                Certificate Management
+              </h1>
+              <p className="text-emerald-100">
+                Manage applications with generated certificates
+              </p>
+            </div>
+          </div>
+          <div className="flex flex-wrap gap-3">
             <button
-              key={i}
-              className={`btn btn-sm ${
-                currentPage === i + 1 ? "btn-primary text-white" : "btn-ghost"
-              }`}
-              onClick={() => setCurrentPage(i + 1)}
+              onClick={getApplicationsData}
+              className="inline-flex items-center px-4 py-2 bg-white text-emerald-700 rounded-lg shadow hover:bg-emerald-50 transition-colors duration-200"
             >
-              {i + 1}
+              <BiRefresh className="mr-2" />
+              Refresh Data
             </button>
-          ))}
-          <button
-            className="btn btn-sm btn-ghost"
-            onClick={() =>
-              setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-            }
-            disabled={currentPage === totalPages}
-          >
-            Next
-          </button>
+          </div>
         </div>
-      )}
+      </div>
 
+      {/* Search and Filter Section */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div className="relative flex-grow max-w-md">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <BiSearch className="h-5 w-5 text-gray-400" />
+              </div>
+              <input
+                type="text"
+                className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500"
+                placeholder="Search applications..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              <select
+                className="pl-3 pr-10 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-emerald-500 focus:border-emerald-500"
+                value={itemsPerPage}
+                onChange={(e) => setItemsPerPage(parseInt(e.target.value))}
+              >
+                <option value={10}>10 per page</option>
+                <option value={20}>20 per page</option>
+                <option value={50}>50 per page</option>
+                <option value={100}>100 per page</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="mt-2 flex justify-between">
+            <p className="text-sm text-gray-500">
+              {filteredApplications.length} applications found
+            </p>
+          </div>
+        </div>
+
+        {/* Applications Table */}
+        <div className="bg-white overflow-hidden shadow-sm rounded-lg">
+          <div className="px-4 py-5 sm:px-6 border-b border-gray-200">
+            <h3 className="text-lg leading-6 font-medium text-gray-900">
+              Certificate Generated Applications
+            </h3>
+            <p className="mt-1 text-sm text-gray-500">
+              Applications with completed certificates
+            </p>
+          </div>
+
+          {filteredApplications.length === 0 ? (
+            <div className="text-center py-10">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="mx-auto h-12 w-12 text-gray-400"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={1}
+                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                />
+              </svg>
+              <h3 className="mt-2 text-sm font-medium text-gray-900">
+                No applications found
+              </h3>
+              <p className="mt-1 text-sm text-gray-500">
+                {search
+                  ? "Try adjusting your search filters."
+                  : "There are no applications with generated certificates at this time."}
+              </p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th
+                      scope="col"
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    >
+                      Application ID
+                    </th>
+                    <th
+                      scope="col"
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    >
+                      Customer
+                    </th>
+                    <th
+                      scope="col"
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    >
+                      Generation Date
+                    </th>
+                    <th
+                      scope="col"
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    >
+                      Qualification
+                    </th>
+                    <th
+                      scope="col"
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    >
+                      Certificate ID
+                    </th>
+                    <th
+                      scope="col"
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    >
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {currentItems.map((app) => (
+                    <tr
+                      key={app.id}
+                      className="hover:bg-gray-50 transition-colors duration-150"
+                    >
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className="text-sm font-medium text-gray-900">
+                          {app.applicationId || app.id}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm font-medium text-gray-900">
+                          {app.user?.firstName} {app.user?.lastName}
+                        </div>
+                        <div className="text-sm text-gray-500">
+                          {app.user?.email}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className="text-sm text-gray-700">
+                          {getCertificateGenerationDate(app)}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className="text-sm text-gray-700">
+                          {app.isf?.lookingForWhatQualification || "N/A"}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className="text-sm text-gray-700">
+                          {app.certificateId ? (
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                              Available
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                              Not Available
+                            </span>
+                          )}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex space-x-2">
+                          <button
+                            onClick={() => setSelectedApplication(app)}
+                            className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-md text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none"
+                          >
+                            <FaEye className="mr-1" /> View Details
+                          </button>
+                          {app.certificateId && (
+                            <button
+                              onClick={() => window.open(app.certificateId)}
+                              className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-md bg-green-100 text-green-800 hover:bg-green-200 focus:outline-none"
+                            >
+                              <FaCertificate className="mr-1" /> View
+                              Certificate
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
+              <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                <div>
+                  <p className="text-sm text-gray-700">
+                    Showing{" "}
+                    <span className="font-medium">{indexOfFirstItem + 1}</span>{" "}
+                    to{" "}
+                    <span className="font-medium">
+                      {Math.min(indexOfLastItem, filteredApplications.length)}
+                    </span>{" "}
+                    of{" "}
+                    <span className="font-medium">
+                      {filteredApplications.length}
+                    </span>{" "}
+                    results
+                  </p>
+                </div>
+                <div>
+                  <nav
+                    className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px"
+                    aria-label="Pagination"
+                  >
+                    <button
+                      onClick={() =>
+                        setCurrentPage((prev) => Math.max(prev - 1, 1))
+                      }
+                      disabled={currentPage === 1}
+                      className={`relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 ${
+                        currentPage === 1
+                          ? "opacity-50 cursor-not-allowed"
+                          : "hover:bg-gray-50"
+                      }`}
+                    >
+                      <span className="sr-only">Previous</span>
+                      <svg
+                        className="h-5 w-5"
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                    </button>
+
+                    {[...Array(totalPages)].map((_, i) => (
+                      <button
+                        key={i}
+                        onClick={() => setCurrentPage(i + 1)}
+                        className={`relative inline-flex items-center px-4 py-2 border ${
+                          currentPage === i + 1
+                            ? "z-10 bg-emerald-50 border-emerald-500 text-emerald-600"
+                            : "bg-white border-gray-300 text-gray-500 hover:bg-gray-50"
+                        }`}
+                      >
+                        {i + 1}
+                      </button>
+                    ))}
+
+                    <button
+                      onClick={() =>
+                        setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                      }
+                      disabled={currentPage === totalPages}
+                      className={`relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 ${
+                        currentPage === totalPages
+                          ? "opacity-50 cursor-not-allowed"
+                          : "hover:bg-gray-50"
+                      }`}
+                    >
+                      <span className="sr-only">Next</span>
+                      <svg
+                        className="h-5 w-5"
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                    </button>
+                  </nav>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* View Application Modal */}
       {selectedApplication && (
         <ViewApplicationModal
           application={selectedApplication}

@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { getApplications } from "../Services/customerApplication";
+import { getApplications } from "../../Customer/Services/adminServices";
 import { VscDebugBreakpointData } from "react-icons/vsc";
 import {
   FaEye,
@@ -23,18 +23,22 @@ import { TbReportMoney } from "react-icons/tb";
 import { MdLocationOn, MdWorkOutline, MdSchool } from "react-icons/md";
 import { auth } from "../../firebase";
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import Loader from "../components/loader";
-import SpinnerLoader from "../components/spinnerLoader";
-import Modal from "../components/modal";
+import Loader from "../../Customer/components/loader";
+import SpinnerLoader from "../../Customer/components/spinnerLoader";
+import Modal from "../../Customer/components/modal";
 import applicationImage from "../../assets/applications.png";
 
-const ViewApplications = () => {
+const ViewApplications = ({
+  userId: propUserId,
+  id: propId,
+  application: propApplication,
+}) => {
   const [selectedForm, setSelectedForm] = useState("initial"); // Default form
   const [submissionLoading, setSubmissionLoading] = useState(false);
   const [loading, setLoading] = useState(true);
   const [application, setApplication] = useState(null);
   const [userId1, setUserId1] = useState("");
-  const { userId, id } = useParams();
+  const { userId: paramUserId, id: paramId } = useParams();
   const [isDownloading, setIsDownloading] = useState(false);
   const [userName, setUserName] = useState("");
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -43,9 +47,22 @@ const ViewApplications = () => {
   const menuRef = useRef(null);
   const navigate = useNavigate();
 
+  // Use either props or params
+  const effectiveUserId = propUserId || paramUserId;
+  const effectiveId = propId || paramId;
+
   useEffect(() => {
     setTimeout(() => setLoading(false), 1000);
   }, []);
+
+  // Set application from prop if provided
+  useEffect(() => {
+    if (propApplication) {
+      setApplication(propApplication);
+      console.log("Application2:", propApplication);
+      setLoading(false);
+    }
+  }, [propApplication]);
 
   // Close menu when clicking outside
   useEffect(() => {
@@ -62,25 +79,28 @@ const ViewApplications = () => {
   }, []);
 
   useEffect(() => {
-    // Authentication check
-    const authListener = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        setUserId1(user.uid);
-        // Get user's display name if available
-        setUserName(user.displayName || "");
-        console.log("User ID:", user.uid);
-      } else {
-        navigate("/login");
-      }
-    });
-    return () => authListener(); // Cleanup listener on unmount
-  }, [navigate]);
+    // Only check authentication if not using props
+    if (!propApplication) {
+      const authListener = onAuthStateChanged(auth, (user) => {
+        if (user) {
+          setUserId1(user.uid);
+          // Get user's display name if available
+          setUserName(user.displayName || "");
+          console.log("User ID:", user.uid);
+        } else {
+          navigate("/login");
+        }
+      });
+      return () => authListener(); // Cleanup listener on unmount
+    }
+  }, [navigate, propApplication]);
 
   useEffect(() => {
-    if (userId) {
-      getUserApplications(userId);
+    // Only fetch if not using props
+    if (effectiveUserId && !propApplication) {
+      getUserApplications(effectiveUserId);
     }
-  }, [userId]);
+  }, [effectiveUserId, propApplication]);
 
   // Handle logout
   const handleLogout = async () => {
@@ -96,7 +116,7 @@ const ViewApplications = () => {
     setSubmissionLoading(true);
     try {
       const response = await getApplications(userId1);
-      const foundApp = response.find((app) => app.id === id);
+      const foundApp = response.find((app) => app.id === effectiveId);
       setApplication(foundApp || null);
     } catch (error) {
       console.log(error);
@@ -120,11 +140,10 @@ const ViewApplications = () => {
       day: "numeric",
     });
   };
-
   const renderInitialForm = () => {
-    if (!application?.initialForm) return null;
+    if (!application?.isf) return null;
 
-    const initialForm = application.initialForm;
+    const isf = application.isf;
 
     return (
       <div className="bg-white rounded-xl shadow-md overflow-hidden">
@@ -136,7 +155,7 @@ const ViewApplications = () => {
                 <div>
                   <p className="text-sm text-gray-500">Education</p>
                   <p className="font-medium">
-                    {initialForm.formal_education || "N/A"}
+                    {isf.formal_education || "N/A"}
                   </p>
                 </div>
               </div>
@@ -146,7 +165,7 @@ const ViewApplications = () => {
                 <div>
                   <p className="text-sm text-gray-500">Qualification</p>
                   <p className="font-medium">
-                    {initialForm.qualification || "N/A"}
+                    {isf.qualification || "N/A"}
                   </p>
                 </div>
               </div>
@@ -155,7 +174,7 @@ const ViewApplications = () => {
                 <MdLocationOn className="text-emerald-600 text-xl mt-0.5 mr-3 flex-shrink-0" />
                 <div>
                   <p className="text-sm text-gray-500">State</p>
-                  <p className="font-medium">{initialForm.state || "N/A"}</p>
+                  <p className="font-medium">{isf.state || "N/A"}</p>
                 </div>
               </div>
 
@@ -164,7 +183,7 @@ const ViewApplications = () => {
                 <div>
                   <p className="text-sm text-gray-500">Experience</p>
                   <p className="font-medium">
-                    {initialForm.yearsOfExperience || "N/A"}
+                    {isf.yearsOfExperience || "N/A"}
                   </p>
                 </div>
               </div>
@@ -175,7 +194,7 @@ const ViewApplications = () => {
                 <MdWorkOutline className="text-emerald-600 text-xl mt-0.5 mr-3 flex-shrink-0" />
                 <div>
                   <p className="text-sm text-gray-500">Industry</p>
-                  <p className="font-medium">{initialForm.industry || "N/A"}</p>
+                  <p className="font-medium">{isf.industry || "N/A"}</p>
                 </div>
               </div>
 
@@ -184,7 +203,7 @@ const ViewApplications = () => {
                 <div>
                   <p className="text-sm text-gray-500">Desired Qualification</p>
                   <p className="font-medium">
-                    {initialForm.lookingForWhatQualification || "N/A"}
+                    {isf.lookingForWhatQualification || "N/A"}
                   </p>
                 </div>
               </div>
@@ -206,9 +225,9 @@ const ViewApplications = () => {
   };
 
   const renderStudentForm = () => {
-    if (!application?.studentForm) return null;
+    if (!application?.sif) return null;
 
-    const studentForm = application.studentForm;
+    const sif = application.sif;
 
     return (
       <div className="bg-white rounded-xl shadow-md overflow-hidden">
@@ -220,8 +239,8 @@ const ViewApplications = () => {
                 <div>
                   <p className="text-sm text-gray-500">Full Name</p>
                   <p className="font-medium">
-                    {`${studentForm.firstName || ""} ${
-                      studentForm.lastName || ""
+                    {`${sif.firstName || ""} ${
+                      sif.lastName || ""
                     }`.trim() || "N/A"}
                   </p>
                 </div>
@@ -231,7 +250,7 @@ const ViewApplications = () => {
                 <VscDebugBreakpointData className="text-emerald-600 text-xl mt-0.5 mr-3 flex-shrink-0" />
                 <div>
                   <p className="text-sm text-gray-500">USI</p>
-                  <p className="font-medium">{studentForm.USI || "N/A"}</p>
+                  <p className="font-medium">{sif.USI || "N/A"}</p>
                 </div>
               </div>
 
@@ -239,7 +258,7 @@ const ViewApplications = () => {
                 <FaUser className="text-emerald-600 text-xl mt-0.5 mr-3 flex-shrink-0" />
                 <div>
                   <p className="text-sm text-gray-500">Gender</p>
-                  <p className="font-medium">{studentForm.gender || "N/A"}</p>
+                  <p className="font-medium">{sif.gender || "N/A"}</p>
                 </div>
               </div>
 
@@ -247,7 +266,7 @@ const ViewApplications = () => {
                 <BsCalendarDate className="text-emerald-600 text-xl mt-0.5 mr-3 flex-shrink-0" />
                 <div>
                   <p className="text-sm text-gray-500">Date of Birth</p>
-                  <p className="font-medium">{studentForm.dob || "N/A"}</p>
+                  <p className="font-medium">{sif.dob || "N/A"}</p>
                 </div>
               </div>
 
@@ -256,7 +275,7 @@ const ViewApplications = () => {
                 <div>
                   <p className="text-sm text-gray-500">Home Address</p>
                   <p className="font-medium">
-                    {studentForm.homeAddress || "N/A"}
+                    {sif.homeAddress || "N/A"}
                   </p>
                 </div>
               </div>
@@ -265,7 +284,7 @@ const ViewApplications = () => {
                 <MdLocationOn className="text-emerald-600 text-xl mt-0.5 mr-3 flex-shrink-0" />
                 <div>
                   <p className="text-sm text-gray-500">Suburb</p>
-                  <p className="font-medium">{studentForm.suburb || "N/A"}</p>
+                  <p className="font-medium">{sif.suburb || "N/A"}</p>
                 </div>
               </div>
 
@@ -273,7 +292,7 @@ const ViewApplications = () => {
                 <MdLocationOn className="text-emerald-600 text-xl mt-0.5 mr-3 flex-shrink-0" />
                 <div>
                   <p className="text-sm text-gray-500">State</p>
-                  <p className="font-medium">{studentForm.state || "N/A"}</p>
+                  <p className="font-medium">{sif.state || "N/A"}</p>
                 </div>
               </div>
 
@@ -281,7 +300,7 @@ const ViewApplications = () => {
                 <MdLocationOn className="text-emerald-600 text-xl mt-0.5 mr-3 flex-shrink-0" />
                 <div>
                   <p className="text-sm text-gray-500">Postcode</p>
-                  <p className="font-medium">{studentForm.postcode || "N/A"}</p>
+                  <p className="font-medium">{sif.postcode || "N/A"}</p>
                 </div>
               </div>
 
@@ -290,7 +309,7 @@ const ViewApplications = () => {
                 <div>
                   <p className="text-sm text-gray-500">Contact Number</p>
                   <p className="font-medium">
-                    {studentForm.contactNumber || "N/A"}
+                    {sif.contactNumber || "N/A"}
                   </p>
                 </div>
               </div>
@@ -299,7 +318,7 @@ const ViewApplications = () => {
                 <FaEnvelope className="text-emerald-600 text-xl mt-0.5 mr-3 flex-shrink-0" />
                 <div>
                   <p className="text-sm text-gray-500">Email</p>
-                  <p className="font-medium">{studentForm.email || "N/A"}</p>
+                  <p className="font-medium">{sif.email || "N/A"}</p>
                 </div>
               </div>
             </div>
@@ -310,7 +329,7 @@ const ViewApplications = () => {
                 <div>
                   <p className="text-sm text-gray-500">Country of Birth</p>
                   <p className="font-medium">
-                    {studentForm.countryOfBirth || "N/A"}
+                    {sif.countryOfBirth || "N/A"}
                   </p>
                 </div>
               </div>
@@ -320,7 +339,7 @@ const ViewApplications = () => {
                 <div>
                   <p className="text-sm text-gray-500">Australian Citizen</p>
                   <p className="font-medium">
-                    {studentForm.australianCitizen ? "Yes" : "No"}
+                    {sif.australianCitizen ? "Yes" : "No"}
                   </p>
                 </div>
               </div>
@@ -330,7 +349,7 @@ const ViewApplications = () => {
                 <div>
                   <p className="text-sm text-gray-500">Disability</p>
                   <p className="font-medium">
-                    {studentForm.disability ? "Yes" : "No"}
+                    {sif.disability ? "Yes" : "No"}
                   </p>
                 </div>
               </div>
@@ -340,7 +359,7 @@ const ViewApplications = () => {
                 <div>
                   <p className="text-sm text-gray-500">Employment Status</p>
                   <p className="font-medium">
-                    {studentForm.employmentStatus || "N/A"}
+                    {sif.employmentStatus || "N/A"}
                   </p>
                 </div>
               </div>
@@ -350,7 +369,7 @@ const ViewApplications = () => {
                 <div>
                   <p className="text-sm text-gray-500">Business Name</p>
                   <p className="font-medium">
-                    {studentForm.businessName || "N/A"}
+                    {sif.businessName || "N/A"}
                   </p>
                 </div>
               </div>
@@ -359,7 +378,7 @@ const ViewApplications = () => {
                 <MdWorkOutline className="text-emerald-600 text-xl mt-0.5 mr-3 flex-shrink-0" />
                 <div>
                   <p className="text-sm text-gray-500">Position</p>
-                  <p className="font-medium">{studentForm.position || "N/A"}</p>
+                  <p className="font-medium">{sif.position || "N/A"}</p>
                 </div>
               </div>
 
@@ -368,7 +387,7 @@ const ViewApplications = () => {
                 <div>
                   <p className="text-sm text-gray-500">Employer's Legal Name</p>
                   <p className="font-medium">
-                    {studentForm.employersLegalName || "N/A"}
+                    {sif.employersLegalName || "N/A"}
                   </p>
                 </div>
               </div>
@@ -378,7 +397,7 @@ const ViewApplications = () => {
                 <div>
                   <p className="text-sm text-gray-500">Employer's Address</p>
                   <p className="font-medium">
-                    {studentForm.employersAddress || "N/A"}
+                    {sif.employersAddress || "N/A"}
                   </p>
                 </div>
               </div>
@@ -388,7 +407,7 @@ const ViewApplications = () => {
                 <div>
                   <p className="text-sm text-gray-500">Employer's Contact</p>
                   <p className="font-medium">
-                    {studentForm.employersContactNumber || "N/A"}
+                    {sif.employersContactNumber || "N/A"}
                   </p>
                 </div>
               </div>
@@ -400,7 +419,7 @@ const ViewApplications = () => {
   };
 
   const renderDocumentsForm = () => {
-    if (!application?.documentsForm) return null;
+    if (!application?.document) return null;
 
     const documentsList = [
       // ID documents
@@ -428,7 +447,7 @@ const ViewApplications = () => {
       { label: "Video 1", key: "video1" },
       { label: "Video 2", key: "video2" },
     ].filter(
-      (doc) => application.documentsForm && doc.key in application.documentsForm
+      (doc) => application.document && doc.key in application.document
     );
 
     return (
@@ -451,7 +470,7 @@ const ViewApplications = () => {
               </thead>
               <tbody className="divide-y divide-gray-200">
                 {documentsList.map((doc, index) => {
-                  const docObject = application.documentsForm[doc.key];
+                  const docObject = application.document[doc.key];
                   const isUploaded = !!docObject && !!docObject.fileUrl;
                   const fileUrl = docObject?.fileUrl;
 
@@ -497,104 +516,7 @@ const ViewApplications = () => {
       {loading && <Loader />}
       {submissionLoading && <SpinnerLoader />}
 
-      {/* Header Section */}
-      <div className="bg-gradient-to-r from-emerald-600 to-emerald-800 py-16 px-4 sm:px-6 lg:px-8 relative">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center">
-          <div className="flex-shrink-0 mb-6 md:mb-0 md:mr-8 bg-white p-4 rounded-full">
-            <img
-              src={applicationImage}
-              alt="Application"
-              className="h-20 w-20 md:h-24 md:w-24"
-            />
-          </div>
-          <div className="text-center md:text-left text-white">
-            <h1 className="text-3xl font-bold mb-2">Application Details</h1>
-            <p className="text-emerald-100 max-w-2xl">
-              View all information and documents for your application
-            </p>
-
-            {application && (
-              <div className="mt-2 inline-flex bg-white/20 backdrop-blur-sm rounded-full px-3 py-1">
-                <span className="text-white">
-                  ID: {application.applicationId || application.id}
-                </span>
-              </div>
-            )}
-          </div>
-
-          {/* Hamburger Menu */}
-          <div className="absolute top-6 right-6" ref={menuRef}>
-            <button
-              className="flex items-center justify-center w-10 h-10 rounded-full bg-emerald-700 hover:bg-emerald-800 text-white transition-colors duration-200"
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-              aria-label={isMenuOpen ? "Close menu" : "Open menu"}
-            >
-              {isMenuOpen ? (
-                <FaTimes className="text-xl" />
-              ) : (
-                <FaBars className="text-xl" />
-              )}
-            </button>
-
-            {/* Dropdown Menu */}
-            {isMenuOpen && (
-              <div className="absolute right-0 top-12 w-56 rounded-lg shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5 z-50 overflow-visible">
-                <div className="px-4 py-3 border-b border-gray-100">
-                  <p className="text-sm text-gray-500">Signed in as</p>
-                  <p className="text-sm font-medium text-gray-900 truncate">
-                    {auth.currentUser?.email || "User"}
-                  </p>
-                </div>
-
-                <div className="py-1">
-                  <button
-                    className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                    onClick={() => {
-                      setIsUpdateEmailOpen(true);
-                      setIsMenuOpen(false);
-                    }}
-                  >
-                    <FaEnvelope className="mr-3 text-emerald-600" />
-                    Update Email
-                  </button>
-
-                  <button
-                    className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                    onClick={() => {
-                      setIsUpdatePhoneOpen(true);
-                      setIsMenuOpen(false);
-                    }}
-                  >
-                    <FaPhoneAlt className="mr-3 text-emerald-600" />
-                    Update Phone
-                  </button>
-                </div>
-
-                <div className="py-1 border-t border-gray-100">
-                  <button
-                    className="flex items-center w-full px-4 py-2 text-sm text-red-700 hover:bg-gray-100"
-                    onClick={handleLogout}
-                  >
-                    <FaSignOutAlt className="mr-3 text-red-600" />
-                    Logout
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-
       <div className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8 mt-8">
-        <div className="flex flex-wrap mb-4">
-          <button
-            onClick={() => navigate("/existing-applications")}
-            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition-all"
-          >
-            <FaArrowLeft className="mr-2" /> Back to Applications
-          </button>
-        </div>
-
         {application ? (
           <>
             {/* Application Overview */}
@@ -610,7 +532,7 @@ const ViewApplications = () => {
                 <div className="flex flex-col">
                   <span className="text-sm text-gray-500">Qualification</span>
                   <span className="font-medium truncate">
-                    {application.initialForm?.lookingForWhatQualification ||
+                    {application.isf?.lookingForWhatQualification ||
                       "N/A"}
                   </span>
                 </div>

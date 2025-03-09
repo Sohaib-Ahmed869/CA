@@ -1,11 +1,21 @@
 import React, { useEffect, useState } from "react";
-import { BiDownload } from "react-icons/bi";
-import { BsEye } from "react-icons/bs";
 import SpinnerLoader from "../../Customer/components/spinnerLoader";
 import toast from "react-hot-toast";
 import { Toaster } from "react-hot-toast";
 import applicationsimg from "../../assets/applications.png";
 import Papa from "papaparse";
+
+// Import Lucide React icons for consistent styling
+import {
+  DownloadCloud,
+  Search,
+  Calendar,
+  DollarSign,
+  FileText,
+  Users,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 
 const URL = import.meta.env.VITE_REACT_BACKEND_URL;
 
@@ -163,13 +173,13 @@ const ExpensesDashboard = () => {
     return (
       <button
         onClick={handleExport}
-        className="btn btn-primary text-white flex items-center gap-2"
+        className="bg-green-700 hover:bg-green-800 text-white px-4 py-2 rounded-md flex items-center gap-2 transition-colors shadow-sm"
         disabled={isExporting}
       >
         {isExporting ? (
-          <span className="loading loading-spinner"></span>
+          <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
         ) : (
-          <BiDownload className="text-xl" />
+          <DownloadCloud size={18} />
         )}
         {isExporting ? "Exporting..." : "Export Expenses"}
       </button>
@@ -186,147 +196,210 @@ const ExpensesDashboard = () => {
   );
 
   return (
-    <div className="p-3 overflow-x-auto">
+    <div className="min-h-screen bg-gray-50 p-4 md:p-8 xl:p-10 w-full animate-fade">
       {submissionLoading && <SpinnerLoader />}
       <Toaster />
 
-      <div className="flex items-center gap-4 mb-5 lg:flex-row flex-col">
-        <img src={applicationsimg} alt="Applications" className="h-36" />
-        <div className="flex flex-col lg:w-1/2 w-full">
-          <h1 className="text-3xl font-bold">Expenses Overview</h1>
-          <p className="text-sm mt-2">
-            Track and manage all expenses across applications.
-          </p>
-        </div>
-      </div>
-
-      <div className="bg-white p-4 rounded-lg shadow mb-4">
-        <div className="flex items-center justify-between flex-wrap gap-4">
-          <div className="text-lg font-semibold">
-            Total Expenses:{" "}
-            <span className="text-primary">${totalExpenses.toFixed(2)}</span>
+      {/* Header Section */}
+      <div className="bg-gradient-to-r from-green-800 to-green-600 rounded-xl shadow-md mb-6">
+        <div className="flex items-center gap-6 flex-col sm:flex-row p-6">
+          <div className="bg-white p-4 rounded-full flex-shrink-0">
+            <img
+              src={applicationsimg}
+              alt="Applications"
+              className="h-16 w-16 object-contain"
+            />
           </div>
-          <div className="text-lg">
-            Total Applications with Expenses:{" "}
-            <span className="font-semibold">{applications.length}</span>
+          <div>
+            <h1 className="text-2xl font-bold text-white">Expenses Overview</h1>
+            <p className="text-green-100 mt-1">
+              Track and manage all expenses across applications
+            </p>
           </div>
         </div>
       </div>
 
-      <div className="flex items-start flex-wrap mb-4 gap-4">
-        <div className="flex-1 min-w-[200px]">
-          <label htmlFor="search" className="text-sm block mb-2">
-            Search by ID, Name or Description
-          </label>
-          <input
-            type="text"
-            id="search"
-            className="input input-bordered w-full"
-            placeholder="Search"
-            onChange={(e) => setSearch(e.target.value)}
-          />
+      {/* Stats Summary Card */}
+      <div className="bg-white rounded-xl shadow-sm p-6 border border-green-50 mb-6">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div className="flex items-center">
+            <DollarSign className="text-green-700 mr-2" size={24} />
+            <div>
+              <div className="text-sm text-gray-500">Total Expenses</div>
+              <div className="text-2xl font-bold text-green-800">
+                ${totalExpenses.toFixed(2)}
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-center">
+            <FileText className="text-green-700 mr-2" size={24} />
+            <div>
+              <div className="text-sm text-gray-500">
+                Applications with Expenses
+              </div>
+              <div className="text-2xl font-bold text-gray-800">
+                {applications.length}
+              </div>
+            </div>
+          </div>
         </div>
-        <div className="flex-1 min-w-[200px]">
-          <label className="text-sm block mb-2">Date Range</label>
-          <div className="flex gap-2">
+      </div>
+
+      {/* Filters Section */}
+      <div className="bg-white rounded-xl shadow-sm p-6 border border-green-50 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <label
+              htmlFor="search"
+              className="flex items-center text-sm font-medium text-gray-700 mb-2"
+            >
+              <Search size={16} className="mr-1" />
+              Search by ID, Name or Description
+            </label>
+            <input
+              type="text"
+              id="search"
+              className="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-green-500 focus:border-green-500"
+              placeholder="Search"
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
+
+          <div className="md:col-span-1">
+            <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
+              <Calendar size={16} className="mr-1" />
+              Start Date
+            </label>
             <input
               type="date"
-              className="input input-bordered flex-1"
+              className="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-green-500 focus:border-green-500"
               value={dateFilter.start}
               onChange={(e) =>
                 setDateFilter({ ...dateFilter, start: e.target.value })
               }
             />
+          </div>
+
+          <div className="md:col-span-1">
+            <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
+              <Calendar size={16} className="mr-1" />
+              End Date
+            </label>
             <input
               type="date"
-              className="input input-bordered flex-1"
+              className="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-green-500 focus:border-green-500"
               value={dateFilter.end}
               onChange={(e) =>
                 setDateFilter({ ...dateFilter, end: e.target.value })
               }
             />
           </div>
-        </div>
-        <div className="flex-none self-end">
-          <ExportButton />
+
+          <div className="md:col-span-3 flex justify-end">
+            <ExportButton />
+          </div>
         </div>
       </div>
 
-      <div className="overflow-x-auto border border-gray-300 rounded-md">
-        <table className="table w-full">
-          <thead>
-            <tr className="bg-gray-200">
-              <th className="font-semibold p-5">Date</th>
-              <th className="font-semibold">Application ID</th>
-              <th className="font-semibold">Customer</th>
-              <th className="font-semibold">Qualification</th>
-              <th className="font-semibold">Description</th>
-              <th className="font-semibold text-right">Amount</th>
-              <th className="font-semibold text-center">Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {currentItems.map((expense) => (
-              <tr key={expense.id} className="animate-fade-up hover:bg-gray-50">
-                <td className="p-5">{expense.date}</td>
-                <td>{expense.applicationId}</td>
-                <td>
-                  <div>
-                    <div>{expense.customerName}</div>
+      {/* Table Section */}
+      <div className="bg-white rounded-xl shadow-sm border border-green-50 overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="bg-green-50 border-b border-green-100">
+                <th className="font-semibold text-green-800 p-4 text-left">
+                  Date
+                </th>
+                <th className="font-semibold text-green-800 p-4 text-left">
+                  Application ID
+                </th>
+                <th className="font-semibold text-green-800 p-4 text-left">
+                  Customer
+                </th>
+                <th className="font-semibold text-green-800 p-4 text-left">
+                  Qualification
+                </th>
+                <th className="font-semibold text-green-800 p-4 text-left">
+                  Description
+                </th>
+                <th className="font-semibold text-green-800 p-4 text-right">
+                  Amount
+                </th>
+                <th className="font-semibold text-green-800 p-4 text-center">
+                  Status
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {currentItems.map((expense) => (
+                <tr
+                  key={expense.id}
+                  className="border-b border-gray-100 hover:bg-gray-50 transition-colors"
+                >
+                  <td className="p-4 text-gray-800">{expense.date}</td>
+                  <td className="p-4 text-gray-800">{expense.applicationId}</td>
+                  <td className="p-4">
+                    <div className="text-gray-800">{expense.customerName}</div>
                     <div className="text-sm text-gray-500">
                       {expense.customerEmail}
                     </div>
-                  </div>
-                </td>
-                <td>{expense.qualification}</td>
-                <td>{expense.description}</td>
-                <td className="text-right">
-                  ${parseFloat(expense.amount).toFixed(2)}
-                </td>
-                <td className="text-center">
-                  <span
-                    className={`badge ${
-                      expense.applicationStatus === "Completed"
-                        ? "badge-success"
-                        : expense.applicationStatus === "Waiting for Payment"
-                        ? "badge-warning"
-                        : "badge-info"
-                    }`}
-                  >
-                    {expense.applicationStatus}
-                  </span>
-                </td>
-              </tr>
-            ))}
-            {currentItems.length === 0 && (
-              <tr>
-                <td colSpan="7" className="text-center py-4">
-                  No expenses found matching your criteria
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+                  </td>
+                  <td className="p-4 text-gray-800">{expense.qualification}</td>
+                  <td className="p-4 text-gray-800">{expense.description}</td>
+                  <td className="p-4 text-right font-medium">
+                    ${parseFloat(expense.amount).toFixed(2)}
+                  </td>
+                  <td className="p-4 text-center">
+                    <span
+                      className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${
+                        expense.applicationStatus === "Completed"
+                          ? "bg-green-100 text-green-800"
+                          : expense.applicationStatus === "Waiting for Payment"
+                          ? "bg-yellow-100 text-yellow-800"
+                          : "bg-gray-100 text-gray-800"
+                      }`}
+                    >
+                      {expense.applicationStatus}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+              {currentItems.length === 0 && (
+                <tr>
+                  <td colSpan="7" className="text-center py-8 text-gray-500">
+                    No expenses found matching your criteria
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
 
-        <div className="flex items-center justify-between gap-4 p-4 bg-white">
+        {/* Pagination */}
+        <div className="flex items-center justify-between p-4 border-t border-gray-100">
           <button
             onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-            className="btn btn-primary btn-sm"
+            className="flex items-center gap-1 px-3 py-1.5 bg-green-50 text-green-700 rounded-md hover:bg-green-100 transition-colors disabled:opacity-50 disabled:pointer-events-none"
             disabled={currentPage === 1}
           >
+            <ChevronLeft size={16} />
             Previous
           </button>
-          <div>
-            Page {currentPage} of {totalPages}
+
+          <div className="text-sm text-gray-500">
+            Page {currentPage} of {Math.max(1, totalPages)}
           </div>
+
           <button
             onClick={() =>
               setCurrentPage((prev) => Math.min(prev + 1, totalPages))
             }
-            className="btn btn-primary btn-sm"
-            disabled={currentPage === totalPages}
+            className="flex items-center gap-1 px-3 py-1.5 bg-green-50 text-green-700 rounded-md hover:bg-green-100 transition-colors disabled:opacity-50 disabled:pointer-events-none"
+            disabled={currentPage === totalPages || totalPages === 0}
           >
             Next
+            <ChevronRight size={16} />
           </button>
         </div>
       </div>
