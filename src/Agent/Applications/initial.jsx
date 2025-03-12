@@ -13,7 +13,7 @@ import { registerByAgent } from "../../Customer/Services/agentApplication";
 import SpinnerLoader from "../../Customer/components/spinnerLoader";
 import "../../Customer/stepper.css";
 
-const Stepper = ({ steps, currentStep }) => {
+const Stepper = ({ steps, currentStep, toggle, formalEducation }) => {
   return (
     <div className="w-full flex lg:ml-28 mb-10 sm:mx-auto">
       {steps.map((step, index) => (
@@ -23,7 +23,8 @@ const Stepper = ({ steps, currentStep }) => {
               index <= currentStep ? "bg-primary animate-grow" : "bg-gray-300"
             } flex items-center justify-center text-white`}
           >
-            {index + 1}
+            {console.log(toggle)}
+            {toggle === true && formalEducation.length <= 0 ? "" : index + 1}
           </div>
           {index < steps.length - 1 && (
             <div
@@ -66,7 +67,6 @@ const ScreeningFormAgent = () => {
   const [price, setPrice] = useState(0);
   const [agentId, setAgentId] = useState("");
   const [submissionLoading, setSubmissionLoading] = useState(false);
-
   useEffect(() => {
     //get agent id from firebase auth
     const auth = getAuth();
@@ -210,7 +210,7 @@ const ScreeningFormAgent = () => {
               industry={industry}
               setIndustry={setIndustry}
               qualification={qualification}
-              setQualification={setQualification}
+              setQualification={setQualificationToggle}
               type={type}
               setType={setType}
               price={price}

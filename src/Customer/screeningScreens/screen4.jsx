@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 
 const FormalEducationScreen = ({
   formalEducation,
@@ -16,7 +16,9 @@ const FormalEducationScreen = ({
           id="formalEducation"
           value={formalEducation}
           className="input lg:w-96 mt-2 mb-2"
-          onChange={(e) => setFormalEducation(e.target.value)}
+          onChange={(e) => {
+            setFormalEducation(e.target.value);
+          }}
         >
           <option value="">Select an option</option>
           <option value="Yes">Yes</option>
@@ -26,9 +28,10 @@ const FormalEducationScreen = ({
       {formalEducation === "Yes" && (
         <div className="flex flex-col items-center">
           <label htmlFor="formalEducationAnswer">
-            What qualifications do you have?
+            What qualifications do you have? *
           </label>
           <input
+            required
             id="formalEducationAnswer"
             className="input lg:w-96 mt-2 mb-2"
             value={formalEducationAnswer}

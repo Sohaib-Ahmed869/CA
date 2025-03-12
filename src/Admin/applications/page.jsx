@@ -97,6 +97,20 @@ const ExistingApplicationsAdmin = () => {
     { value: "month", label: "This Month" },
     { value: "year", label: "This Year" },
   ];
+  const [DocumentModalOpen, setDocumentModalOpen] = useState(false);
+  const [currentDoc, setCurrentDoc] = useState("");
+
+  // Function to open modal with selected document
+  const openModal = (doc) => {
+    setCurrentDoc(doc); // Directly set the file URL
+    setDocumentModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setDocumentModalOpen(false);
+    // Revoke the object URL to prevent memory leaks
+    setCurrentDoc("");
+  };
 
   useEffect(() => {
     setTimeout(() => {
@@ -921,7 +935,7 @@ const ExistingApplicationsAdmin = () => {
                           onClick={() => handleSort("name")}
                         >
                           <div className="flex items-center">
-                            <span>Customer</span>
+                            <span>Student</span>
                             {sortField === "name" && (
                               <span className="ml-1">
                                 {sortDirection === "asc" ? "↑" : "↓"}
@@ -1048,14 +1062,14 @@ const ExistingApplicationsAdmin = () => {
                             onClick={(e) => e.stopPropagation()}
                           >
                             <div className="flex gap-2 justify-end">
-                              <button
+                              {/* <button
                                 className="inline-flex items-center px-2 py-1 border border-transparent text-xs rounded-md text-white bg-red-500 hover:bg-red-600"
                                 onClick={(e) =>
                                   handleDeleteApplication(application.id, e)
                                 }
                               >
                                 Delete
-                              </button>
+                              </button> */}
                               <button
                                 className="inline-flex items-center px-2 py-1 border border-transparent text-xs rounded-md text-white bg-gray-500 hover:bg-gray-600"
                                 onClick={(e) => {

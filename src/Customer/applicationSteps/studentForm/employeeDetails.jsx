@@ -18,7 +18,11 @@ const EmploymentDetails = ({ employmentDetails, setEmploymentDetails }) => {
 
     return error;
   };
-
+  const handleContactChange = (e) => {
+    const value = e.target.value.replace(/[^\d+\-\s()]/g, "");
+    e.target.value = value;
+    handleChange(e);
+  };
   const handleChange = (e) => {
     const { name, value } = e.target;
 
@@ -26,53 +30,16 @@ const EmploymentDetails = ({ employmentDetails, setEmploymentDetails }) => {
     const error = validateField(name, value);
 
     // Update errors state
-    setErrors({
-      ...errors,
+    setErrors((prevErrors) => ({
+      ...prevErrors,
       [name]: error,
-    });
+    }));
 
-    // Update form data
-    setEmploymentDetails({
-      ...employmentDetails,
+    setEmploymentDetails((prev) => ({
+      ...prev,
       [name]: value,
-    });
+    }));
   };
-
-  // Field component for consistent styling
-  const InputField = ({
-    label,
-    name,
-    type,
-    value,
-    onChange,
-    error,
-    required = false,
-    maxLength,
-    placeholder,
-    customHandler,
-    ...props
-  }) => (
-    <div className="space-y-2">
-      <label htmlFor={name} className="block text-sm font-medium text-gray-700">
-        {label} {required && <span className="text-red-500">*</span>}
-      </label>
-      <input
-        id={name}
-        name={name}
-        type={type}
-        value={value}
-        onChange={customHandler || onChange}
-        maxLength={maxLength}
-        placeholder={placeholder}
-        className={`w-full h-11 px-3 py-2 border ${
-          error ? "border-red-500" : "border-gray-300"
-        } rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-200 focus:border-green-500`}
-        {...props}
-      />
-      {error && <p className="text-red-500 text-xs mt-1">{error}</p>}
-    </div>
-  );
-
   return (
     <div className="mb-10 animate-fade">
       <div className="flex items-center mb-6 border-b pb-2">
@@ -90,23 +57,45 @@ const EmploymentDetails = ({ employmentDetails, setEmploymentDetails }) => {
         </p>
 
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-          <InputField
-            label="Business Name"
-            name="businessName"
-            type="text"
-            value={employmentDetails.businessName}
-            onChange={handleChange}
-            placeholder="Name of the business"
-          />
+          <div>
+            <label
+              htmlFor="Business Name"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
+              Business Name <span className="text-red-500">*</span>{" "}
+            </label>
 
-          <InputField
-            label="Position"
-            name="position"
-            type="text"
-            value={employmentDetails.position}
-            onChange={handleChange}
-            placeholder="Your job title"
-          />
+            <input
+              name="businessName"
+              type="text"
+              value={employmentDetails.businessName}
+              className={
+                "w-full h-11 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-200 focus:border-gray-500"
+              }
+              onChange={handleChange}
+              placeholder="Name of the business"
+            />
+          </div>
+          {console.log(employmentDetails)}
+          <div>
+            <label
+              htmlFor="Position"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
+              Position<span className="text-red-500">*</span>{" "}
+            </label>
+            <input
+              label="Position"
+              name="position"
+              type="text"
+              value={employmentDetails.position}
+              className={
+                "w-full h-11 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-200 focus:border-gray-500"
+              }
+              onChange={handleChange}
+              placeholder="Your job title"
+            />
+          </div>
         </div>
       </div>
 
@@ -116,40 +105,73 @@ const EmploymentDetails = ({ employmentDetails, setEmploymentDetails }) => {
         </h3>
 
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-          <InputField
-            label="Employer's Legal Name"
-            name="employersLegalName"
-            type="text"
-            value={employmentDetails.employersLegalName}
-            onChange={handleChange}
-            placeholder="Registered business name"
-          />
-
-          <InputField
-            label="Employer's Contact Number"
-            name="employersContactNumber"
-            type="text"
-            value={employmentDetails.employersContactNumber}
-            error={errors.employersContactNumber}
-            placeholder="e.g. (02) 1234 5678"
-            customHandler={(e) => {
-              // Allow only numbers, +, -, spaces, and parentheses
-              const value = e.target.value.replace(/[^\d+\-\s()]/g, "");
-              e.target.value = value;
-              handleChange(e);
-            }}
-          />
+          <div>
+            <label
+              htmlFor="Employer's Legal Name"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
+              Employer's Legal Name <span className="text-red-500">*</span>{" "}
+            </label>
+            <input
+              name="employersLegalName"
+              type="text"
+              value={employmentDetails.employersLegalName}
+              className={
+                "w-full h-11 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-200 focus:border-gray-500"
+              }
+              onChange={handleChange}
+              placeholder="Registered business name"
+            />
+          </div>
+          <div>
+            <label
+              htmlFor="employersContactNumber"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
+              Employer's Contact Number
+              <span className="text-red-500">*</span>{" "}
+            </label>
+            <input
+              name="employersContactNumber"
+              type="text"
+              value={employmentDetails.employersContactNumber}
+              className={
+                "w-full h-11 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-200 focus:border-gray-500"
+              }
+              error={errors.employersContactNumber}
+              placeholder="e.g. (02) 1234 5678"
+              // customHandler={(e) => {
+              //   // Allow only numbers, +, -, spaces, and parentheses
+              //   const value = e.target.value.replace(/[^\d+\-\s()]/g, "");
+              //   e.target.value = value;
+              //   handleChange(e);
+              // }}
+              onChange={handleContactChange}
+            />
+          </div>
         </div>
 
         <div className="mt-6">
-          <InputField
-            label="Employer's Address"
-            name="employersAddress"
-            type="text"
-            value={employmentDetails.employersAddress}
-            onChange={handleChange}
-            placeholder="Complete business address"
-          />
+          <div>
+            <label
+              htmlFor="Employer's Address"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
+              Employer's Address
+              <span className="text-red-500">*</span>{" "}
+            </label>
+            <input
+              label="Employer's Address"
+              name="employersAddress"
+              type="text"
+              value={employmentDetails.employersAddress}
+              className={
+                "w-full h-11 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-200 focus:border-gray-500"
+              }
+              onChange={handleChange}
+              placeholder="Complete business address"
+            />
+          </div>
         </div>
       </div>
 

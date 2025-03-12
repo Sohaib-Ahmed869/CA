@@ -33,6 +33,7 @@ import {
   requestMoreDocuments,
 } from "../../Customer/Services/adminServices";
 import SpinnerLoader from "../../Customer/components/spinnerLoader";
+import DocumentModal from "../../Customer/components/viewDocsModal";
 
 const Approval = () => {
   const [submissionLoading, setSubmissionLoading] = useState(false);
@@ -53,6 +54,21 @@ const Approval = () => {
   const [totalPages, setTotalPages] = useState(0);
   const [message, setMessage] = useState("");
   const [totalApplications, setTotalApplications] = useState(0);
+  const [DocumentModalOpen, setDocumentModalOpen] = useState(false);
+  const [currentDoc, setCurrentDoc] = useState("");
+  const [SingleDocModelOpen, setSingleDocModelOpen] = useState(false);
+
+  // Function to open modal with selected document
+  const openModal = (doc) => {
+    setCurrentDoc(doc); // Directly set the file URL
+    setDocumentModalOpen(true);
+  };
+
+  const closedocModal = () => {
+    setDocumentModalOpen(false);
+    // Revoke the object URL to prevent memory leaks
+    setCurrentDoc("");
+  };
 
   // List of possible application statuses
   const statusOptions = [
@@ -655,8 +671,6 @@ const Approval = () => {
     );
   };
 
-  
-
   // Render Documents List
   const renderDocumentsList = () => {
     if (!selectedApplication?.document)
@@ -709,46 +723,62 @@ const Approval = () => {
     }
 
     return (
-      <div className="overflow-x-auto">
-        <table className="min-w-full border-collapse">
-          <thead>
-            <tr className="bg-gray-50 border-b border-gray-200">
-              <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Document Type
-              </th>
-              <th className="py-3 px-4 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Status
-              </th>
-              <th className="py-3 px-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Actions
-              </th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-200">
-            {availableDocuments.map((doc, index) => {
-              const fileUrl = selectedApplication.document[doc.key];
-              return (
-                <tr key={index} className="hover:bg-gray-50">
-                  <td className="py-3 px-4 text-sm">{doc.label}</td>
-                  <td className="py-3 px-4 text-center">
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
-                      <FaCheckCircle className="mr-1" /> Available
-                    </span>
-                  </td>
-                  <td className="py-3 px-4 text-right">
-                    <button
-                      onClick={() => openDocument(fileUrl)}
-                      className="inline-flex items-center px-2 py-1 border border-transparent text-xs font-medium rounded text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none"
-                    >
-                      <FaEye className="mr-1" /> View
-                    </button>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
+      <>
+        <div className="overflow-x-auto">
+          <table className="min-w-full border-collapse">
+            <thead>
+              <tr className="bg-gray-50 border-b border-gray-200">
+                <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Document Type
+                </th>
+                <th className="py-3 px-4 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Status
+                </th>
+                <th className="py-3 px-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200">
+              {availableDocuments.map((doc, index) => {
+                // const docObject = doc.documentsForm[doc.key];
+
+                const fileUrl =
+                  selectedApplication?.document?.[doc.key]?.fileUrl || "";
+                // const fileUrl = docObject?.fileUrl;
+                return (
+                  <tr key={index} className="hover:bg-gray-50">
+                    <td className="py-3 px-4 text-sm">{doc.label}</td>
+                    <td className="py-3 px-4 text-center">
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
+                        <FaCheckCircle className="mr-1" /> Available
+                      </span>
+                    </td>
+                    <td className="py-3 px-4 text-right">
+                      <button
+                        onClick={() => {
+                          openModal(fileUrl);
+                          setSingleDocModelOpen(true);
+                        }}
+                        className="inline-flex items-center px-2 py-1 border border-transparent text-xs font-medium rounded text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none"
+                      >
+                        <FaEye className="mr-1" /> View
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+        {SingleDocModelOpen && (
+          <DocumentModal
+            isOpen={DocumentModalOpen}
+            onClose={closedocModal}
+            docLink={currentDoc}
+          />
+        )}
+      </>
     );
   };
 
@@ -912,7 +942,7 @@ const Approval = () => {
                           scope="col"
                           className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                         >
-                          Customer
+                          Student
                         </th>
                         <th
                           scope="col"
@@ -1154,9 +1184,7 @@ const Approval = () => {
             <div className="border-t border-gray-200 p-4">
               <div className="flex flex-wrap gap-4 mb-4">
                 <div className="flex-1 min-w-0 bg-gray-50 rounded-lg p-4">
-                  <h4 className="text-sm font-medium text-gray-500">
-                    Customer
-                  </h4>
+                  <h4 className="text-sm font-medium text-gray-500">Student</h4>
                   <p className="font-semibold text-gray-900">
                     {selectedApplication.user?.firstName}{" "}
                     {selectedApplication.user?.lastName}
@@ -1401,23 +1429,33 @@ const Approval = () => {
               </button>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-4">
-                {documentLinks.map((doc, index) => (
-                  <div
-                    key={index}
-                    className="bg-gray-50 rounded-lg p-3 hover:bg-gray-100 transition-colors"
-                  >
-                    <a
-                      href={doc.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center text-indigo-600 hover:text-indigo-800"
+                {documentLinks.map((doc, index) => {
+                  const fileUrl = doc.url;
+
+                  return (
+                    <div
+                      key={index}
+                      className="bg-gray-50 rounded-lg p-3 hover:bg-gray-100 transition-colors"
                     >
-                      <FaFileAlt className="mr-2 text-gray-500" />
-                      <span className="truncate">{doc.name}</span>
-                    </a>
-                  </div>
-                ))}
+                      <button
+                        onClick={() => {
+                          openModal(fileUrl.fileUrl);
+                          setSingleDocModelOpen(false);
+                        }}
+                        className="flex items-center text-indigo-600 hover:text-indigo-800 w-full text-left"
+                      >
+                        <FaFileAlt className="mr-2 text-gray-500" />
+                        <span className="truncate">{doc.name}</span>
+                      </button>
+                    </div>
+                  );
+                })}
               </div>
+              <DocumentModal
+                isOpen={DocumentModalOpen}
+                onClose={closedocModal}
+                docLink={currentDoc}
+              />
             </>
           )}
 

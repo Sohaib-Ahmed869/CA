@@ -170,6 +170,7 @@ const ExistingApplications = () => {
     const authListener = onAuthStateChanged(auth, (user) => {
       if (user) {
         setUserId(user.uid);
+        sessionStorage.setItem("userId", user.uid);
         setUserName(user.displayName || "");
         console.log("User ID:", user.uid);
       } else {

@@ -24,7 +24,14 @@ const ViewApplicationModal = ({ application, onClose }) => {
     const year = date.getFullYear();
     return `${day}-${month}-${year}`;
   };
+  const [visiblePreviews, setVisiblePreviews] = useState({});
 
+  const togglePreview = (key) => {
+    setVisiblePreviews((prev) => ({
+      ...prev,
+      [key]: !prev[key], // Toggle visibility
+    }));
+  };
   const calculateDiscountedPrice = (price) => {
     if (!price) return 0;
     if (!application.discount) return price;
@@ -240,6 +247,134 @@ const ViewApplicationModal = ({ application, onClose }) => {
               </div>
             </div>
           )}
+
+          {/* Documents */}
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+            <div className="p-5">
+              <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                {" "}
+                <FaFileAlt className="mr-2 text-emerald-600" />
+                Documents
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {application.document &&
+                  Object.entries(application.document).map(([key, doc]) => {
+                    if (!doc?.fileUrl) return null; // Skip if no valid URL
+
+                    const fileUrl = doc.fileUrl;
+                    const fileExtension = fileUrl
+                      .split(".")
+                      .pop()
+                      .toLowerCase();
+
+                    // Google Docs Viewer supported formats
+                    const googleViewerFormats = [
+                      "pdf",
+                      "doc",
+                      "docx",
+                      "xls",
+                      "xlsx",
+                      "ppt",
+                      "pptx",
+                    ];
+
+                    // Image formats (display directly)
+                    const imageFormats = ["jpg", "jpeg", "png", "gif", "bmp"];
+
+                    let previewUrl = fileUrl; // Default to direct URL
+                    let isGoogleViewer = false;
+
+                    if (googleViewerFormats.includes(fileExtension)) {
+                      previewUrl = `https://docs.google.com/gview?url=${encodeURIComponent(
+                        fileUrl
+                      )}&embedded=true`;
+                      isGoogleViewer = true;
+                    }
+
+                    return (
+                      <div key={key} className="mb-4">
+                        <p className="font-medium text-gray-600">{key}:</p>
+
+                        {/* Render Image Directly */}
+                        {imageFormats.includes(fileExtension) ? (
+                          <img
+                            src={fileUrl}
+                            alt={key}
+                            className="w-48 h-auto rounded-lg border"
+                          />
+                        ) : (
+                          // Embed Document inside an iframe
+                          <iframe
+                            src={previewUrl}
+                            style={{
+                              width: "100%",
+                              height: "600px",
+                              border: "none",
+                            }}
+                            allowFullScreen
+                          ></iframe>
+                        )}
+                      </div>
+                    );
+                  })}
+                {/* Code to conditionally show document previews */}
+
+                {/* {application.document &&
+        Object.entries(application.document).map(([key, doc]) => {
+          if (!doc?.fileUrl) return null; // Skip if no valid URL
+
+          const fileUrl = doc.fileUrl;
+          const fileExtension = fileUrl.split(".").pop().toLowerCase();
+
+          // Google Docs Viewer supported formats
+          const googleViewerFormats = ["pdf", "doc", "docx", "xls", "xlsx", "ppt", "pptx"];
+
+          // Image formats (display directly)
+          const imageFormats = ["jpg", "jpeg", "png", "gif", "bmp"];
+
+          let previewUrl = fileUrl; // Default to direct URL
+          let isGoogleViewer = false;
+
+          if (googleViewerFormats.includes(fileExtension)) {
+            previewUrl = `https://docs.google.com/gview?url=${encodeURIComponent(fileUrl)}&embedded=true`;
+            isGoogleViewer = true;
+          }
+
+          return (
+            <div key={key} className="mb-4">
+              <p className="font-medium text-gray-600 flex items-center">
+                {key}:{" "}
+                <button onClick={() => togglePreview(key)} className="ml-2">
+                  <FaEye className="text-blue-400 cursor-pointer" />
+                </button>
+              </p>
+
+              {/* Conditionally show preview only when toggled */}
+                {/* {visiblePreviews[key] && (
+                imageFormats.includes(fileExtension) ? (
+                  <img src={fileUrl} alt={key} className="w-48 h-auto rounded-lg border mt-2" />
+                ) : (
+                  <iframe
+                    src={previewUrl}
+                    style={{ width: "100%", height: "600px", border: "none", marginTop: "10px" }}
+                    allowFullScreen
+                  ></iframe>
+                )
+              )}
+            </div>
+          );
+        })}   */}
+
+                {application.document.length <= 0 && (
+                  <div>
+                    <p className="font-medium text-gray-600">
+                      Documents not uploaded yet.
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
 
           {/* Assessor Notes */}
           {application.assessorNote && (
@@ -556,7 +691,7 @@ const RTOApplications = () => {
                       scope="col"
                       className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                     >
-                      Customer
+                      Student
                     </th>
                     <th
                       scope="col"
@@ -629,10 +764,10 @@ const RTOApplications = () => {
                           {app.assessorNote || "No notes"}
                         </p>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="px-6 py-4 whitespace-nowrap flex items-center gap-2 ">
                         <button
                           onClick={() => setSelectedApplication(app)}
-                          className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded-md text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500"
+                          className="inline-flex items-center px-3 py-1  border border-transparent text-xs font-medium rounded-md text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500"
                         >
                           <FaEye className="mr-1" /> View Details
                         </button>

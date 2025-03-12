@@ -599,7 +599,7 @@ const FinanceManagement = () => {
                       Date
                     </th>
                     <th className="font-semibold text-green-800 p-4 text-left">
-                      Customer
+                      Student{" "}
                     </th>
                     <th className="font-semibold text-green-800 p-4 text-center">
                       Total Price

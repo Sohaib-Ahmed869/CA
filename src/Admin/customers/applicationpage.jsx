@@ -20,6 +20,7 @@ import { BiEdit } from "react-icons/bi";
 import { getAuth } from "firebase/auth";
 import Papa from "papaparse";
 import { toast } from "react-hot-toast";
+import DocumentModal from "../../Customer/components/viewDocsModal";
 const URL = import.meta.env.VITE_REACT_BACKEND_URL;
 
 import certificate from "../../assets/certificate.pdf";
@@ -107,6 +108,21 @@ const Application = ({
     application.assignedAdmin || ""
   );
   const [assignAdminModal, setAssignAdminModal] = useState(false);
+  // Document Modal
+  const [DocumentModalOpen, setDocumentModalOpen] = useState(false);
+  const [currentDoc, setCurrentDoc] = useState("");
+
+  // Function to open modal with selected document
+  const openModal = (doc) => {
+    setCurrentDoc(doc); // Directly set the file URL
+    setDocumentModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setDocumentModalOpen(false);
+    // Revoke the object URL to prevent memory leaks
+    setCurrentDoc("");
+  };
 
   // Format date helper function
   const formatDate = (dateString) => {
@@ -261,6 +277,25 @@ const Application = ({
 
   // Payment update handler
   const handlePaymentUpdate = async () => {
+    console.log("handlePaymentUpdate triggered");
+
+    if (payment1 > application.price) {
+      toast.error("Please enter valid payment amount.");
+      return;
+    }
+    if (!payment1 || !payment2) {
+      toast.error("Please enter  payment amount.");
+      return;
+    }
+
+    if (application.full_paid) {
+      toast.error("Full payment is already paid cannot divide payment.");
+      return;
+    }
+    if (application.paid) {
+      toast.error("First payment is already paid cannot divide payment.");
+      return;
+    }
     try {
       setSubmissionLoading(true);
       const response = await dividePayment(application.id, payment1, payment2);
@@ -520,6 +555,7 @@ const Application = ({
       }
     }
   };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {submissionLoading && <SpinnerLoader />}
@@ -747,7 +783,7 @@ const Application = ({
                     {/* Customer Information */}
                     <div className="border rounded-lg p-4">
                       <h3 className="text-lg font-medium text-gray-700 mb-3">
-                        Customer Information
+                        Student Information
                       </h3>
                       <div className="space-y-2">
                         <p className="flex justify-between">
@@ -877,7 +913,9 @@ const Application = ({
                           </span>
                         </p>
                         <p className="flex justify-between">
-                          <span className="text-gray-500">Assigned Admin:</span>
+                          <span className="text-gray-500">
+                            Assigned Sales Agent:
+                          </span>
                           <span className="font-medium">
                             {application.assignedAdmin || "N/A"}
                           </span>
@@ -911,7 +949,70 @@ const Application = ({
                             ${application.price || "0.00"}
                           </span>
                         </p>
+                        {console.log(application)}
+                        {application.partialScheme &&
+                          application.payment1Date && (
+                            <>
+                              <p className="flex justify-between">
+                                <span className="text-gray-500">
+                                  Date ofPayment 1 :
+                                </span>
 
+                                <span className="font-medium">
+                                  {application.payment1Date
+                                    ? new Date(
+                                        application.payment1Date
+                                      ).toLocaleDateString("en-US", {
+                                        year: "numeric",
+                                        month: "long",
+                                        day: "numeric",
+                                        hour: "2-digit",
+                                        minute: "2-digit",
+                                      })
+                                    : "Not Available"}{" "}
+                                </span>
+                              </p>
+                              <p className="flex justify-between">
+                                <span className="text-gray-500">
+                                  Date of Payment 2 :
+                                </span>
+
+                                <span className="font-medium">
+                                  {application.payment2Date
+                                    ? new Date(
+                                        application.payment2Date
+                                      ).toLocaleDateString("en-US", {
+                                        year: "numeric",
+                                        month: "long",
+                                        day: "numeric",
+                                        hour: "2-digit",
+                                        minute: "2-digit",
+                                      })
+                                    : "Not Available"}
+                                </span>
+                              </p>
+                            </>
+                          )}
+                        {application.full_paid && (
+                          <p className="flex justify-between">
+                            <span className="text-gray-500">
+                              Date of Payment:
+                            </span>
+                            <span className="font-medium">
+                              {application.fullPaymentDate
+                                ? new Date(
+                                    application.fullPaymentDate
+                                  ).toLocaleDateString("en-US", {
+                                    year: "numeric",
+                                    month: "long",
+                                    day: "numeric",
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                  })
+                                : "Not Available"}{" "}
+                            </span>
+                          </p>
+                        )}
                         {application.discount > 0 && (
                           <p className="flex justify-between">
                             <span className="text-gray-500">Discount:</span>
@@ -1093,7 +1194,7 @@ const Application = ({
                                 application.partialScheme ? (
                                 <span className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs">
                                   Partially Paid ($
-                                  {application.amount_paid || 0})
+                                  {application.payment1 || 0})
                                 </span>
                               ) : (
                                 <span className="px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs">
@@ -1234,6 +1335,8 @@ const Application = ({
                     </div>
                   ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {console.log("documentLink", documentLinks)}
+
                       {documentLinks.map((doc, index) => (
                         <div
                           key={index}
@@ -1243,17 +1346,13 @@ const Application = ({
                             <p className="font-medium text-gray-700">
                               {doc.name}
                             </p>
-                            <a
-                              href="#"
-                              onClick={(e) => {
-                                e.preventDefault();
-                                handleViewDocument(doc.url);
-                              }}
+                            <button
+                              onClick={() => openModal(doc.url.fileUrl)}
                               className="px-3 py-1 bg-emerald-50 text-emerald-600 rounded-md hover:bg-emerald-100 transition-colors flex items-center gap-2"
                             >
                               <BsEye />
                               View
-                            </a>
+                            </button>
                           </div>
                         </div>
                       ))}
@@ -1262,7 +1361,11 @@ const Application = ({
                 </div>
               </div>
             )}
-
+            <DocumentModal
+              isOpen={DocumentModalOpen}
+              onClose={closeModal}
+              docLink={currentDoc}
+            />
             {/* Intake Form View */}
             {activeView === "intake" && viewIntakeForm && (
               <div className="bg-white rounded-xl shadow-md overflow-hidden">
@@ -1482,13 +1585,19 @@ const Application = ({
                         <p className="flex justify-between">
                           <span className="text-gray-500">First Name:</span>
                           <span className="font-medium">
-                            {application.user.firstName}
+                            {application.sif?.firstName || "N/A"}
                           </span>
                         </p>
                         <p className="flex justify-between">
                           <span className="text-gray-500">Last Name:</span>
                           <span className="font-medium">
-                            {application.user.lastName}
+                            {application.sif?.lastName || "N/A"}
+                          </span>
+                        </p>
+                        <p className="flex justify-between">
+                          <span className="text-gray-500">Middle Name:</span>
+                          <span className="font-medium">
+                            {application.sif?.middleName || "N/A"}
                           </span>
                         </p>
                         <p className="flex justify-between">
@@ -1528,12 +1637,6 @@ const Application = ({
                           </span>
                         </p>
                         <p className="flex justify-between">
-                          <span className="text-gray-500">Country:</span>
-                          <span className="font-medium">
-                            {application.user?.country || "N/A"}
-                          </span>
-                        </p>
-                        <p className="flex justify-between">
                           <span className="text-gray-500">State:</span>
                           <span className="font-medium">
                             {application.sif?.state || "N/A"}
@@ -1541,10 +1644,51 @@ const Application = ({
                         </p>
                         <p className="flex justify-between">
                           <span className="text-gray-500">
-                            Location of Experience:
+                            Country of Birth:
                           </span>
                           <span className="font-medium">
-                            {application.isf?.locationOfExperience || "N/A"}
+                            {application.sif?.countryOfBirth || "N/A"}
+                          </span>
+                        </p>
+                        <p className="flex justify-between">
+                          <span className="text-gray-500">
+                            Employment Status:
+                          </span>
+                          <span className="font-medium">
+                            {application.sif?.employmentStatus || "N/A"}
+                          </span>
+                        </p>
+                        <p className="flex justify-between">
+                          <span className="text-gray-500">English Level:</span>
+                          <span className="font-medium">
+                            {application.sif?.englishLevel || "N/A"}
+                          </span>
+                        </p>
+                        <p className="flex justify-between">
+                          <span className="text-gray-500">Contact Number:</span>
+                          <span className="font-medium">
+                            {application.sif?.contactNumber || "N/A"}
+                          </span>
+                        </p>
+                        <p className="flex justify-between">
+                          <span className="text-gray-500">Email:</span>
+                          <span className="font-medium">
+                            {application.sif?.email || "N/A"}
+                          </span>
+                        </p>
+                        <p className="flex justify-between">
+                          <span className="text-gray-500">
+                            Aboriginal or Torres Strait Islander:
+                          </span>
+                          <span className="font-medium">
+                            {application.sif
+                              ?.aboriginalOrTorresStraitIslander || "N/A"}
+                          </span>
+                        </p>
+                        <p className="flex justify-between">
+                          <span className="text-gray-500">Disability:</span>
+                          <span className="font-medium">
+                            {application.sif?.disability || "N/A"}
                           </span>
                         </p>
                         <p className="flex justify-between">
@@ -1556,19 +1700,83 @@ const Application = ({
                           </span>
                         </p>
                         <p className="flex justify-between">
-                          <span className="text-gray-500">
-                            Year of Completion:
-                          </span>
+                          <span className="text-gray-500">Year Completed:</span>
                           <span className="font-medium">
                             {application.sif?.YearCompleted || "N/A"}
                           </span>
                         </p>
                         <p className="flex justify-between">
                           <span className="text-gray-500">
-                            Highest Level of Education:
+                            Name of Qualification:
                           </span>
                           <span className="font-medium">
                             {application.sif?.nameOfQualification || "N/A"}
+                          </span>
+                        </p>
+                        <p className="flex justify-between">
+                          <span className="text-gray-500">Business Name:</span>
+                          <span className="font-medium">
+                            {application.sif?.businessName || "N/A"}
+                          </span>
+                        </p>
+                        <p className="flex justify-between">
+                          <span className="text-gray-500">
+                            Employer's Legal Name:
+                          </span>
+                          <span className="font-medium">
+                            {application.sif?.employersLegalName || "N/A"}
+                          </span>
+                        </p>
+                        <p className="flex justify-between">
+                          <span className="text-gray-500">
+                            Employer's Address:
+                          </span>
+                          <span className="font-medium">
+                            {application.sif?.employersAddress || "N/A"}
+                          </span>
+                        </p>
+                        <p className="flex justify-between">
+                          <span className="text-gray-500">
+                            Employer's Contact Number:
+                          </span>
+                          <span className="font-medium">
+                            {application.sif?.employersContactNumber || "N/A"}
+                          </span>
+                        </p>
+                        <p className="flex justify-between">
+                          <span className="text-gray-500">Position:</span>
+                          <span className="font-medium">
+                            {application.sif?.position || "N/A"}
+                          </span>
+                        </p>
+                        <p className="flex justify-between">
+                          <span className="text-gray-500">
+                            Australian Citizen:
+                          </span>
+                          <span className="font-medium">
+                            {application.sif?.australianCitizen || "N/A"}
+                          </span>
+                        </p>
+                        <p className="flex justify-between">
+                          <span className="text-gray-500">
+                            Previous Qualifications:
+                          </span>
+                          <span className="font-medium">
+                            {application.sif?.previousQualifications || "N/A"}
+                          </span>
+                        </p>
+                        <p className="flex justify-between">
+                          <span className="text-gray-500">
+                            Date of Application:
+                          </span>
+                          <span className="font-medium">
+                            {application.sif?.date || "N/A"}
+                          </span>
+                        </p>
+                        <p className="flex justify-between">
+                          <span className="text-gray-500">Agreement:</span>
+                          <span className="font-medium">
+                            {application.sif?.agree ? "Agreed" : "Not Agreed"}
                           </span>
                         </p>
                       </div>
@@ -1891,7 +2099,18 @@ const Application = ({
                     type="number"
                     className="w-full border border-gray-300 rounded-md p-3 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                     value={payment1}
-                    onChange={(e) => setPayment1(e.target.value)}
+                    onChange={(e) => {
+                      const enteredPayment =
+                        e.target.value.trim() === ""
+                          ? ""
+                          : parseFloat(e.target.value);
+                      setPayment1(enteredPayment);
+                      setPayment2(
+                        enteredPayment && enteredPayment < application.price
+                          ? application.price - enteredPayment
+                          : ""
+                      );
+                    }}
                     placeholder="Enter first payment amount"
                     min="0"
                   />
@@ -1908,10 +2127,10 @@ const Application = ({
                     id="payment2-input"
                     type="number"
                     className="w-full border border-gray-300 rounded-md p-3 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                    value={payment2}
-                    onChange={(e) => setPayment2(e.target.value)}
+                    value={payment1 ? payment2 : ""}
                     placeholder="Enter second payment amount"
                     min="0"
+                    readOnly
                   />
                 </div>
               </div>
@@ -1927,7 +2146,7 @@ const Application = ({
               <button
                 onClick={handlePaymentUpdate}
                 className="px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700"
-                disabled={!payment1 || !payment2}
+                // disabled={!payment1 || !payment2}
               >
                 Set Up Payment Plan
               </button>

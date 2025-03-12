@@ -20,6 +20,17 @@ import {
   FaEye,
   FaCheckCircle,
   FaTimesCircle,
+  FaUserTie,
+  FaAccessibleIcon,
+  FaNotesMedical,
+  FaBook,
+  FaClipboardList,
+  FaLaptop,
+  FaUserShield,
+  FaExclamationCircle,
+  FaUserFriends,
+  FaLanguage,
+  FaGlobe,
 } from "react-icons/fa";
 import { MdLocationOn, MdWorkOutline, MdSchool } from "react-icons/md";
 import { VscDebugBreakpointData } from "react-icons/vsc";
@@ -40,6 +51,7 @@ import {
   requestMoreDocuments,
 } from "../../Customer/Services/adminServices";
 import { initiateVerificationCall } from "../../Customer/Services/twilioService";
+import DocumentModal from "../../Customer/components/viewDocsModal";
 
 const AssessorCustomers = () => {
   const [applications, setApplications] = useState([]);
@@ -65,6 +77,20 @@ const AssessorCustomers = () => {
 
   // Request more documents
   const [message, setMessage] = useState("");
+  const [DocumentModalOpen, setDocumentModalOpen] = useState(false);
+  const [currentDoc, setCurrentDoc] = useState("");
+  const [SingleDocModelOpen, setSingleDocModelOpen] = useState(false);
+  // Function to open modal with selected document
+  const openModal = (doc) => {
+    setCurrentDoc(doc); // Directly set the file URL
+    setDocumentModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setDocumentModalOpen(false);
+    // Revoke the object URL to prevent memory leaks
+    setCurrentDoc("");
+  };
 
   const formatDate = (dateString) => {
     if (!dateString) return "N/A";
@@ -239,11 +265,14 @@ const AssessorCustomers = () => {
 
     // Loop through each document key, open the link if it's not null
     const links = documentKeys
-      .map((docKey) => ({
-        name: docKey,
-        url: application.document && application.document[docKey],
-      }))
-      .filter((doc) => doc.url); // Filter out null/undefined URLs
+      .map((docKey) => {
+        const fileData = application.document?.[docKey]; // Get file data object
+
+        if (!fileData || !fileData.fileUrl) return null; // Skip if null/undefined
+
+        return { name: docKey, url: fileData.fileUrl }; // Use correct file URL
+      })
+      .filter((doc) => doc !== null); // Remove null values
 
     setDocumentLinks(links);
     setViewDocuments(true);
@@ -766,6 +795,176 @@ const AssessorCustomers = () => {
       </div>
     );
   };
+  //   const studentForm = selectedApplication.sif;
+
+  //   return (
+  //     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+  //       <div className="space-y-4">
+  //         {[
+  //           {
+  //             label: "Full Name",
+  //             value: `${selectedApplication.user.firstName} ${selectedApplication.user.lastName}`,
+  //             icon: FaUser,
+  //           },
+  //           {
+  //             label: "USI",
+  //             value: studentForm.USI,
+  //             icon: VscDebugBreakpointData,
+  //           },
+  //           { label: "Gender", value: studentForm.gender, icon: FaUser },
+  //           {
+  //             label: "Date of Birth",
+  //             value: studentForm.dob,
+  //             icon: BsCalendarDate,
+  //           },
+  //           {
+  //             label: "Home Address",
+  //             value: studentForm.homeAddress,
+  //             icon: MdLocationOn,
+  //           },
+  //           {
+  //             label: "Contact Number",
+  //             value: selectedApplication.user.phone,
+  //             icon: FaPhoneAlt,
+  //           },
+  //           {
+  //             label: "Email",
+  //             value: selectedApplication.user.email,
+  //             icon: FaEnvelope,
+  //           },
+  //           { label: "State", value: studentForm.state, icon: MdLocationOn },
+  //           { label: "Suburb", value: studentForm.suburb, icon: MdLocationOn },
+  //           {
+  //             label: "Postcode",
+  //             value: studentForm.postcode,
+  //             icon: MdLocationOn,
+  //           },
+  //           {
+  //             label: "Credits Transfer",
+  //             value: studentForm.creditsTransfer ? "Yes" : "No",
+  //             icon: VscDebugBreakpointData,
+  //           },
+  //           {
+  //             label: "Year Completed",
+  //             value: studentForm.YearCompleted,
+  //             icon: MdSchool,
+  //           },
+  //           {
+  //             label: "Highest Qualification",
+  //             value: studentForm.nameOfQualification,
+  //             icon: MdSchool,
+  //           },
+  //           {
+  //             label: "Nationality",
+  //             value: studentForm.nationality,
+  //             icon: FaGlobe,
+  //           },
+  //           {
+  //             label: "Language Spoken",
+  //             value: studentForm.languageSpoken,
+  //             icon: FaLanguage,
+  //           },
+  //         ].map((item, index) => (
+  //           <div key={index} className="flex items-start">
+  //             <item.icon className="text-emerald-600 text-xl mt-0.5 mr-3 flex-shrink-0" />
+  //             <div>
+  //               <p className="text-sm text-gray-500">{item.label}</p>
+  //               <p className="font-medium">{item.value || "N/A"}</p>
+  //             </div>
+  //           </div>
+  //         ))}
+  //       </div>
+
+  //       <div className="space-y-4">
+  //         {[
+  //           {
+  //             label: "Emergency Contact Name",
+  //             value: studentForm.emergencyContactName,
+  //             icon: FaUserFriends,
+  //           },
+  //           {
+  //             label: "Emergency Contact Number",
+  //             value: studentForm.emergencyContactNumber,
+  //             icon: FaPhoneAlt,
+  //           },
+  //           {
+  //             label: "Relationship to Student",
+  //             value: studentForm.relationshipToStudent,
+  //             icon: FaUserTie,
+  //           },
+  //           {
+  //             label: "Disability Status",
+  //             value: studentForm.disabilityStatus ? "Yes" : "No",
+  //             icon: FaAccessibleIcon,
+  //           },
+  //           {
+  //             label: "Disability Details",
+  //             value: studentForm.disabilityDetails,
+  //             icon: FaNotesMedical,
+  //           },
+  //           {
+  //             label: "Previous Institution",
+  //             value: studentForm.previousInstitution,
+  //             icon: MdSchool,
+  //           },
+  //           {
+  //             label: "Course Name",
+  //             value: studentForm.courseName,
+  //             icon: FaBook,
+  //           },
+  //           {
+  //             label: "Enrollment Status",
+  //             value: studentForm.enrollmentStatus,
+  //             icon: FaClipboardList,
+  //           },
+  //           {
+  //             label: "Study Mode",
+  //             value: studentForm.studyMode,
+  //             icon: FaLaptop,
+  //           },
+  //           {
+  //             label: "Start Date",
+  //             value: studentForm.startDate,
+  //             icon: BsCalendarDate,
+  //           },
+  //           {
+  //             label: "End Date",
+  //             value: studentForm.endDate,
+  //             icon: BsCalendarDate,
+  //           },
+  //           {
+  //             label: "Guardian Name",
+  //             value: studentForm.guardianName,
+  //             icon: FaUserShield,
+  //           },
+  //           {
+  //             label: "Guardian Contact",
+  //             value: studentForm.guardianContact,
+  //             icon: FaPhoneAlt,
+  //           },
+  //           {
+  //             label: "Guardian Email",
+  //             value: studentForm.guardianEmail,
+  //             icon: FaEnvelope,
+  //           },
+  //           {
+  //             label: "Special Requirements",
+  //             value: studentForm.specialRequirements,
+  //             icon: FaExclamationCircle,
+  //           },
+  //         ].map((item, index) => (
+  //           <div key={index} className="flex items-start">
+  //             <item.icon className="text-emerald-600 text-xl mt-0.5 mr-3 flex-shrink-0" />
+  //             <div>
+  //               <p className="text-sm text-gray-500">{item.label}</p>
+  //               <p className="font-medium">{item.value || "N/A"}</p>
+  //             </div>
+  //           </div>
+  //         ))}
+  //       </div>
+  //     </div>
+  //   );
+  // };
 
   // Render Documents List
   const renderDocumentsList = () => {
@@ -819,48 +1018,70 @@ const AssessorCustomers = () => {
     }
 
     return (
-      <div className="overflow-x-auto">
-        <table className="min-w-full border-collapse">
-          <thead>
-            <tr className="bg-gray-50 border-b border-gray-200">
-              <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Document Type
-              </th>
-              <th className="py-3 px-4 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Status
-              </th>
-              <th className="py-3 px-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Actions
-              </th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-200">
-            {availableDocuments.map((doc, index) => {
-              const fileUrl = selectedApplication.document[doc.key];
-              return (
-                <tr key={index} className="hover:bg-gray-50">
-                  <td className="py-3 px-4 text-sm">{doc.label}</td>
-                  <td className="py-3 px-4 text-center">
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
-                      <FaCheckCircle className="mr-1" /> Available
-                    </span>
-                  </td>
-                  <td className="py-3 px-4 text-right">
-                    <a
-                      href={fileUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center px-2 py-1 border border-transparent text-xs font-medium rounded text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none"
-                    >
-                      <FaEye className="mr-1" /> View
-                    </a>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
+      <>
+        <div className="overflow-x-auto">
+          <table className="min-w-full border-collapse">
+            <thead>
+              <tr className="bg-gray-50 border-b border-gray-200">
+                <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Document Type
+                </th>
+                <th className="py-3 px-4 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Status
+                </th>
+                <th className="py-3 px-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            {/* View */}
+            <tbody className="divide-y divide-gray-200">
+              {availableDocuments.map((doc, index) => {
+                const fileData = selectedApplication.document[doc.key];
+                const fileUrl = fileData?.fileUrl;
+
+                // if (!fileUrl) return null; // Skip if no valid URL
+
+                // const handleViewDocument = (url) => {
+                //   const newWindow = window.open("about:blank"); // Open blank tab first
+                //   setTimeout(() => {
+                //     newWindow.location.href = url; // Redirect to file URL
+                //   }, 500);
+                // };
+
+                return (
+                  <tr key={index} className="hover:bg-gray-50">
+                    <td className="py-3 px-4 text-sm">{doc.label}</td>
+                    <td className="py-3 px-4 text-center">
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
+                        <FaCheckCircle className="mr-1" /> Available
+                      </span>
+                    </td>
+                    <td className="py-3 px-4 text-right">
+                      <button
+                        onClick={() => {
+                          openModal(fileUrl);
+                          setSingleDocModelOpen(true);
+                        }}
+                        className="inline-flex items-center px-2 py-1 border border-transparent text-xs font-medium rounded text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none"
+                      >
+                        <FaEye className="mr-1" /> View
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+        {SingleDocModelOpen && (
+          <DocumentModal
+            isOpen={DocumentModalOpen}
+            onClose={closeModal}
+            docLink={currentDoc}
+          />
+        )}
+      </>
     );
   };
 
@@ -1020,7 +1241,7 @@ const AssessorCustomers = () => {
                           scope="col"
                           className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                         >
-                          Customer
+                          Students{" "}
                         </th>
                         <th
                           scope="col"
@@ -1240,7 +1461,7 @@ const AssessorCustomers = () => {
               <div className="flex flex-wrap gap-4 mb-4">
                 <div className="flex-1 min-w-0 bg-gray-50 rounded-lg p-4">
                   <h4 className="text-sm font-medium text-gray-500">
-                    Customer
+                    Student{" "}
                   </h4>
                   <p className="font-semibold text-gray-900">
                     {selectedApplication.user?.firstName}{" "}
@@ -1418,23 +1639,46 @@ const AssessorCustomers = () => {
                 </button>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-4">
-                  {documentLinks.map((doc, index) => (
-                    <div
-                      key={index}
-                      className="bg-gray-50 rounded-lg p-3 hover:bg-gray-100 transition-colors"
-                    >
-                      <a
-                        href={doc.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center text-indigo-600 hover:text-indigo-800"
+                  {documentLinks.map((doc, index) => {
+                    const fileUrl = doc.url;
+
+                    if (!fileUrl) return null; // Skip if no valid URL
+
+                    // const handleViewDocument = (url) => {
+                    //   const newWindow = window.open("about:blank", "_blank"); // Open blank tab first
+                    //   if (newWindow) {
+                    //     setTimeout(() => {
+                    //       newWindow.location.href = url; // Redirect to file URL
+                    //     }, 500);
+                    //   } else {
+                    //     window.location.href = url; // Fallback if pop-up is blocked
+                    //   }
+                    // };
+
+                    return (
+                      <div
+                        key={index}
+                        className="bg-gray-50 rounded-lg p-3 hover:bg-gray-100 transition-colors"
                       >
-                        <FaFileAlt className="mr-2 text-gray-500" />
-                        <span className="truncate">{doc.name}</span>
-                      </a>
-                    </div>
-                  ))}
+                        <button
+                          onClick={() => {
+                            openModal(fileUrl);
+                            setSingleDocModelOpen(false);
+                          }}
+                          className="flex items-center text-indigo-600 hover:text-indigo-800 w-full text-left"
+                        >
+                          <FaFileAlt className="mr-2 text-gray-500" />
+                          <span className="truncate">{doc.name}</span>
+                        </button>
+                      </div>
+                    );
+                  })}
                 </div>
+                <DocumentModal
+                  isOpen={DocumentModalOpen}
+                  onClose={closeModal}
+                  docLink={currentDoc}
+                />
               </>
             )}
 

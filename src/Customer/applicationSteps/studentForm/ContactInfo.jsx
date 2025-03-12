@@ -1,10 +1,33 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import FloatingLabelInput from "../../components/floatingLabelInput";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
-
+import countryList from "react-select-country-list";
+import { getUserInfo } from "../../Services/customerApplication";
 const ContactInfo = ({ contactInfo, setContactInfo }) => {
   const [errors, setErrors] = useState({});
+  const countries = countryList().getData();
+  const userId = sessionStorage.getItem("userId");
+  // Function to fetch user info
+  const getUser = async (userId) => {
+    try {
+      const response = await getUserInfo(userId);
+      // console.log("Fetched User:", response);
+
+      // Set email only if it's not already set
+      if (!contactInfo.email) {
+        setContactInfo((prev) => ({ ...prev, email: response.email || "" }));
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  useEffect(() => {
+    if (userId) {
+      getUser(userId);
+    }
+  }, [userId]);
 
   const validateField = (name, value) => {
     let error = "";
@@ -22,21 +45,21 @@ const ContactInfo = ({ contactInfo, setContactInfo }) => {
 
     return error;
   };
-
   const handleChange = (e) => {
     const { name, value } = e.target;
 
     // Validate the field
     const error = validateField(name, value);
 
-    // Update errors state
-    setErrors({
-      ...errors,
-      [name]: error,
-    });
+    setContactInfo((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
 
-    // Update form data
-    setContactInfo({ ...contactInfo, [name]: value });
+    setErrors((prevErrors) => ({
+      ...prevErrors,
+      [name]: error,
+    }));
   };
 
   return (
@@ -111,17 +134,25 @@ const ContactInfo = ({ contactInfo, setContactInfo }) => {
           >
             Country of Birth <span className="text-red-500">*</span>
           </label>
-          <input
-            name="countryOfBirth"
-            type="text"
+
+          <select
             id="countryOfBirth"
-            placeholder="e.g. Australia"
+            name="countryOfBirth"
+            className="w-full h-11 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-200 focus:border-green-500"
             value={contactInfo.countryOfBirth}
             onChange={handleChange}
-            className="w-full h-11 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-200 focus:border-green-500"
-          />
+          >
+            <option value="" disabled>
+              -- Select a Country --
+            </option>
+            {countries.map((country) => (
+              <option key={country.label} value={country.label}>
+                {country.label}
+              </option>
+            ))}
+          </select>
         </div>
-
+        {/* {console.log(contactInfo)} */}
         {/* English Level field */}
         <div className="space-y-2">
           <label
@@ -130,15 +161,30 @@ const ContactInfo = ({ contactInfo, setContactInfo }) => {
           >
             English Level
           </label>
-          <input
-            name="englishLevel"
-            type="text"
+
+          <select
             id="englishLevel"
-            placeholder="e.g. Native, Fluent, Intermediate"
+            name="englishLevel"
+            className="w-full h-11 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-200 focus:border-green-500"
             value={contactInfo.englishLevel}
             onChange={handleChange}
-            className="w-full h-11 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-200 focus:border-green-500"
-          />
+          >
+            <option value="" disabled>
+              -- Select English Level --
+            </option>
+            {[
+              "Native",
+              "Fluent",
+              "Advanced",
+              "Intermediate",
+              "Basic",
+              "No Proficiency",
+            ].map((level) => (
+              <option key={level} value={level}>
+                {level}
+              </option>
+            ))}
+          </select>
         </div>
       </div>
 

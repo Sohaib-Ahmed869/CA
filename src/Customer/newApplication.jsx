@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import Navbar from "./components/navbar";
+import { Toaster } from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import Loader from "./components/loader";
 import Screen1 from "./screeningScreens/screen1";
@@ -13,6 +14,7 @@ import { onAuthStateChanged } from "firebase/auth";
 import { createNewApplication } from "./Services/customerApplication";
 import SpinnerLoader from "./components/spinnerLoader";
 import "./stepper.css";
+import toast from "react-hot-toast";
 
 const Stepper = ({ steps, currentStep }) => {
   return (
@@ -53,7 +55,7 @@ const ScreeningForm2 = () => {
   const [yearsOfExperience, setYearsOfExperience] = useState("");
   const [locationOfExperience, setLocationOfExperience] = useState("");
   const [state, setState] = useState("");
-  const [formalEducation, setFormalEducation] = useState(true);
+  const [formalEducation, setFormalEducation] = useState("");
   const [formalEducationAnswer, setFormalEducationAnswer] = useState("");
   const [userId, setUserId] = useState("");
   const [submissionLoading, setSubmissionLoading] = useState(false);
@@ -68,24 +70,36 @@ const ScreeningForm2 = () => {
 
   const handleNext = () => {
     if ((step === 0 && industry === "") || qualification === "") {
-      alert("Please fill in the required fields");
+      toast.error("Please fill in the required fields");
       return;
     }
 
-    if (step === 1) {
-      if (yearsOfExperience === "" || locationOfExperience === "") {
-        alert("Please fill in the required fields");
-        return;
-      }
+    if (
+      step === 1 &&
+      (yearsOfExperience === "" || locationOfExperience === "")
+    ) {
+      toast.error("Please fill in the required fields");
+      return;
     }
+
     if (step === 2 && state === "") {
-      alert("Please fill in the required fields");
+      toast.error("Please select an option");
       return;
     }
-    if (step === 3 && formalEducation === "" && formalEducationAnswer === "") {
-      alert("Please fill in the required fields");
+    console.log(step);
+    if (step === 3 && formalEducation.length === 0) {
+      toast.error("Please Select an option");
       return;
     }
+    if (
+      step === 3 &&
+      formalEducation === "Yes" &&
+      formalEducationAnswer.length === 0
+    ) {
+      toast.error("Please fill in the required fields");
+      return;
+    }
+
     setStep((prevStep) => Math.min(prevStep + 1, 3));
   };
 
@@ -171,6 +185,8 @@ const ScreeningForm2 = () => {
 
   return (
     <div className="min-h-screen">
+      <Toaster position="top right" />
+
       {loading && <Loader />}
       {submissionLoading && <SpinnerLoader />}
       <Navbar />

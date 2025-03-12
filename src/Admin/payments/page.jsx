@@ -277,7 +277,7 @@ const PaymentsPage = () => {
     const headers = [
       "Application ID",
       "Date",
-      "Customer",
+      "Student",
       "Qualification",
       "Original Price",
       "Final Price",
@@ -591,7 +591,7 @@ const PaymentsPage = () => {
                       >
                         <option value="date">Date</option>
                         <option value="amount">Amount</option>
-                        <option value="name">Customer Name</option>
+                        <option value="name">Student Name</option>
                       </select>
                       <button
                         className="inline-flex items-center justify-center w-10 h-10 border border-gray-300 rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none transition-all"
@@ -615,7 +615,7 @@ const PaymentsPage = () => {
                       <input
                         type="text"
                         className="w-full border border-gray-300 rounded-lg pl-10 pr-4 py-2 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-white"
-                        placeholder="Search by customer name, application ID or qualification..."
+                        placeholder="Search by student name, application ID or qualification..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                       />
@@ -691,7 +691,7 @@ const PaymentsPage = () => {
                       onClick={() => handleSort("name")}
                     >
                       <div className="flex items-center">
-                        <span>Customer</span>
+                        <span>Student</span>
                         {sortBy === "name" && (
                           <span className="ml-1">
                             {sortDirection === "asc" ? "↑" : "↓"}

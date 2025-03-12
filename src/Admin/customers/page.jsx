@@ -731,11 +731,11 @@ const CustomersInfo = () => {
                 />
               </div>
               <div className="text-center md:text-left text-white">
-                <h1 className="text-3xl font-bold mb-2">Customer Management</h1>
+                <h1 className="text-3xl font-bold mb-2">Student Management</h1>
                 <p className="text-emerald-100 max-w-2xl">
-                  Manage all customer applications, track progress, verify
+                  Manage all students applications, track progress, verify
                   documents, and process payments. Get a complete overview of
-                  your customer pipeline.
+                  your student pipeline.
                 </p>
               </div>
             </div>
@@ -944,7 +944,7 @@ const CustomersInfo = () => {
                       className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
                       onClick={() => handleSort("customerName")}
                     >
-                      Customer
+                      Student
                       {sortField === "customerName" && (
                         <span className="ml-1">
                           {sortDirection === "asc" ? (

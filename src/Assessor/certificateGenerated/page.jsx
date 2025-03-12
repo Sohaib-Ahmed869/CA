@@ -236,7 +236,7 @@ const ViewApplicationModal = ({ application, onClose }) => {
                   <FaFileAlt className="mr-2 text-emerald-600" />
                   Student Intake Form
                 </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <p className="font-medium text-gray-600">USI</p>
                     <p className="text-gray-800">
@@ -279,6 +279,102 @@ const ViewApplicationModal = ({ application, onClose }) => {
                       {application.sif.state || "N/A"}
                     </p>
                   </div>
+                </div> */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {[
+                    { label: "First Name", value: application.sif?.firstName },
+                    { label: "Last Name", value: application.sif?.lastName },
+                    {
+                      label: "Middle Name",
+                      value: application.sif?.middleName,
+                    },
+                    { label: "USI", value: application.sif?.USI },
+                    { label: "Gender", value: application.sif?.gender },
+                    { label: "Date of Birth", value: application.sif?.dob },
+                    {
+                      label: "Home Address",
+                      value: application.sif?.homeAddress,
+                    },
+                    { label: "Suburb", value: application.sif?.suburb },
+                    { label: "Postcode", value: application.sif?.postcode },
+                    { label: "State", value: application.sif?.state },
+                    {
+                      label: "Country of Birth",
+                      value: application.sif?.countryOfBirth,
+                    },
+                    {
+                      label: "Employment Status",
+                      value: application.sif?.employmentStatus,
+                    },
+                    {
+                      label: "English Level",
+                      value: application.sif?.englishLevel,
+                    },
+                    {
+                      label: "Contact Number",
+                      value: application.sif?.contactNumber,
+                    },
+                    { label: "Email", value: application.sif?.email },
+                    {
+                      label: "Aboriginal or Torres Strait Islander",
+                      value: application.sif?.aboriginalOrTorresStraitIslander,
+                    },
+                    { label: "Disability", value: application.sif?.disability },
+                    {
+                      label: "Credits Transfer",
+                      value: application.sif?.creditsTransfer ? "Yes" : "No",
+                    },
+                    {
+                      label: "Year Completed",
+                      value: application.sif?.YearCompleted,
+                    },
+                    {
+                      label: "Name of Qualification",
+                      value: application.sif?.nameOfQualification,
+                    },
+                    {
+                      label: "Business Name",
+                      value: application.sif?.businessName,
+                    },
+                    {
+                      label: "Employer's Legal Name",
+                      value: application.sif?.employersLegalName,
+                    },
+                    {
+                      label: "Employer's Address",
+                      value: application.sif?.employersAddress,
+                    },
+                    {
+                      label: "Employer's Contact Number",
+                      value: application.sif?.employersContactNumber,
+                    },
+                    { label: "Position", value: application.sif?.position },
+                    {
+                      label: "Australian Citizen",
+                      value: application.sif?.australianCitizen,
+                    },
+                    {
+                      label: "Previous Qualifications",
+                      value: application.sif?.previousQualifications,
+                    },
+                    {
+                      label: "Date of Application",
+                      value: application.sif?.date,
+                    },
+                    {
+                      label: "Agreement",
+                      value: application.sif?.agree ? "Agreed" : "Not Agreed",
+                    },
+                  ].map((item, index) => (
+                    <p key={index} className="flex justify-between">
+                      <span className="font-medium text-gray-600  ">
+                        {item.label}:
+                      </span>
+                      <span className="font-base text-gray-800">
+                        {item.value || "N/A"}
+                      </span>
+                    </p>
+                  ))}
                 </div>
               </div>
             </div>

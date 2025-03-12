@@ -59,7 +59,7 @@ const ScreeningForm = () => {
   const [yearsOfExperience, setYearsOfExperience] = useState("");
   const [locationOfExperience, setLocationOfExperience] = useState("");
   const [state, setState] = useState("");
-  const [formalEducation, setFormalEducation] = useState(true);
+  const [formalEducation, setFormalEducation] = useState("");
   const [formalEducationAnswer, setFormalEducationAnswer] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -122,7 +122,7 @@ const ScreeningForm = () => {
   const navigate = useNavigate();
   const handleNext = () => {
     if ((step === 0 && industry === "") || qualification === "") {
-      alert("Please fill in the required fields");
+      toast.error("Please fill in the required fields");
       return;
     }
 
@@ -130,20 +130,30 @@ const ScreeningForm = () => {
       step === 1 &&
       (yearsOfExperience === "" || locationOfExperience === "")
     ) {
-      alert("Please fill in the required fields");
+      toast.error("Please fill in the required fields");
       return;
     }
+
     if (step === 2 && state === "") {
-      alert("Please fill in the required fields");
+      toast.error("Please select an option");
       return;
     }
-    if (step === 3 && formalEducation === "" && formalEducationAnswer === "") {
-      alert("Please fill in the required fields");
+    if (step === 3 && formalEducation.length === 0) {
+      toast.error("Please Select an option");
+      return;
+    }
+    if (
+      step === 3 &&
+      formalEducation === "Yes" &&
+      formalEducationAnswer.length === 0
+    ) {
+      toast.error("Please fill in the required fields");
       return;
     }
 
     setStep((prevStep) => Math.min(prevStep + 1, 4));
   };
+
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const handleBack = () => {
@@ -259,7 +269,7 @@ const ScreeningForm = () => {
     <div className="min-h-screen">
       {loading && <Loader />}
       {submissionLoading && <SpinnerLoader />}
-      <Toaster />
+      <Toaster position="top right" />
       <Navbar />
       <div className="flex flex-col items-center justify-center lg:p-16 p-4 mt-28">
         <img
