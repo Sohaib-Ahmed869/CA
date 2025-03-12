@@ -40,6 +40,11 @@ function App() {
           path="/view-application/:userId/:id"
           element={<ViewApplication />}
         />
+
+        <Route
+          path="/view-application-docs/:userId/:id"
+          element={<ViewApplication />}
+        />
         <Route
           path="/student-intake-form/:id"
           element={<StudentIntakeForm />}

@@ -114,10 +114,10 @@ const AssessorSidebar = () => {
                     />
                     <MenuItem
                       icon={<FaCheckSquare className="text-xl" />}
-                      label="Customers"
-                      isActive={active === "Customers"}
+                      label="Students"
+                      isActive={active === "Students"}
                       onClick={() => {
-                        setActive("Customers");
+                        setActive("Students");
                         setIsOpen(false);
                       }}
                       hasBorder={false}
@@ -194,19 +194,19 @@ const AssessorSidebar = () => {
               />
               <MenuItem
                 icon={<FaCheckSquare className="text-xl" />}
-                label="Customers"
-                isActive={active === "Customers"}
-                onClick={() => setActive("Customers")}
+                label="Students"
+                isActive={active === "Students"}
+                onClick={() => setActive("Students")}
               />
               <MenuItem
                 icon={<FaMoneyBill1Wave className="text-xl" />}
-                label="RTO Applications"
+                label="Applications Pending"
                 isActive={active === "RTO Applications"}
                 onClick={() => setActive("RTO Applications")}
               />
               <MenuItem
                 icon={<RiMoneyDollarCircleLine className="text-xl" />}
-                label="Certificate Applications"
+                label="Certificates Generated"
                 isActive={active === "Certificate Applications"}
                 onClick={() => setActive("Certificate Applications")}
               />
@@ -224,7 +224,7 @@ const AssessorSidebar = () => {
 
       <div className="flex-1 p-4 lg:p-6 mt-14 lg:mt-0 max-sm:overflow-x-hidden">
         {active === "Dashboard" && <AdminDashboard setActive={setActive} />}
-        {active === "Customers" && <CustomersInfo />}
+        {active === "Students" && <CustomersInfo />}
         {active === "RTO Applications" && <RTOApplications />}
         {active === "Certificate Applications" && <CertificateApplications />}
       </div>

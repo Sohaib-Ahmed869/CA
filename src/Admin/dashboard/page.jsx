@@ -7,12 +7,19 @@ import {
 import SpinnerLoader from "../../Customer/components/spinnerLoader";
 import dashb from "../../assets/dashb.png";
 import ApexCharts from "react-apexcharts";
+import { Cell, Legend, Line, LineChart } from "recharts";
+
 import {
   FunnelChart,
   Funnel,
   LabelList,
   Tooltip,
   ResponsiveContainer,
+  Bar,
+  CartesianGrid,
+  BarChart,
+  XAxis,
+  YAxis,
 } from "recharts";
 
 // Import icons
@@ -26,9 +33,13 @@ import {
   Bookmark,
   Send,
   PieChart,
+  BarChart2,
+  PercentIcon,
 } from "lucide-react";
 
 const ApplicationFunnel = ({ applications }) => {
+  // Runs when `applications` updates
+
   const getFunnelData = () => {
     const statusOrder = [
       "Student Intake Form",
@@ -504,7 +515,188 @@ const StatusChart = ({ applications }) => {
     </div>
   );
 };
+// Top Qualifications Chart
+const TopQualificationsChart = ({ applications }) => {
+  const [topQualifications, setTopQualifications] = useState([]);
+  console.log(applications);
 
+  // Function to process and update top qualifications
+  const processTopQualifications = (applications) => {
+    if (!applications || applications.length === 0) return;
+
+    const qualificationCounts = applications.reduce((acc, app) => {
+      const qualification = app.isf?.lookingForWhatQualification || "Unknown";
+      acc[qualification] = (acc[qualification] || 0) + 1;
+      return acc;
+    }, {});
+
+    const topQualificationData = Object.entries(qualificationCounts)
+      .map(([name, value]) => ({ name, value }))
+      .sort((a, b) => b.value - a.value)
+      .slice(0, 5);
+
+    setTopQualifications(topQualificationData);
+  };
+
+  useEffect(() => {
+    processTopQualifications(applications);
+  }, [applications]);
+
+  // Unique colors for each bar
+  const barColors = ["#14532D", "#16A34A", "#6EE7B7", "#22C55E", "#064E3B"];
+
+  return (
+    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+      <div className="flex justify-between items-center mb-4">
+        <div>
+          <h2 className="text-lg font-semibold text-gray-800">
+            Top Qualifications
+          </h2>
+          <p className="text-gray-500 text-sm">Most requested qualifications</p>
+        </div>
+        <BarChart2 size={18} className="text-gray-400" />
+      </div>
+      <div className="h-60">
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart
+            data={topQualifications}
+            layout="vertical"
+            margin={{ top: 0, right: 0, left: 100, bottom: 0 }}
+          >
+            <CartesianGrid strokeDasharray="3 3" horizontal vertical={false} />
+            <XAxis type="number" tick={{ fontSize: 12 }} />
+            <YAxis
+              dataKey="name"
+              type="category"
+              tick={{ fontSize: 12 }}
+              width={100}
+              tickFormatter={(value) =>
+                value.length > 15 ? `${value.substring(0, 15)}...` : value
+              }
+            />
+            <Tooltip />
+            <Bar dataKey="value" name="Applications" radius={[0, 4, 4, 0]}>
+              {topQualifications.map((entry, index) => (
+                <Cell
+                  key={`cell-${index}`}
+                  fill={barColors[index % barColors.length]}
+                />
+              ))}
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+    </div>
+  );
+};
+
+// Function to process application data
+const calculateMonthlyStats = (applications) => {
+  const monthly = applications.reduce((acc, app) => {
+    if (!app.status || !app.status[0] || !app.status[0].time) return acc;
+
+    const date = new Date(app.status[0].time);
+    const month = date.toLocaleString("default", { month: "short" });
+    const year = date.getFullYear();
+    const key = `${month} ${year}`;
+
+    if (!acc[key]) {
+      acc[key] = { month: key, applications: 0, revenue: 0 };
+    }
+
+    // Count applications
+    acc[key].applications++;
+
+    // Calculate revenue
+    let revenue = 0;
+    if (app.full_paid) {
+      revenue = parseFloat(app.amount_paid) || 0;
+    } else if (app.partialScheme) {
+      revenue =
+        (parseFloat(app.payment1) || 0) + (parseFloat(app.payment2) || 0);
+    }
+
+    acc[key].revenue += revenue;
+
+    return acc;
+  }, {});
+
+  // Convert to array and sort by date
+  return Object.values(monthly).sort(
+    (a, b) => new Date(`1 ${a.month}`) - new Date(`1 ${b.month}`)
+  );
+};
+const formatCurrency = (value) => {
+  if (value >= 1000) return `$${(value / 1000).toFixed(1)}k`;
+  return `$${value}`;
+};
+
+const ApplicationTrends = ({ applications }) => {
+  const [monthlyData, setMonthlyData] = useState([]);
+
+  useEffect(() => {
+    setMonthlyData(calculateMonthlyStats(applications));
+  }, [applications]);
+
+  return (
+    <div className="bg-white p-6 rounded-xl shadow border border-gray-100">
+      <div className="flex justify-between items-center mb-4">
+        <div>
+          <h2 className="text-lg font-semibold text-gray-800">
+            Application Trends
+          </h2>
+          <p className="text-gray-500 text-sm">
+            Monthly applications and revenue
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1">
+            <div className="w-3 h-3 rounded-full bg-blue-500"></div>
+            <span className="text-xs text-gray-500">Applications</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <div className="w-3 h-3 rounded-full bg-green-500"></div>
+            <span className="text-xs text-gray-500">Revenue ($)</span>
+          </div>
+        </div>
+      </div>
+      <div className="h-80">
+        <ResponsiveContainer width="100%" height="100%">
+          <LineChart data={monthlyData}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+            <XAxis dataKey="month" tick={{ fontSize: 12 }} />
+            <YAxis yAxisId="left" tick={{ fontSize: 12 }} />
+            <YAxis
+              yAxisId="right"
+              orientation="right"
+              tickFormatter={formatCurrency}
+              tick={{ fontSize: 12 }}
+            />
+            <Tooltip formatter={(value) => formatCurrency(value)} />
+            <Line
+              yAxisId="left"
+              type="monotone"
+              dataKey="applications"
+              stroke="#4F46E5"
+              strokeWidth={2}
+              dot={{ r: 4 }}
+              activeDot={{ r: 6 }}
+            />
+            <Line
+              yAxisId="right"
+              type="monotone"
+              dataKey="revenue"
+              stroke="#10B981"
+              strokeWidth={2}
+              dot={{ r: 4 }}
+              activeDot={{ r: 6 }}
+            />
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
+    </div>
+  );
+};
 const Dashboard = () => {
   const [stats, setStats] = useState({
     totalApplications: 0,
@@ -560,6 +752,32 @@ const Dashboard = () => {
     fetchStats();
   }, [userId]);
 
+  useEffect(() => {
+    if (applications.length === 0) return;
+
+    const totalApplications = applications.length;
+    const paidApplications = applications.filter(
+      (app) => app.full_paid || parseFloat(app.amount_paid) > 0
+    ).length;
+    const completedApplications = applications.filter(
+      (app) => app.status && app.status.includes("Completed")
+    ).length;
+
+    const conversionRate = totalApplications
+      ? ((paidApplications / totalApplications) * 100).toFixed(1)
+      : 0;
+
+    const completionRate = totalApplications
+      ? ((completedApplications / totalApplications) * 100).toFixed(1)
+      : 0;
+
+    setStats((prevStats) => ({
+      ...prevStats,
+      conversionRate,
+      completionRate,
+    }));
+  }, [applications]);
+  console.log("stats", stats);
   const kpiData = [
     {
       label: "Total Applications",
@@ -577,6 +795,25 @@ const Dashboard = () => {
       textColor: "text-green-800",
       iconColor: "text-green-700",
     },
+    {
+      label: "Completion Rate",
+      value: `${stats.completionRate}%`,
+      subText: "Applications completed",
+      Icon: Users,
+      bgColor: "bg-red-50",
+      textColor: "text-red-800",
+      iconColor: "text-red-700",
+    },
+    {
+      label: "Conversion Rate",
+      value: `${stats.conversionRate}%`,
+      subText: "Applications paid",
+      Icon: PercentIcon,
+      bgColor: "bg-purple-50",
+      textColor: "text-purple-800",
+      iconColor: "text-purple-700",
+    },
+
     {
       label: "Payment Plans Total",
       value: `$${stats.totalPaymentsWithPartial}`,
@@ -621,6 +858,22 @@ const Dashboard = () => {
       label: "Sent to RTO",
       value: stats.rtoApplications,
       Icon: Send,
+      bgColor: "bg-green-50",
+      textColor: "text-green-800",
+      iconColor: "text-green-700",
+    },
+    {
+      label: "Total Agents",
+      value: stats.totalAgents,
+      Icon: Users,
+      bgColor: "bg-green-50",
+      textColor: "text-green-800",
+      iconColor: "text-green-700",
+    },
+    {
+      label: "Number of Students",
+      value: stats.totalCustomers,
+      Icon: Users,
       bgColor: "bg-green-50",
       textColor: "text-green-800",
       iconColor: "text-green-700",
@@ -683,7 +936,10 @@ const Dashboard = () => {
         <WeeklyChart applications={applications} />
         <StatusChart applications={applications} />
       </div>
-
+      <div className="grid grid-cols-1 xl:grid-cols-2 my-6  gap-6">
+        <TopQualificationsChart applications={applications} />
+        <ApplicationTrends applications={applications} />
+      </div>
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
         <ColorStatusChart stats={stats} />
         <ApplicationFunnel applications={applications} />

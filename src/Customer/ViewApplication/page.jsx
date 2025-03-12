@@ -27,6 +27,7 @@ import Loader from "../components/loader";
 import SpinnerLoader from "../components/spinnerLoader";
 import Modal from "../components/modal";
 import applicationImage from "../../assets/applications.png";
+import DocumentModal from "../components/viewDocsModal";
 
 const ViewApplications = () => {
   const [selectedForm, setSelectedForm] = useState("initial"); // Default form
@@ -42,7 +43,20 @@ const ViewApplications = () => {
   const [isUpdateEmailOpen, setIsUpdateEmailOpen] = useState(false);
   const menuRef = useRef(null);
   const navigate = useNavigate();
+  const [DocumentModalOpen, setDocumentModalOpen] = useState(false);
+  const [currentDoc, setCurrentDoc] = useState("");
 
+  // Function to open modal with selected document
+  const openModal = (doc) => {
+    setCurrentDoc(doc); // Directly set the file URL
+    setDocumentModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setDocumentModalOpen(false);
+    // Revoke the object URL to prevent memory leaks
+    setCurrentDoc("");
+  };
   useEffect(() => {
     setTimeout(() => setLoading(false), 1000);
   }, []);
@@ -210,192 +224,348 @@ const ViewApplications = () => {
 
     const studentForm = application.studentForm;
 
+    const studentFields = [
+      {
+        icon: FaUser,
+        label: "First Name",
+        value: studentForm.firstName || "N/A",
+      },
+      {
+        icon: FaUser,
+        label: "Last Name",
+        value: studentForm.lastName || "N/A",
+      },
+      {
+        icon: FaUser,
+        label: "Middle Name",
+        value: studentForm.middleName || "N/A",
+      },
+      {
+        icon: VscDebugBreakpointData,
+        label: "USI",
+        value: studentForm.USI || "N/A",
+      },
+      { icon: FaUser, label: "Gender", value: studentForm.gender || "N/A" },
+      {
+        icon: BsCalendarDate,
+        label: "Date of Birth",
+        value: studentForm.dob || "N/A",
+      },
+      {
+        icon: MdLocationOn,
+        label: "Home Address",
+        value: studentForm.homeAddress || "N/A",
+      },
+      {
+        icon: MdLocationOn,
+        label: "Suburb",
+        value: studentForm.suburb || "N/A",
+      },
+      {
+        icon: MdLocationOn,
+        label: "Postcode",
+        value: studentForm.postcode || "N/A",
+      },
+      { icon: MdLocationOn, label: "State", value: studentForm.state || "N/A" },
+      {
+        icon: MdLocationOn,
+        label: "Country of Birth",
+        value: studentForm.countryOfBirth || "N/A",
+      },
+      {
+        icon: MdWorkOutline,
+        label: "Employment Status",
+        value: studentForm.employmentStatus || "N/A",
+      },
+      {
+        icon: VscDebugBreakpointData,
+        label: "English Level",
+        value: studentForm.englishLevel || "N/A",
+      },
+      {
+        icon: FaPhoneAlt,
+        label: "Contact Number",
+        value: studentForm.contactNumber || "N/A",
+      },
+      { icon: FaEnvelope, label: "Email", value: studentForm.email || "N/A" },
+      {
+        icon: VscDebugBreakpointData,
+        label: "Aboriginal or Torres Strait Islander",
+        value: studentForm.aboriginalOrTorresStraitIslander || "N/A",
+      },
+      {
+        icon: VscDebugBreakpointData,
+        label: "Disability",
+        value: studentForm.disability || "N/A",
+      },
+      {
+        icon: VscDebugBreakpointData,
+        label: "Credits Transfer",
+        value: studentForm.creditsTransfer ? "Yes" : "No",
+      },
+      {
+        icon: VscDebugBreakpointData,
+        label: "Year Completed",
+        value: studentForm.YearCompleted || "N/A",
+      },
+      {
+        icon: VscDebugBreakpointData,
+        label: "Name of Qualification",
+        value: studentForm.nameOfQualification || "N/A",
+      },
+      {
+        icon: MdWorkOutline,
+        label: "Business Name",
+        value: studentForm.businessName || "N/A",
+      },
+      {
+        icon: MdWorkOutline,
+        label: "Employer's Legal Name",
+        value: studentForm.employersLegalName || "N/A",
+      },
+      {
+        icon: MdLocationOn,
+        label: "Employer's Address",
+        value: studentForm.employersAddress || "N/A",
+      },
+      {
+        icon: FaPhoneAlt,
+        label: "Employer's Contact Number",
+        value: studentForm.employersContactNumber || "N/A",
+      },
+      {
+        icon: MdWorkOutline,
+        label: "Position",
+        value: studentForm.position || "N/A",
+      },
+      {
+        icon: VscDebugBreakpointData,
+        label: "Australian Citizen",
+        value: studentForm.australianCitizen ? "Yes" : "No",
+      },
+      {
+        icon: VscDebugBreakpointData,
+        label: "Previous Qualifications",
+        value: studentForm.previousQualifications || "N/A",
+      },
+      {
+        icon: BsCalendarDate,
+        label: "Date of Application",
+        value: studentForm.date || "N/A",
+      },
+      {
+        icon: VscDebugBreakpointData,
+        label: "Agreement",
+        value: studentForm.agree ? "Agreed" : "Not Agreed",
+      },
+    ];
+
     return (
-      <div className="bg-white rounded-xl shadow-md overflow-hidden">
-        <div className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-4">
-              <div className="flex items-start">
-                <FaUser className="text-emerald-600 text-xl mt-0.5 mr-3 flex-shrink-0" />
-                <div>
-                  <p className="text-sm text-gray-500">Full Name</p>
-                  <p className="font-medium">
-                    {`${studentForm.firstName || ""} ${
-                      studentForm.lastName || ""
-                    }`.trim() || "N/A"}
-                  </p>
-                </div>
-              </div>
+      // <div className="bg-white rounded-xl shadow-md overflow-hidden">
+      //   <div className="p-6">
+      //     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      //       <div className="space-y-4">
+      //         <div className="flex items-start">
+      //           <FaUser className="text-emerald-600 text-xl mt-0.5 mr-3 flex-shrink-0" />
+      //           <div>
+      //             <p className="text-sm text-gray-500">Full Name</p>
+      //             <p className="font-medium">
+      //               {`${studentForm.firstName || ""} ${
+      //                 studentForm.lastName || ""
+      //               }`.trim() || "N/A"}
+      //             </p>
+      //           </div>
+      //         </div>
 
-              <div className="flex items-start">
-                <VscDebugBreakpointData className="text-emerald-600 text-xl mt-0.5 mr-3 flex-shrink-0" />
-                <div>
-                  <p className="text-sm text-gray-500">USI</p>
-                  <p className="font-medium">{studentForm.USI || "N/A"}</p>
-                </div>
-              </div>
+      //         <div className="flex items-start">
+      //           <VscDebugBreakpointData className="text-emerald-600 text-xl mt-0.5 mr-3 flex-shrink-0" />
+      //           <div>
+      //             <p className="text-sm text-gray-500">USI</p>
+      //             <p className="font-medium">{studentForm.USI || "N/A"}</p>
+      //           </div>
+      //         </div>
 
-              <div className="flex items-start">
-                <FaUser className="text-emerald-600 text-xl mt-0.5 mr-3 flex-shrink-0" />
-                <div>
-                  <p className="text-sm text-gray-500">Gender</p>
-                  <p className="font-medium">{studentForm.gender || "N/A"}</p>
-                </div>
-              </div>
+      //         <div className="flex items-start">
+      //           <FaUser className="text-emerald-600 text-xl mt-0.5 mr-3 flex-shrink-0" />
+      //           <div>
+      //             <p className="text-sm text-gray-500">Gender</p>
+      //             <p className="font-medium">{studentForm.gender || "N/A"}</p>
+      //           </div>
+      //         </div>
 
-              <div className="flex items-start">
-                <BsCalendarDate className="text-emerald-600 text-xl mt-0.5 mr-3 flex-shrink-0" />
-                <div>
-                  <p className="text-sm text-gray-500">Date of Birth</p>
-                  <p className="font-medium">{studentForm.dob || "N/A"}</p>
-                </div>
-              </div>
+      //         <div className="flex items-start">
+      //           <BsCalendarDate className="text-emerald-600 text-xl mt-0.5 mr-3 flex-shrink-0" />
+      //           <div>
+      //             <p className="text-sm text-gray-500">Date of Birth</p>
+      //             <p className="font-medium">{studentForm.dob || "N/A"}</p>
+      //           </div>
+      //         </div>
 
-              <div className="flex items-start">
-                <MdLocationOn className="text-emerald-600 text-xl mt-0.5 mr-3 flex-shrink-0" />
-                <div>
-                  <p className="text-sm text-gray-500">Home Address</p>
-                  <p className="font-medium">
-                    {studentForm.homeAddress || "N/A"}
-                  </p>
-                </div>
-              </div>
+      //         <div className="flex items-start">
+      //           <MdLocationOn className="text-emerald-600 text-xl mt-0.5 mr-3 flex-shrink-0" />
+      //           <div>
+      //             <p className="text-sm text-gray-500">Home Address</p>
+      //             <p className="font-medium">
+      //               {studentForm.homeAddress || "N/A"}
+      //             </p>
+      //           </div>
+      //         </div>
 
-              <div className="flex items-start">
-                <MdLocationOn className="text-emerald-600 text-xl mt-0.5 mr-3 flex-shrink-0" />
-                <div>
-                  <p className="text-sm text-gray-500">Suburb</p>
-                  <p className="font-medium">{studentForm.suburb || "N/A"}</p>
-                </div>
-              </div>
+      //         <div className="flex items-start">
+      //           <MdLocationOn className="text-emerald-600 text-xl mt-0.5 mr-3 flex-shrink-0" />
+      //           <div>
+      //             <p className="text-sm text-gray-500">Suburb</p>
+      //             <p className="font-medium">{studentForm.suburb || "N/A"}</p>
+      //           </div>
+      //         </div>
 
-              <div className="flex items-start">
-                <MdLocationOn className="text-emerald-600 text-xl mt-0.5 mr-3 flex-shrink-0" />
-                <div>
-                  <p className="text-sm text-gray-500">State</p>
-                  <p className="font-medium">{studentForm.state || "N/A"}</p>
-                </div>
-              </div>
+      //         <div className="flex items-start">
+      //           <MdLocationOn className="text-emerald-600 text-xl mt-0.5 mr-3 flex-shrink-0" />
+      //           <div>
+      //             <p className="text-sm text-gray-500">State</p>
+      //             <p className="font-medium">{studentForm.state || "N/A"}</p>
+      //           </div>
+      //         </div>
 
-              <div className="flex items-start">
-                <MdLocationOn className="text-emerald-600 text-xl mt-0.5 mr-3 flex-shrink-0" />
-                <div>
-                  <p className="text-sm text-gray-500">Postcode</p>
-                  <p className="font-medium">{studentForm.postcode || "N/A"}</p>
-                </div>
-              </div>
+      //         <div className="flex items-start">
+      //           <MdLocationOn className="text-emerald-600 text-xl mt-0.5 mr-3 flex-shrink-0" />
+      //           <div>
+      //             <p className="text-sm text-gray-500">Postcode</p>
+      //             <p className="font-medium">{studentForm.postcode || "N/A"}</p>
+      //           </div>
+      //         </div>
 
-              <div className="flex items-start">
-                <FaPhoneAlt className="text-emerald-600 text-xl mt-0.5 mr-3 flex-shrink-0" />
-                <div>
-                  <p className="text-sm text-gray-500">Contact Number</p>
-                  <p className="font-medium">
-                    {studentForm.contactNumber || "N/A"}
-                  </p>
-                </div>
-              </div>
+      //         <div className="flex items-start">
+      //           <FaPhoneAlt className="text-emerald-600 text-xl mt-0.5 mr-3 flex-shrink-0" />
+      //           <div>
+      //             <p className="text-sm text-gray-500">Contact Number</p>
+      //             <p className="font-medium">
+      //               {studentForm.contactNumber || "N/A"}
+      //             </p>
+      //           </div>
+      //         </div>
 
-              <div className="flex items-start">
-                <FaEnvelope className="text-emerald-600 text-xl mt-0.5 mr-3 flex-shrink-0" />
-                <div>
-                  <p className="text-sm text-gray-500">Email</p>
-                  <p className="font-medium">{studentForm.email || "N/A"}</p>
-                </div>
-              </div>
-            </div>
+      //         <div className="flex items-start">
+      //           <FaEnvelope className="text-emerald-600 text-xl mt-0.5 mr-3 flex-shrink-0" />
+      //           <div>
+      //             <p className="text-sm text-gray-500">Email</p>
+      //             <p className="font-medium">{studentForm.email || "N/A"}</p>
+      //           </div>
+      //         </div>
+      //       </div>
 
-            <div className="space-y-4">
-              <div className="flex items-start">
-                <MdLocationOn className="text-emerald-600 text-xl mt-0.5 mr-3 flex-shrink-0" />
-                <div>
-                  <p className="text-sm text-gray-500">Country of Birth</p>
-                  <p className="font-medium">
-                    {studentForm.countryOfBirth || "N/A"}
-                  </p>
-                </div>
-              </div>
+      //       <div className="space-y-4">
+      //         <div className="flex items-start">
+      //           <MdLocationOn className="text-emerald-600 text-xl mt-0.5 mr-3 flex-shrink-0" />
+      //           <div>
+      //             <p className="text-sm text-gray-500">Country of Birth</p>
+      //             <p className="font-medium">
+      //               {studentForm.countryOfBirth || "N/A"}
+      //             </p>
+      //           </div>
+      //         </div>
 
-              <div className="flex items-start">
-                <VscDebugBreakpointData className="text-emerald-600 text-xl mt-0.5 mr-3 flex-shrink-0" />
-                <div>
-                  <p className="text-sm text-gray-500">Australian Citizen</p>
-                  <p className="font-medium">
-                    {studentForm.australianCitizen ? "Yes" : "No"}
-                  </p>
-                </div>
-              </div>
+      //         <div className="flex items-start">
+      //           <VscDebugBreakpointData className="text-emerald-600 text-xl mt-0.5 mr-3 flex-shrink-0" />
+      //           <div>
+      //             <p className="text-sm text-gray-500">Australian Citizen</p>
+      //             <p className="font-medium">
+      //               {studentForm.australianCitizen ? "Yes" : "No"}
+      //             </p>
+      //           </div>
+      //         </div>
 
-              <div className="flex items-start">
-                <VscDebugBreakpointData className="text-emerald-600 text-xl mt-0.5 mr-3 flex-shrink-0" />
-                <div>
-                  <p className="text-sm text-gray-500">Disability</p>
-                  <p className="font-medium">
-                    {studentForm.disability ? "Yes" : "No"}
-                  </p>
-                </div>
-              </div>
+      //         <div className="flex items-start">
+      //           <VscDebugBreakpointData className="text-emerald-600 text-xl mt-0.5 mr-3 flex-shrink-0" />
+      //           <div>
+      //             <p className="text-sm text-gray-500">Disability</p>
+      //             <p className="font-medium">
+      //               {studentForm.disability ? "Yes" : "No"}
+      //             </p>
+      //           </div>
+      //         </div>
 
-              <div className="flex items-start">
-                <MdWorkOutline className="text-emerald-600 text-xl mt-0.5 mr-3 flex-shrink-0" />
-                <div>
-                  <p className="text-sm text-gray-500">Employment Status</p>
-                  <p className="font-medium">
-                    {studentForm.employmentStatus || "N/A"}
-                  </p>
-                </div>
-              </div>
+      //         <div className="flex items-start">
+      //           <MdWorkOutline className="text-emerald-600 text-xl mt-0.5 mr-3 flex-shrink-0" />
+      //           <div>
+      //             <p className="text-sm text-gray-500">Employment Status</p>
+      //             <p className="font-medium">
+      //               {studentForm.employmentStatus || "N/A"}
+      //             </p>
+      //           </div>
+      //         </div>
 
-              <div className="flex items-start">
-                <MdWorkOutline className="text-emerald-600 text-xl mt-0.5 mr-3 flex-shrink-0" />
-                <div>
-                  <p className="text-sm text-gray-500">Business Name</p>
-                  <p className="font-medium">
-                    {studentForm.businessName || "N/A"}
-                  </p>
-                </div>
-              </div>
+      //         <div className="flex items-start">
+      //           <MdWorkOutline className="text-emerald-600 text-xl mt-0.5 mr-3 flex-shrink-0" />
+      //           <div>
+      //             <p className="text-sm text-gray-500">Business Name</p>
+      //             <p className="font-medium">
+      //               {studentForm.businessName || "N/A"}
+      //             </p>
+      //           </div>
+      //         </div>
 
-              <div className="flex items-start">
-                <MdWorkOutline className="text-emerald-600 text-xl mt-0.5 mr-3 flex-shrink-0" />
-                <div>
-                  <p className="text-sm text-gray-500">Position</p>
-                  <p className="font-medium">{studentForm.position || "N/A"}</p>
-                </div>
-              </div>
+      //         <div className="flex items-start">
+      //           <MdWorkOutline className="text-emerald-600 text-xl mt-0.5 mr-3 flex-shrink-0" />
+      //           <div>
+      //             <p className="text-sm text-gray-500">Position</p>
+      //             <p className="font-medium">{studentForm.position || "N/A"}</p>
+      //           </div>
+      //         </div>
 
-              <div className="flex items-start">
-                <MdWorkOutline className="text-emerald-600 text-xl mt-0.5 mr-3 flex-shrink-0" />
-                <div>
-                  <p className="text-sm text-gray-500">Employer's Legal Name</p>
-                  <p className="font-medium">
-                    {studentForm.employersLegalName || "N/A"}
-                  </p>
-                </div>
-              </div>
+      //         <div className="flex items-start">
+      //           <MdWorkOutline className="text-emerald-600 text-xl mt-0.5 mr-3 flex-shrink-0" />
+      //           <div>
+      //             <p className="text-sm text-gray-500">Employer's Legal Name</p>
+      //             <p className="font-medium">
+      //               {studentForm.employersLegalName || "N/A"}
+      //             </p>
+      //           </div>
+      //         </div>
 
-              <div className="flex items-start">
-                <MdLocationOn className="text-emerald-600 text-xl mt-0.5 mr-3 flex-shrink-0" />
-                <div>
-                  <p className="text-sm text-gray-500">Employer's Address</p>
-                  <p className="font-medium">
-                    {studentForm.employersAddress || "N/A"}
-                  </p>
-                </div>
-              </div>
+      //         <div className="flex items-start">
+      //           <MdLocationOn className="text-emerald-600 text-xl mt-0.5 mr-3 flex-shrink-0" />
+      //           <div>
+      //             <p className="text-sm text-gray-500">Employer's Address</p>
+      //             <p className="font-medium">
+      //               {studentForm.employersAddress || "N/A"}
+      //             </p>
+      //           </div>
+      //         </div>
 
-              <div className="flex items-start">
-                <FaPhoneAlt className="text-emerald-600 text-xl mt-0.5 mr-3 flex-shrink-0" />
-                <div>
-                  <p className="text-sm text-gray-500">Employer's Contact</p>
-                  <p className="font-medium">
-                    {studentForm.employersContactNumber || "N/A"}
-                  </p>
+      //         <div className="flex items-start">
+      //           <FaPhoneAlt className="text-emerald-600 text-xl mt-0.5 mr-3 flex-shrink-0" />
+      //           <div>
+      //             <p className="text-sm text-gray-500">Employer's Contact</p>
+      //             <p className="font-medium">
+      //               {studentForm.employersContactNumber || "N/A"}
+      //             </p>
+      //           </div>
+      //         </div>
+      //       </div>
+      //     </div>
+      //  </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {[0, 1].map((col) => (
+          <div key={col} className="space-y-4">
+            {studentFields
+              .slice(
+                col * Math.ceil(studentFields.length / 2),
+                (col + 1) * Math.ceil(studentFields.length / 2)
+              )
+              .map(({ icon: Icon, label, value }, index) => (
+                <div key={index} className="flex items-start">
+                  <Icon className="text-emerald-600 text-xl mt-0.5 mr-3 flex-shrink-0" />
+                  <div>
+                    <p className="text-sm text-gray-500">{label}</p>
+                    <p className="font-medium">{value}</p>
+                  </div>
                 </div>
-              </div>
-            </div>
+              ))}
           </div>
-        </div>
+        ))}
       </div>
+      //</div>
     );
   };
 
@@ -432,63 +602,70 @@ const ViewApplications = () => {
     );
 
     return (
-      <div className="bg-white rounded-xl shadow-md overflow-hidden">
-        <div className="p-6">
-          <div className="overflow-x-auto">
-            <table className="min-w-full border-collapse">
-              <thead>
-                <tr className="bg-gray-50 border-b border-gray-200">
-                  <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Document Type
-                  </th>
-                  <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Status
-                  </th>
-                  <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {documentsList.map((doc, index) => {
-                  const docObject = application.documentsForm[doc.key];
-                  const isUploaded = !!docObject && !!docObject.fileUrl;
-                  const fileUrl = docObject?.fileUrl;
+      <>
+        <div className="bg-white rounded-xl shadow-md overflow-hidden">
+          <div className="p-6">
+            <div className="overflow-x-auto">
+              <table className="min-w-full border-collapse">
+                <thead>
+                  <tr className="bg-gray-50 border-b border-gray-200">
+                    <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Document Type
+                    </th>
+                    <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Status
+                    </th>
+                    <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {documentsList.map((doc, index) => {
+                    const docObject = application.documentsForm[doc.key];
+                    const isUploaded = !!docObject && !!docObject.fileUrl;
+                    const fileUrl = docObject?.fileUrl;
 
-                  return (
-                    <tr key={index} className="hover:bg-gray-50">
-                      <td className="py-3 px-4">{doc.label}</td>
-                      <td className="py-3 px-4">
-                        {isUploaded ? (
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
-                            <FaCheckCircle className="mr-1" /> Uploaded
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                            <FaTimesCircle className="mr-1" /> Not Uploaded
-                          </span>
-                        )}
-                      </td>
-                      <td className="py-3 px-4">
-                        {isUploaded ? (
-                          <button
-                            onClick={() => handleViewDocument(fileUrl)}
-                            className="inline-flex items-center text-emerald-600 hover:text-emerald-800 transition-colors"
-                          >
-                            <FaEye className="mr-1" /> View
-                          </button>
-                        ) : (
-                          <span className="text-gray-400">Not Available</span>
-                        )}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+                    return (
+                      <tr key={index} className="hover:bg-gray-50">
+                        <td className="py-3 px-4">{doc.label}</td>
+                        <td className="py-3 px-4">
+                          {isUploaded ? (
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
+                              <FaCheckCircle className="mr-1" /> Uploaded
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                              <FaTimesCircle className="mr-1" /> Not Uploaded
+                            </span>
+                          )}
+                        </td>
+                        <td className="py-3 px-4">
+                          {isUploaded ? (
+                            <button
+                              onClick={() => openModal(fileUrl)}
+                              className="inline-flex items-center text-emerald-600 hover:text-emerald-800 transition-colors"
+                            >
+                              <FaEye className="mr-1" /> View
+                            </button>
+                          ) : (
+                            <span className="text-gray-400">Not Available</span>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
-      </div>
+        <DocumentModal
+          isOpen={DocumentModalOpen}
+          onClose={closeModal}
+          docLink={currentDoc}
+        />
+      </>
     );
   };
 

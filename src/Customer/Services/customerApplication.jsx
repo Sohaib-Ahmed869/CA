@@ -11,6 +11,16 @@ export const getApplications = async (userId) => {
   }
 };
 
+export const getUserInfo = async (userId) => {
+  try {
+    const response = await axios.get(`${URL}/api/users/userDetails/${userId}`);
+
+    return response.data;
+  } catch (error) {
+    return error.response.data;
+  }
+};
+
 export const studentIntakeForm = async (data, applicationId) => {
   try {
     const response = await axios.put(

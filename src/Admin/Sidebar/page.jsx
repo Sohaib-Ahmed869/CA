@@ -253,10 +253,10 @@ const AdminSidebar = () => {
                     />
                     <MenuItem
                       icon={<FaUserFriends className="text-xl" />}
-                      label="Customers"
-                      isActive={active === "Customers"}
+                      label="Students"
+                      isActive={active === "Students"}
                       onClick={() => {
-                        setActive("Customers");
+                        setActive("Students");
                         setIsOpen(false);
                       }}
                       hasBorder={false}
@@ -417,9 +417,9 @@ const AdminSidebar = () => {
               />
               <MenuItem
                 icon={<FaUserFriends className="text-xl" />}
-                label="Customers"
-                isActive={active === "Customers"}
-                onClick={() => setActive("Customers")}
+                label="Students"
+                isActive={active === "Students"}
+                onClick={() => setActive("Students")}
               />
               <MenuItem
                 icon={<BsClockHistory className="text-xl" />}
@@ -489,7 +489,7 @@ const AdminSidebar = () => {
       {/* Main Content */}
       <div className="flex-1 p-4 lg:p-6 mt-14 lg:mt-0 max-sm:overflow-x-hidden">
         {active === "Dashboard" && <Dashboard />}
-        {active === "Customers" && <CustomersInfo />}
+        {active === "Students" && <CustomersInfo />}
         {active === "Applications" && <ExistingApplicationsAdmin />}
         {active === "Payments" && <PaymentApproval />}
         {active === "Industries" && <Industries />}

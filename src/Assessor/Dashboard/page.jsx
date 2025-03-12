@@ -393,14 +393,14 @@ const AdminDashboard = ({ setActive }) => {
             color="bg-emerald-600"
             trend={3.2}
           />
-          <StatCard
+          {/* <StatCard
             title="Paid Applications"
             value={metrics.paidApplications}
             subtitle={`${metrics.total} total applications`}
             icon={UserCheck}
             color="bg-cyan-600"
             trend={5.1}
-          />
+          /> */}
           <StatCard
             title="Conversion Rate"
             value={`${metrics.conversionRate}%`}
@@ -567,7 +567,7 @@ const AdminDashboard = ({ setActive }) => {
                       ID
                     </th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Customer
+                      Student
                     </th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Status

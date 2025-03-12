@@ -23,9 +23,10 @@ import SpinnerLoader from "./spinnerLoader";
 import ImprovedTimeline from "./Timeline";
 import Modal from "./modal";
 import PaymentPage from "../checkoutForm"; // Import payment component
-import studentAgreementdoc from "../../assets/1.pdf";
-import studentApplicantAgreement from "../../assets/2.pdf";
-import TOCdoc from "../../assets/3.pdf";
+import studentAgreementdoc from "../../../public/1.pdf";
+import studentApplicantAgreement from "../../../public/2.pdf";
+import TOCdoc from "../../../public/3.pdf";
+import DocumentModal from "./viewDocsModal";
 
 const CustomerDashboard = () => {
   const [userId, setUserId] = useState("");
@@ -54,7 +55,20 @@ const CustomerDashboard = () => {
     payment2: 0,
     full_paid: false,
   });
+  const [DocumentModalOpen, setDocumentModalOpen] = useState(false);
+  const [currentDoc, setCurrentDoc] = useState("");
 
+  // Function to open modal with selected document
+  const openModal = (doc) => {
+    setCurrentDoc(doc); // Directly set the file URL
+    setDocumentModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setDocumentModalOpen(false);
+    // Revoke the object URL to prevent memory leaks
+    setCurrentDoc("");
+  };
   // Helper function to calculate discounted price
   const calculateDiscountedPrice = (price, discount) => {
     if (!price) return 0;
@@ -426,14 +440,12 @@ const CustomerDashboard = () => {
                           <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
                         </div>
                         <div className="ml-2">
-                          <a
-                            href={studentApplicantAgreement}
-                            target="_blank"
-                            rel="noreferrer"
+                          <button
+                            onClick={() => openModal(studentApplicantAgreement)}
                             className="text-emerald-600 font-medium hover:underline"
                           >
                             Student/Applicant Agreement
-                          </a>
+                          </button>
                           <p className="text-xs text-gray-500 mt-0.5">
                             Guidelines for your application process
                           </p>
@@ -444,14 +456,12 @@ const CustomerDashboard = () => {
                           <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
                         </div>
                         <div className="ml-2">
-                          <a
-                            href={studentAgreementdoc}
-                            target="_blank"
-                            rel="noreferrer"
+                          <button
+                            onClick={() => openModal(studentAgreementdoc)}
                             className="text-emerald-600 font-medium hover:underline"
                           >
                             Student Privacy Contract
-                          </a>
+                          </button>
                           <p className="text-xs text-gray-500 mt-0.5">
                             How we handle your personal information
                           </p>
@@ -462,14 +472,12 @@ const CustomerDashboard = () => {
                           <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
                         </div>
                         <div className="ml-2">
-                          <a
-                            href={TOCdoc}
-                            target="_blank"
-                            rel="noreferrer"
+                          <button
+                            onClick={() => openModal(TOCdoc)}
                             className="text-emerald-600 font-medium hover:underline"
                           >
                             Terms and Conditions
-                          </a>
+                          </button>
                           <p className="text-xs text-gray-500 mt-0.5">
                             Legal requirements for certification
                           </p>
@@ -490,6 +498,11 @@ const CustomerDashboard = () => {
           </div>
         </div>
       </div>
+      <DocumentModal
+        isOpen={DocumentModalOpen}
+        onClose={closeModal}
+        docLink={currentDoc}
+      />
 
       {/* Update Phone/Email Modal */}
       {isUpdateEmailOpen || isUpdatePhoneOpen ? (

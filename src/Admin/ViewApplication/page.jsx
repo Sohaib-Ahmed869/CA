@@ -27,6 +27,7 @@ import Loader from "../../Customer/components/loader";
 import SpinnerLoader from "../../Customer/components/spinnerLoader";
 import Modal from "../../Customer/components/modal";
 import applicationImage from "../../assets/applications.png";
+import DocumentModal from "../../Customer/components/viewDocsModal";
 
 const ViewApplications = ({
   userId: propUserId,
@@ -50,6 +51,20 @@ const ViewApplications = ({
   // Use either props or params
   const effectiveUserId = propUserId || paramUserId;
   const effectiveId = propId || paramId;
+  const [DocumentModalOpen, setDocumentModalOpen] = useState(false);
+  const [currentDoc, setCurrentDoc] = useState("");
+
+  // Function to open modal with selected document
+  const openModal = (doc) => {
+    setCurrentDoc(doc); // Directly set the file URL
+    setDocumentModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setDocumentModalOpen(false);
+    // Revoke the object URL to prevent memory leaks
+    setCurrentDoc("");
+  };
 
   useEffect(() => {
     setTimeout(() => setLoading(false), 1000);
@@ -154,9 +169,7 @@ const ViewApplications = ({
                 <MdSchool className="text-emerald-600 text-xl mt-0.5 mr-3 flex-shrink-0" />
                 <div>
                   <p className="text-sm text-gray-500">Education</p>
-                  <p className="font-medium">
-                    {isf.formal_education || "N/A"}
-                  </p>
+                  <p className="font-medium">{isf.formal_education || "N/A"}</p>
                 </div>
               </div>
 
@@ -164,9 +177,7 @@ const ViewApplications = ({
                 <MdSchool className="text-emerald-600 text-xl mt-0.5 mr-3 flex-shrink-0" />
                 <div>
                   <p className="text-sm text-gray-500">Qualification</p>
-                  <p className="font-medium">
-                    {isf.qualification || "N/A"}
-                  </p>
+                  <p className="font-medium">{isf.qualification || "N/A"}</p>
                 </div>
               </div>
 
@@ -239,9 +250,8 @@ const ViewApplications = ({
                 <div>
                   <p className="text-sm text-gray-500">Full Name</p>
                   <p className="font-medium">
-                    {`${sif.firstName || ""} ${
-                      sif.lastName || ""
-                    }`.trim() || "N/A"}
+                    {`${sif.firstName || ""} ${sif.lastName || ""}`.trim() ||
+                      "N/A"}
                   </p>
                 </div>
               </div>
@@ -274,9 +284,7 @@ const ViewApplications = ({
                 <MdLocationOn className="text-emerald-600 text-xl mt-0.5 mr-3 flex-shrink-0" />
                 <div>
                   <p className="text-sm text-gray-500">Home Address</p>
-                  <p className="font-medium">
-                    {sif.homeAddress || "N/A"}
-                  </p>
+                  <p className="font-medium">{sif.homeAddress || "N/A"}</p>
                 </div>
               </div>
 
@@ -308,9 +316,7 @@ const ViewApplications = ({
                 <FaPhoneAlt className="text-emerald-600 text-xl mt-0.5 mr-3 flex-shrink-0" />
                 <div>
                   <p className="text-sm text-gray-500">Contact Number</p>
-                  <p className="font-medium">
-                    {sif.contactNumber || "N/A"}
-                  </p>
+                  <p className="font-medium">{sif.contactNumber || "N/A"}</p>
                 </div>
               </div>
 
@@ -328,9 +334,7 @@ const ViewApplications = ({
                 <MdLocationOn className="text-emerald-600 text-xl mt-0.5 mr-3 flex-shrink-0" />
                 <div>
                   <p className="text-sm text-gray-500">Country of Birth</p>
-                  <p className="font-medium">
-                    {sif.countryOfBirth || "N/A"}
-                  </p>
+                  <p className="font-medium">{sif.countryOfBirth || "N/A"}</p>
                 </div>
               </div>
 
@@ -348,9 +352,7 @@ const ViewApplications = ({
                 <VscDebugBreakpointData className="text-emerald-600 text-xl mt-0.5 mr-3 flex-shrink-0" />
                 <div>
                   <p className="text-sm text-gray-500">Disability</p>
-                  <p className="font-medium">
-                    {sif.disability ? "Yes" : "No"}
-                  </p>
+                  <p className="font-medium">{sif.disability ? "Yes" : "No"}</p>
                 </div>
               </div>
 
@@ -358,9 +360,7 @@ const ViewApplications = ({
                 <MdWorkOutline className="text-emerald-600 text-xl mt-0.5 mr-3 flex-shrink-0" />
                 <div>
                   <p className="text-sm text-gray-500">Employment Status</p>
-                  <p className="font-medium">
-                    {sif.employmentStatus || "N/A"}
-                  </p>
+                  <p className="font-medium">{sif.employmentStatus || "N/A"}</p>
                 </div>
               </div>
 
@@ -368,9 +368,7 @@ const ViewApplications = ({
                 <MdWorkOutline className="text-emerald-600 text-xl mt-0.5 mr-3 flex-shrink-0" />
                 <div>
                   <p className="text-sm text-gray-500">Business Name</p>
-                  <p className="font-medium">
-                    {sif.businessName || "N/A"}
-                  </p>
+                  <p className="font-medium">{sif.businessName || "N/A"}</p>
                 </div>
               </div>
 
@@ -396,9 +394,7 @@ const ViewApplications = ({
                 <MdLocationOn className="text-emerald-600 text-xl mt-0.5 mr-3 flex-shrink-0" />
                 <div>
                   <p className="text-sm text-gray-500">Employer's Address</p>
-                  <p className="font-medium">
-                    {sif.employersAddress || "N/A"}
-                  </p>
+                  <p className="font-medium">{sif.employersAddress || "N/A"}</p>
                 </div>
               </div>
 
@@ -446,68 +442,73 @@ const ViewApplications = ({
       { label: "Image 4", key: "image4" },
       { label: "Video 1", key: "video1" },
       { label: "Video 2", key: "video2" },
-    ].filter(
-      (doc) => application.document && doc.key in application.document
-    );
+    ].filter((doc) => application.document && doc.key in application.document);
 
     return (
-      <div className="bg-white rounded-xl shadow-md overflow-hidden">
-        <div className="p-6">
-          <div className="overflow-x-auto">
-            <table className="min-w-full border-collapse">
-              <thead>
-                <tr className="bg-gray-50 border-b border-gray-200">
-                  <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Document Type
-                  </th>
-                  <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Status
-                  </th>
-                  <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {documentsList.map((doc, index) => {
-                  const docObject = application.document[doc.key];
-                  const isUploaded = !!docObject && !!docObject.fileUrl;
-                  const fileUrl = docObject?.fileUrl;
+      <>
+        <div className="bg-white rounded-xl shadow-md overflow-hidden">
+          <div className="p-6">
+            <div className="overflow-x-auto">
+              <table className="min-w-full border-collapse">
+                <thead>
+                  <tr className="bg-gray-50 border-b border-gray-200">
+                    <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Document Type
+                    </th>
+                    <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Status
+                    </th>
+                    <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {documentsList.map((doc, index) => {
+                    const docObject = application.document[doc.key];
+                    const isUploaded = !!docObject && !!docObject.fileUrl;
+                    const fileUrl = docObject?.fileUrl;
 
-                  return (
-                    <tr key={index} className="hover:bg-gray-50">
-                      <td className="py-3 px-4">{doc.label}</td>
-                      <td className="py-3 px-4">
-                        {isUploaded ? (
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
-                            <FaCheckCircle className="mr-1" /> Uploaded
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                            <FaTimesCircle className="mr-1" /> Not Uploaded
-                          </span>
-                        )}
-                      </td>
-                      <td className="py-3 px-4">
-                        {isUploaded ? (
-                          <button
-                            onClick={() => handleViewDocument(fileUrl)}
-                            className="inline-flex items-center text-emerald-600 hover:text-emerald-800 transition-colors"
-                          >
-                            <FaEye className="mr-1" /> View
-                          </button>
-                        ) : (
-                          <span className="text-gray-400">Not Available</span>
-                        )}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+                    return (
+                      <tr key={index} className="hover:bg-gray-50">
+                        <td className="py-3 px-4">{doc.label}</td>
+                        <td className="py-3 px-4">
+                          {isUploaded ? (
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
+                              <FaCheckCircle className="mr-1" /> Uploaded
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                              <FaTimesCircle className="mr-1" /> Not Uploaded
+                            </span>
+                          )}
+                        </td>
+                        <td className="py-3 px-4">
+                          {isUploaded ? (
+                            <button
+                              onClick={() => openModal(fileUrl)}
+                              className="inline-flex items-center text-emerald-600 hover:text-emerald-800 transition-colors"
+                            >
+                              <FaEye className="mr-1" /> View
+                            </button>
+                          ) : (
+                            <span className="text-gray-400">Not Available</span>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
-      </div>
+        <DocumentModal
+          isOpen={DocumentModalOpen}
+          onClose={closeModal}
+          docLink={currentDoc}
+        />
+      </>
     );
   };
 
@@ -532,8 +533,7 @@ const ViewApplications = ({
                 <div className="flex flex-col">
                   <span className="text-sm text-gray-500">Qualification</span>
                   <span className="font-medium truncate">
-                    {application.isf?.lookingForWhatQualification ||
-                      "N/A"}
+                    {application.isf?.lookingForWhatQualification || "N/A"}
                   </span>
                 </div>
 
