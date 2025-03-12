@@ -186,14 +186,10 @@ const Approval = () => {
           app.paid === true &&
           (!app.partialScheme || (app.partialScheme && app.full_paid === true));
 
-        // Check RTO type match
-        const matchesRtoType =
-          rtoType.toLowerCase() === "all" ||
-          app.type === rtoType ||
-          app.type === "default";
+       
 
         return (
-          hasStudentForm && hasDocuments && isPaymentComplete && matchesRtoType
+          hasStudentForm && hasDocuments && isPaymentComplete
         );
       });
 
