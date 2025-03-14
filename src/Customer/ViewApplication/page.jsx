@@ -571,8 +571,9 @@ const ViewApplications = () => {
   const renderDocumentsForm = () => {
     if (!application?.documentsForm) return null;
 
-    const requestedDocuments = application.requestedDocuments || [];
+    const requestedDocuments = application?.requestedDocuments || [];
 
+    // Predefined document list
     const predefinedDocuments = [
       { label: "Driver's License", key: "driversLicense" },
       { label: "ID Card", key: "idCard" },
@@ -587,24 +588,29 @@ const ViewApplications = () => {
       { label: "Reference 2", key: "reference2" },
       { label: "Employment Letter", key: "employmentLetter" },
       { label: "Payslip", key: "payslip" },
-      { label: "Image 1", key: "image1" },
-      { label: "Image 2", key: "image2" },
-      { label: "Image 3", key: "image3" },
-      { label: "Image 4", key: "image4" },
-      { label: "Video 1", key: "video1" },
-      { label: "Video 2", key: "video2" },
-    ].filter(
-      (doc) => application.documentsForm && doc.key in application.documentsForm
-    );
+    ];
 
-    const additionalDocuments = Object.keys(application.documentsForm)
-      .map((key) => ({
-        label: application.documentsForm[key]?.name || key,
-        key,
+    // Step 1: Map predefined documents if they exist in documentsForm
+    const mappedPredefinedDocuments = predefinedDocuments.map((doc) => ({
+      label: doc.label,
+      key: doc.key,
+      value: application.documentsForm[doc.key] || null, // Map if exists
+    }));
+
+    // Step 2: Include additional documents whose key matches requestedDocuments.name
+    const additionalDocuments = requestedDocuments
+      .map((reqDoc) => ({
+        label: reqDoc.name,
+        key: reqDoc.name,
+        value: application.documentsForm[reqDoc.name] || null, // Map if exists
       }))
-      .filter((doc) => doc.label);
+      .filter((doc) => doc.value !== null); // Only include those that exist in documentsForm
 
-    const documentsList = [...predefinedDocuments, ...additionalDocuments];
+    // Combine predefined and additional documents
+    const documentsList = [
+      ...mappedPredefinedDocuments,
+      ...additionalDocuments,
+    ];
 
     return (
       <>

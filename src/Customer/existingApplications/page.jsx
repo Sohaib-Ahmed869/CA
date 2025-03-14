@@ -296,12 +296,25 @@ const ExistingApplications = () => {
       Object.keys(application.studentForm).length > 0 &&
       application.studentForm.firstName;
 
+    const hasRequestedDocuments = application.requestedDocuments?.length > 0;
+
+    const areRequestedDocumentsUploaded = hasRequestedDocuments
+      ? application.requestedDocuments.every(
+          (requestedDoc) =>
+            application.documentsForm?.[requestedDoc.name]?.fileUrl
+        )
+      : true;
+
     // Check if documents are uploaded - simplified check, can be enhanced
     const areDocumentsUploaded =
-      application.documentsForm &&
-      Object.keys(application.documentsForm).length > 0 &&
-      (application.documentsForm.resume ||
-        application.documentsForm.creditcard);
+      application.documentsForm && application.documentsUploaded;
+    Object.keys(application.documentsForm).length > 0 &&
+      (!hasRequestedDocuments || areRequestedDocumentsUploaded);
+
+    // application.documentsForm &&
+    // Object.keys(application.documentsForm).length > 0 &&
+    // (application.documentsForm.resume ||
+    //   application.documentsForm.creditcard);
 
     return {
       isPaymentDone,

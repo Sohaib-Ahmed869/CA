@@ -247,7 +247,7 @@ const AssessorCustomers = () => {
   const onClickViewDocuments = async (application) => {
     console.log("Viewing documents for application:", application);
 
-    // List of document keys to check in application.document
+    // List of predefined document keys to check in application.document
     const documentKeys = [
       "license",
       "passport",
@@ -273,16 +273,29 @@ const AssessorCustomers = () => {
       "video2",
     ];
 
-    // Loop through each document key, open the link if it's not null
-    const links = documentKeys
+    // Get predefined documents with valid file URLs
+    const predefinedDocuments = documentKeys
       .map((docKey) => {
         const fileData = application.document?.[docKey]; // Get file data object
-
-        if (!fileData || !fileData.fileUrl) return null; // Skip if null/undefined
-
-        return { name: docKey, url: fileData.fileUrl }; // Use correct file URL
+        return fileData?.fileUrl
+          ? { name: docKey, url: fileData.fileUrl }
+          : null;
       })
-      .filter((doc) => doc !== null); // Remove null values
+      .filter(Boolean); // Remove null values
+
+    // Get requested documents with valid file URLs
+    const requestedDocuments =
+      application.requestedDocuments?.map((doc) => {
+        const fileData = application.document?.[doc.name]; // Get file data object
+        return fileData?.fileUrl
+          ? { name: doc.name, url: fileData.fileUrl }
+          : null;
+      }) || [];
+
+    const validRequestedDocuments = requestedDocuments.filter(Boolean); // Remove null values
+
+    // Combine predefined and requested documents
+    const links = [...predefinedDocuments, ...validRequestedDocuments];
 
     setDocumentLinks(links);
     setViewDocuments(true);
@@ -988,75 +1001,60 @@ const AssessorCustomers = () => {
         </div>
       );
     }
+
+    // Predefined document types (always shown)
     const documentTypes = [
-      // Document types configuration
       { key: "driversLicense", label: "Driver's License" },
       { key: "idCard", label: "ID Card" },
       { key: "passport", label: "Passport" },
       { key: "birthCertificate", label: "Birth Certificate" },
       { key: "medicareCard", label: "Medicare Card" },
       { key: "creditcard", label: "Credit Card" },
-      { key: "australian_citizenship", label: "Australian Citizenship" },
-      { key: "license", label: "License" },
-      { key: "birth_certificate", label: "Birth Certificate" },
-      { key: "medicare", label: "Medicare" },
+      { label: "Australian Citizenship", key: "australianCitizenship" },
       { key: "resume", label: "Resume" },
       { key: "previousQualifications", label: "Previous Qualifications" },
       { key: "reference1", label: "Reference 1" },
       { key: "reference2", label: "Reference 2" },
       { key: "employmentLetter", label: "Employment Letter" },
       { key: "payslip", label: "Payslip" },
-      { key: "image1", label: "Image 1" },
-      { key: "image2", label: "Image 2" },
-      { key: "image3", label: "Image 3" },
-      { key: "image4", label: "Image 4" },
-      { key: "video1", label: "Video 1" },
-      { key: "video2", label: "Video 2" },
-    ].filter(
-      (doc) =>
-        selectedApplication.document && doc.key in selectedApplication.document
-    );
-    // Extract requested document names
-    const requestedDocumentNames =
-      selectedApplication?.requestedDocuments?.map((doc) => doc.name) || [];
-
-    // Combine all document keys (static + requested)
-    const allDocumentKeys = [
-      ...new Set([
-        ...documentTypes.map((d) => d.key),
-        ...requestedDocumentNames,
-      ]),
     ];
 
-    // Merge documents with status
-    const mergedDocuments = allDocumentKeys.map((docKey) => {
-      const docConfig = documentTypes.find((d) => d.key === docKey);
-      const fileData = selectedApplication?.document?.[docKey];
+    // Step 1: Include all predefined documents (mark as "Not Uploaded" if missing)
+    const predefinedDocuments = documentTypes.map((doc) => ({
+      label: doc.label,
+      key: doc.key,
+      fileUrl: selectedApplication.document?.[doc.key]?.fileUrl || null,
+      isUploaded: !!selectedApplication.document?.[doc.key]?.fileUrl,
+    }));
 
-      // Generate label if not in config
-      const label = docConfig?.label || docKey.replace(/_/g, " ");
+    // Step 2: Include only requested documents that exist
+    const requestedDocuments =
+      selectedApplication?.requestedDocuments
+        ?.filter((doc) => selectedApplication.document?.[doc.name]) // Only include uploaded ones
+        .map((doc) => ({
+          label: doc.name,
+          key: doc.name,
+          fileUrl: selectedApplication.document[doc.name]?.fileUrl || null,
+          isUploaded: !!selectedApplication.document[doc.name]?.fileUrl,
+        })) || [];
 
-      return {
-        key: docKey,
-        label: label.charAt(0).toUpperCase() + label.slice(1), // Capitalize
-        fileUrl: fileData?.fileUrl,
-        isUploaded: !!fileData?.fileUrl,
-      };
-    });
-
-    if (mergedDocuments.length === 0) {
-      return (
-        <div className="text-center py-6">
-          <p className="text-gray-500">No documents available</p>
-        </div>
-      );
-    }
+    // Step 3: Merge predefined (always shown) and requested (only if uploaded) documents
+    const mergedDocuments = [...predefinedDocuments, ...requestedDocuments];
 
     return (
       <>
         <div className="overflow-x-auto">
           <table className="min-w-full border-collapse">
-            {/* Table headers remain same */}
+            <thead>
+              <tr>
+                <th className="py-2 px-4 text-left text-sm font-semibold">
+                  Document
+                </th>
+                <th className="py-2 px-4 text-right text-sm font-semibold">
+                  Status
+                </th>
+              </tr>
+            </thead>
             <tbody className="divide-y divide-gray-200">
               {mergedDocuments.map((doc, index) => (
                 <tr key={index} className="hover:bg-gray-50">
@@ -1080,7 +1078,7 @@ const AssessorCustomers = () => {
                         <FaTimesCircle className="mr-1" /> Not Uploaded
                       </button>
                     )}
-                  </td>{" "}
+                  </td>
                 </tr>
               ))}
             </tbody>

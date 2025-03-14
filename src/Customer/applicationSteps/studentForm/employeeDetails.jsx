@@ -62,7 +62,7 @@ const EmploymentDetails = ({ employmentDetails, setEmploymentDetails }) => {
               htmlFor="Business Name"
               className="block text-sm font-medium text-gray-700 mb-2"
             >
-              Business Name <span className="text-red-500">*</span>{" "}
+              Business Name <span className="text-red-500"></span>{" "}
             </label>
 
             <input
@@ -82,7 +82,7 @@ const EmploymentDetails = ({ employmentDetails, setEmploymentDetails }) => {
               htmlFor="Position"
               className="block text-sm font-medium text-gray-700 mb-2"
             >
-              Position<span className="text-red-500">*</span>{" "}
+              Position<span className="text-red-500"></span>{" "}
             </label>
             <input
               label="Position"
@@ -110,7 +110,7 @@ const EmploymentDetails = ({ employmentDetails, setEmploymentDetails }) => {
               htmlFor="Employer's Legal Name"
               className="block text-sm font-medium text-gray-700 mb-2"
             >
-              Employer's Legal Name <span className="text-red-500">*</span>{" "}
+              Employer's Legal Name <span className="text-red-500"></span>{" "}
             </label>
             <input
               name="employersLegalName"
@@ -129,7 +129,7 @@ const EmploymentDetails = ({ employmentDetails, setEmploymentDetails }) => {
               className="block text-sm font-medium text-gray-700 mb-2"
             >
               Employer's Contact Number
-              <span className="text-red-500">*</span>{" "}
+              <span className="text-red-500"></span>{" "}
             </label>
             <input
               name="employersContactNumber"
@@ -158,7 +158,7 @@ const EmploymentDetails = ({ employmentDetails, setEmploymentDetails }) => {
               className="block text-sm font-medium text-gray-700 mb-2"
             >
               Employer's Address
-              <span className="text-red-500">*</span>{" "}
+              <span className="text-red-500"></span>{" "}
             </label>
             <input
               label="Employer's Address"

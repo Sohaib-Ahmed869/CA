@@ -115,8 +115,8 @@ const ImprovedTimeline = ({
       : true;
 
     const isDocumentsUploaded =
-      selectedApp.documentsForm &&
-      Object.keys(selectedApp.documentsForm).length > 0 &&
+      selectedApp.documentsForm && selectedApp.documentsUploaded;
+    Object.keys(selectedApp.documentsForm).length > 0 &&
       (!hasRequestedDocuments || areRequestedDocumentsUploaded);
 
     const isPaymentDone = selectedApp.partialScheme
