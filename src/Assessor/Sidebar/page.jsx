@@ -200,7 +200,7 @@ const AssessorSidebar = () => {
               />
               <MenuItem
                 icon={<FaMoneyBill1Wave className="text-xl" />}
-                label="Applications Pending"
+                label="Applications Assessed"
                 isActive={active === "RTO Applications"}
                 onClick={() => setActive("RTO Applications")}
               />

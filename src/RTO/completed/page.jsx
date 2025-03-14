@@ -103,9 +103,7 @@ const Completed = () => {
         }
 
         // Otherwise, filter by matching type or default
-        return (
-          (app.type === rtoType || app.type === "default") && isPaymentComplete
-        );
+        return isPaymentComplete;
       });
 
       setApplications(finalFilteredApplications);
