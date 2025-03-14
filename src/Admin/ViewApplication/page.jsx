@@ -415,10 +415,11 @@ const ViewApplications = ({
   };
 
   const renderDocumentsForm = () => {
-    if (!application?.document) return null;
+    if (!application?.documentsForm) return null;
 
-    const documentsList = [
-      // ID documents
+    const requestedDocuments = application.requestedDocuments || [];
+
+    const predefinedDocuments = [
       { label: "Driver's License", key: "driversLicense" },
       { label: "ID Card", key: "idCard" },
       { label: "Passport", key: "passport" },
@@ -426,23 +427,30 @@ const ViewApplications = ({
       { label: "Medicare Card", key: "medicareCard" },
       { label: "Credit Card", key: "creditcard" },
       { label: "Australian Citizenship", key: "australianCitizenship" },
-
-      // Other documents
       { label: "Resume", key: "resume" },
       { label: "Previous Qualifications", key: "previousQualifications" },
       { label: "Reference 1", key: "reference1" },
       { label: "Reference 2", key: "reference2" },
       { label: "Employment Letter", key: "employmentLetter" },
       { label: "Payslip", key: "payslip" },
-
-      // Images and videos
       { label: "Image 1", key: "image1" },
       { label: "Image 2", key: "image2" },
       { label: "Image 3", key: "image3" },
       { label: "Image 4", key: "image4" },
       { label: "Video 1", key: "video1" },
       { label: "Video 2", key: "video2" },
-    ].filter((doc) => application.document && doc.key in application.document);
+    ].filter(
+      (doc) => application.documentsForm && doc.key in application.documentsForm
+    );
+
+    const additionalDocuments = Object.keys(application.documentsForm)
+      .map((key) => ({
+        label: application.documentsForm[key]?.name || key,
+        key,
+      }))
+      .filter((doc) => doc.label);
+
+    const documentsList = [...predefinedDocuments, ...additionalDocuments];
 
     return (
       <>
@@ -465,7 +473,7 @@ const ViewApplications = ({
                 </thead>
                 <tbody className="divide-y divide-gray-200">
                   {documentsList.map((doc, index) => {
-                    const docObject = application.document[doc.key];
+                    const docObject = application.documentsForm[doc.key];
                     const isUploaded = !!docObject && !!docObject.fileUrl;
                     const fileUrl = docObject?.fileUrl;
 

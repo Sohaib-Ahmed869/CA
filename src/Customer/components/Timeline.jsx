@@ -82,15 +82,46 @@ const ImprovedTimeline = ({
       Object.keys(selectedApp.studentForm).length > 0 &&
       selectedApp.studentForm.firstName;
 
+    // const isDocumentsUploaded =
+    //   selectedApp.documentsForm &&
+    //   Object.keys(selectedApp.documentsForm).length > 0 &&
+    //   (selectedApp.documentsForm.resume ||
+    //     selectedApp.documentsForm.creditcard);
+
+    // const isPaymentDone =
+    //   selectedApp.paid ||
+    //   (selectedApp.partialScheme === true && selectedApp.full_paid === true);
+
+    // const isCertificateGenerated =
+    //   selectedApp.certificateId ||
+    //   selectedApp.currentStatus === "Certificate Generated" ||
+    //   selectedApp.currentStatus === "Completed";
+
+    // if (
+    //   isCertificateGenerated &&
+    //   isPaymentDone === true &&
+    //   isDocumentsUploaded === true &&
+    //   isFormFilled === true
+    // ) {
+    //   setCertificateStatus(true);
+    // }
+    const hasRequestedDocuments = selectedApp.requestedDocuments?.length > 0;
+
+    const areRequestedDocumentsUploaded = hasRequestedDocuments
+      ? selectedApp.requestedDocuments.every(
+          (requestedDoc) =>
+            selectedApp.documentsForm?.[requestedDoc.name]?.fileUrl
+        )
+      : true;
+
     const isDocumentsUploaded =
       selectedApp.documentsForm &&
       Object.keys(selectedApp.documentsForm).length > 0 &&
-      (selectedApp.documentsForm.resume ||
-        selectedApp.documentsForm.creditcard);
+      (!hasRequestedDocuments || areRequestedDocumentsUploaded);
 
     const isPaymentDone =
-      selectedApp.paid ||
-      (selectedApp.partialScheme === true && selectedApp.full_paid === true);
+      // selectedApp.paid ||
+      selectedApp.partialScheme === true && selectedApp.full_paid === true;
 
     const isCertificateGenerated =
       selectedApp.certificateId ||
@@ -105,7 +136,8 @@ const ImprovedTimeline = ({
     ) {
       setCertificateStatus(true);
     }
-    // Create timeline data
+
+    // // Create timeline data
     const timeline = [
       {
         id: "payment",
@@ -115,7 +147,7 @@ const ImprovedTimeline = ({
           : "Payment Pending",
         status: isPaymentDone
           ? "done"
-          : isFormFilled && isDocumentsUploaded
+          : isFormFilled && isDocumentsUploaded && isPaymentDone
           ? "current"
           : "pending",
         date: getStepDate(selectedApp, "Payment Awaiting"),

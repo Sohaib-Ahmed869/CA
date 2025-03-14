@@ -15,11 +15,16 @@ import SpinnerLoader from "../components/spinnerLoader";
 import { Toaster } from "react-hot-toast";
 import toast from "react-hot-toast";
 import axios from "axios";
+import UploadRequestedDocuments from "../uploadRequestedDocuments/uploadRequestedDocuments";
+import { getApplications } from "../Services/adminServices";
+const URL = import.meta.env.VITE_REACT_BACKEND_URL;
 
 const UploadDocuments = () => {
   const navigate = useNavigate();
   const [submissionLoading, setSubmissionLoading] = useState(false);
-
+  const [applications, setApplications] = useState([]);
+  const userId = sessionStorage.getItem("userId");
+  console.log(userId);
   // The application ID and industry
   const [applicationId, setApplicationId] = useState("");
   const [applicationIndustry, setApplicationIndustry] = useState("");
@@ -99,7 +104,70 @@ const UploadDocuments = () => {
     setApplicationIndustry(industry);
   }, []);
 
-  // Toast helpers
+  useEffect(() => {
+    const fetchApplication = async () => {
+      const idFromUrl = window.location.pathname.split("/")[2];
+
+      try {
+        const response = await axios.get(
+          `${URL}/api/applications/applications-by-id/${idFromUrl}`
+        );
+        setApplications(response.data.application);
+        console.log("response", response.data.application);
+        // Preload documents if they exist
+        if (response.data.application.documentsForm) {
+          const documents = response.data.application.documentsForm;
+
+          // Preload 100 Points of ID
+          setHundredPointsOfID((prev) => ({
+            ...prev,
+            driversLicense: documents.driversLicense?.fileUrl || "",
+            passport: documents.passport?.fileUrl || "",
+            birthCertificate: documents.birthCertificate?.fileUrl || "",
+            medicareCard: documents.medicareCard?.fileUrl || "",
+            creditcard: documents.creditcard?.fileUrl || "",
+            idCard: documents.idCard?.fileUrl || "",
+            australianCitizenship:
+              documents.australianCitizenship?.fileUrl || "",
+          }));
+
+          // Preload other documents
+          setResume(documents.resume?.fileUrl || "");
+          setPreviousQualifications(
+            documents.previousQualifications?.fileUrl || ""
+          );
+          setTwoReferences({
+            reference1: documents.reference1?.fileUrl || "",
+            reference2: documents.reference2?.fileUrl || "",
+          });
+          setEmploymentLetter(documents.employmentLetter?.fileUrl || "");
+          setPayslip(documents.payslip?.fileUrl || "");
+
+          // Preload images and videos if they exist
+          if (documents.images) {
+            setImages({
+              image1: documents.image1?.fileUrl || "",
+              image2: documents.image2?.fileUrl || "",
+              image3: documents.image3?.fileUrl || "",
+              image4: documents.image4?.fileUrl || "",
+            });
+          }
+
+          if (documents.videos) {
+            setVideos({
+              video1: documents.video1?.fileUrl || "",
+              video2: documents.video2?.fileUrl || "",
+            });
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching application:", error);
+      }
+    };
+
+    fetchApplication();
+  }, [applicationId, resume]); // Toast helpers
+  console.log("resume", resume);
   const successToast = () => toast.success("Documents uploaded successfully");
   const errorToast = (message = "Please fill in all the required fields") =>
     toast.error(message);
@@ -168,6 +236,26 @@ const UploadDocuments = () => {
       {points} points
     </span>
   );
+  const getUserApplications = async (userId) => {
+    setSubmissionLoading(true);
+    // setIsRefreshing(true);
+    try {
+      const response = await getApplications(userId);
+      console.log(response);
+      setApplications(response);
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setSubmissionLoading(false);
+      // setIsRefreshing(false);
+    }
+  };
+
+  useEffect(() => {
+    if (userId) {
+      getUserApplications(userId);
+    }
+  }, [userId]);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -232,6 +320,7 @@ const UploadDocuments = () => {
                 <SingleFileUploader
                   applicationId={applicationId}
                   fieldName="driversLicense"
+                  existingFileUrl={hundredPointsOfID.driversLicense} // ✅ Pass preloaded document URL
                   label={
                     <div className="flex justify-between w-full">
                       <span>Driver's License</span>
@@ -247,6 +336,7 @@ const UploadDocuments = () => {
                 <SingleFileUploader
                   applicationId={applicationId}
                   fieldName="idCard"
+                  existingFileUrl={hundredPointsOfID.idCard} // ✅ Pass preloaded document URL
                   label={
                     <div className="flex justify-between w-full">
                       <span>ID Card</span>
@@ -262,6 +352,7 @@ const UploadDocuments = () => {
                 <SingleFileUploader
                   applicationId={applicationId}
                   fieldName="passport"
+                  existingFileUrl={hundredPointsOfID.passport} // ✅ Pass preloaded document URL
                   label={
                     <div className="flex justify-between w-full">
                       <span>Passport</span>
@@ -277,6 +368,7 @@ const UploadDocuments = () => {
                 <SingleFileUploader
                   applicationId={applicationId}
                   fieldName="birthCertificate"
+                  existingFileUrl={hundredPointsOfID.birthCertificate} // ✅ Pass preloaded document URL
                   label={
                     <div className="flex justify-between w-full">
                       <span>Birth Certificate</span>
@@ -292,6 +384,7 @@ const UploadDocuments = () => {
                 <SingleFileUploader
                   applicationId={applicationId}
                   fieldName="medicareCard"
+                  existingFileUrl={hundredPointsOfID.medicareCard} // ✅ Pass preloaded document URL
                   label={
                     <div className="flex justify-between w-full">
                       <span>Medicare Card</span>
@@ -307,6 +400,7 @@ const UploadDocuments = () => {
                 <SingleFileUploader
                   applicationId={applicationId}
                   fieldName="creditcard"
+                  existingFileUrl={hundredPointsOfID.creditcard} // ✅ Pass preloaded document URL
                   label={
                     <div className="flex justify-between w-full">
                       <span>Credit Card</span>
@@ -322,6 +416,7 @@ const UploadDocuments = () => {
                 <SingleFileUploader
                   applicationId={applicationId}
                   fieldName="australianCitizenship"
+                  existingFileUrl={hundredPointsOfID.australianCitizenship} // ✅ Pass preloaded document URL
                   label={
                     <div className="flex justify-between w-full">
                       <span>Australian Citizenship</span>
@@ -352,17 +447,18 @@ const UploadDocuments = () => {
                   fieldName="resume"
                   label="Resume"
                   required={true}
+                  existingFileUrl={resume} // ✅ Pass preloaded document URL
                   onUploadSuccess={(field, fileUrl) => setResume(fileUrl)}
                   onDeleteSuccess={() => setResume("")}
                 />
               </div>
-
               <div className="relative">
                 <SingleFileUploader
                   applicationId={applicationId}
                   fieldName="previousQualifications"
                   label="Previous Qualifications"
                   required={true}
+                  existingFileUrl={previousQualifications} // ✅ Pass preloaded document URL
                   onUploadSuccess={(field, fileUrl) =>
                     setPreviousQualifications(fileUrl)
                   }
@@ -389,6 +485,7 @@ const UploadDocuments = () => {
                   fieldName="reference1"
                   label="Reference One"
                   required={true}
+                  existingFileUrl={twoReferences.reference1} // ✅ Pass preloaded document URL
                   onUploadSuccess={(field, fileUrl) =>
                     setTwoReferences((prev) => ({
                       ...prev,
@@ -406,6 +503,7 @@ const UploadDocuments = () => {
                   applicationId={applicationId}
                   fieldName="reference2"
                   label="Reference Two"
+                  existingFileUrl={twoReferences.reference2} // ✅ Pass preloaded document URL
                   onUploadSuccess={(field, fileUrl) =>
                     setTwoReferences((prev) => ({
                       ...prev,
@@ -437,6 +535,7 @@ const UploadDocuments = () => {
                   fieldName="employmentLetter"
                   label="Employment Letter"
                   required={true}
+                  existingFileUrl={employmentLetter} // ✅ Pass preloaded document URL
                   onUploadSuccess={(field, fileUrl) =>
                     setEmploymentLetter(fileUrl)
                   }
@@ -449,6 +548,7 @@ const UploadDocuments = () => {
                   applicationId={applicationId}
                   fieldName="payslip"
                   label="Payslip/Invoice"
+                  existingFileUrl={payslip} // ✅ Pass preloaded document URL
                   required={true}
                   onUploadSuccess={(field, fileUrl) => setPayslip(fileUrl)}
                   onDeleteSuccess={() => setPayslip("")}
@@ -458,7 +558,8 @@ const UploadDocuments = () => {
           </div>
 
           {/* Industry-specific Documents section - shown conditionally */}
-          {(applicationIndustry === "Automotive" ||
+          {((!applications.requestedDocuments?.length === 0 &&
+            applicationIndustry === "Automotive") ||
             applicationIndustry === "Building & Construction") && (
             <div className="px-4 py-5 sm:px-6 border-t border-gray-200">
               <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
@@ -478,6 +579,7 @@ const UploadDocuments = () => {
                     applicationId={applicationId}
                     fieldName="image1"
                     label="Image 1"
+                    existingFileUrl={images.image1} // ✅ Pass preloaded document URL
                     required={true}
                     onUploadSuccess={(field, fileUrl) =>
                       setImages((prev) => ({ ...prev, image1: fileUrl }))
@@ -493,6 +595,7 @@ const UploadDocuments = () => {
                     applicationId={applicationId}
                     fieldName="image2"
                     label="Image 2"
+                    existingFileUrl={images.image2} // ✅ Pass preloaded document URL
                     required={true}
                     onUploadSuccess={(field, fileUrl) =>
                       setImages((prev) => ({ ...prev, image2: fileUrl }))
@@ -508,6 +611,7 @@ const UploadDocuments = () => {
                     applicationId={applicationId}
                     fieldName="image3"
                     label="Image 3"
+                    existingFileUrl={images.image3} // ✅ Pass preloaded document URL
                     required={true}
                     onUploadSuccess={(field, fileUrl) =>
                       setImages((prev) => ({ ...prev, image3: fileUrl }))
@@ -523,6 +627,7 @@ const UploadDocuments = () => {
                     applicationId={applicationId}
                     fieldName="image4"
                     label="Image 4"
+                    existingFileUrl={images.image4} // ✅ Pass preloaded document URL
                     required={true}
                     onUploadSuccess={(field, fileUrl) =>
                       setImages((prev) => ({ ...prev, image4: fileUrl }))
@@ -538,6 +643,7 @@ const UploadDocuments = () => {
                     applicationId={applicationId}
                     fieldName="video1"
                     label="Video 1"
+                    existingFileUrl={videos.video1} // ✅ Pass preloaded document URL
                     required={true}
                     onUploadSuccess={(field, fileUrl) =>
                       setVideos((prev) => ({ ...prev, video1: fileUrl }))
@@ -553,6 +659,7 @@ const UploadDocuments = () => {
                     applicationId={applicationId}
                     fieldName="video2"
                     label="Video 2"
+                    existingFileUrl={videos.video2} // ✅ Pass preloaded document URL
                     required={true}
                     onUploadSuccess={(field, fileUrl) =>
                       setVideos((prev) => ({ ...prev, video2: fileUrl }))
@@ -565,6 +672,11 @@ const UploadDocuments = () => {
               </div>
             </div>
           )}
+          {console.log("application", applications)}
+          <UploadRequestedDocuments
+            applications={applications}
+            applicationId={applicationId}
+          />
 
           {/* Alert box with important information */}
           <div className="px-4 py-4 sm:px-6 bg-green-50 border-t border-green-200">

@@ -52,6 +52,7 @@ import {
 } from "../../Customer/Services/adminServices";
 import { initiateVerificationCall } from "../../Customer/Services/twilioService";
 import DocumentModal from "../../Customer/components/viewDocsModal";
+import RequestMoreDocuments from "../../RTO/RequestMoreDocuments/RequestMoreDocuments";
 
 const AssessorCustomers = () => {
   const [applications, setApplications] = useState([]);
@@ -80,6 +81,15 @@ const AssessorCustomers = () => {
   const [DocumentModalOpen, setDocumentModalOpen] = useState(false);
   const [currentDoc, setCurrentDoc] = useState("");
   const [SingleDocModelOpen, setSingleDocModelOpen] = useState(false);
+  const [showRequestDocsModal, setShowRequestDocsModal] = useState(false);
+
+  const CloseRequestDocsModal = () => {
+    setShowRequestDocsModal(false);
+  };
+  const OpenRequestDocsModal = () => {
+    setShowRequestDocsModal(true);
+  };
+
   // Function to open modal with selected document
   const openModal = (doc) => {
     setCurrentDoc(doc); // Directly set the file URL
@@ -968,48 +978,73 @@ const AssessorCustomers = () => {
 
   // Render Documents List
   const renderDocumentsList = () => {
-    if (!selectedApplication?.document)
+    if (
+      !selectedApplication?.document &&
+      !selectedApplication?.requestedDocuments
+    ) {
       return (
         <div className="text-center py-6">
           <p className="text-gray-500">No documents available</p>
         </div>
       );
-
+    }
     const documentTypes = [
-      // ID documents
+      // Document types configuration
       { key: "driversLicense", label: "Driver's License" },
-      { key: "license", label: "License" },
       { key: "idCard", label: "ID Card" },
       { key: "passport", label: "Passport" },
       { key: "birthCertificate", label: "Birth Certificate" },
-      { key: "birth_certificate", label: "Birth Certificate" },
       { key: "medicareCard", label: "Medicare Card" },
-      { key: "medicare", label: "Medicare" },
       { key: "creditcard", label: "Credit Card" },
       { key: "australian_citizenship", label: "Australian Citizenship" },
-
-      // Other documents
+      { key: "license", label: "License" },
+      { key: "birth_certificate", label: "Birth Certificate" },
+      { key: "medicare", label: "Medicare" },
       { key: "resume", label: "Resume" },
       { key: "previousQualifications", label: "Previous Qualifications" },
       { key: "reference1", label: "Reference 1" },
       { key: "reference2", label: "Reference 2" },
       { key: "employmentLetter", label: "Employment Letter" },
       { key: "payslip", label: "Payslip" },
-
-      // Images and videos
       { key: "image1", label: "Image 1" },
       { key: "image2", label: "Image 2" },
       { key: "image3", label: "Image 3" },
       { key: "image4", label: "Image 4" },
       { key: "video1", label: "Video 1" },
       { key: "video2", label: "Video 2" },
+    ].filter(
+      (doc) =>
+        selectedApplication.document && doc.key in selectedApplication.document
+    );
+    // Extract requested document names
+    const requestedDocumentNames =
+      selectedApplication?.requestedDocuments?.map((doc) => doc.name) || [];
+
+    // Combine all document keys (static + requested)
+    const allDocumentKeys = [
+      ...new Set([
+        ...documentTypes.map((d) => d.key),
+        ...requestedDocumentNames,
+      ]),
     ];
 
-    const availableDocuments = documentTypes.filter(
-      (doc) => selectedApplication.document[doc.key]
-    );
+    // Merge documents with status
+    const mergedDocuments = allDocumentKeys.map((docKey) => {
+      const docConfig = documentTypes.find((d) => d.key === docKey);
+      const fileData = selectedApplication?.document?.[docKey];
 
-    if (availableDocuments.length === 0) {
+      // Generate label if not in config
+      const label = docConfig?.label || docKey.replace(/_/g, " ");
+
+      return {
+        key: docKey,
+        label: label.charAt(0).toUpperCase() + label.slice(1), // Capitalize
+        fileUrl: fileData?.fileUrl,
+        isUploaded: !!fileData?.fileUrl,
+      };
+    });
+
+    if (mergedDocuments.length === 0) {
       return (
         <div className="text-center py-6">
           <p className="text-gray-500">No documents available</p>
@@ -1021,62 +1056,41 @@ const AssessorCustomers = () => {
       <>
         <div className="overflow-x-auto">
           <table className="min-w-full border-collapse">
-            <thead>
-              <tr className="bg-gray-50 border-b border-gray-200">
-                <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Document Type
-                </th>
-                <th className="py-3 px-4 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
-                </th>
-                <th className="py-3 px-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            {/* View */}
+            {/* Table headers remain same */}
             <tbody className="divide-y divide-gray-200">
-              {availableDocuments.map((doc, index) => {
-                const fileData = selectedApplication.document[doc.key];
-                const fileUrl = fileData?.fileUrl;
-
-                // if (!fileUrl) return null; // Skip if no valid URL
-
-                // const handleViewDocument = (url) => {
-                //   const newWindow = window.open("about:blank"); // Open blank tab first
-                //   setTimeout(() => {
-                //     newWindow.location.href = url; // Redirect to file URL
-                //   }, 500);
-                // };
-
-                return (
-                  <tr key={index} className="hover:bg-gray-50">
-                    <td className="py-3 px-4 text-sm">{doc.label}</td>
-                    <td className="py-3 px-4 text-center">
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
-                        <FaCheckCircle className="mr-1" /> Available
-                      </span>
-                    </td>
-                    <td className="py-3 px-4 text-right">
+              {mergedDocuments.map((doc, index) => (
+                <tr key={index} className="hover:bg-gray-50">
+                  <td className="py-3 px-4 text-sm">{doc.label}</td>
+                  <td className="py-3 px-4 text-right">
+                    {doc.isUploaded ? (
                       <button
                         onClick={() => {
-                          openModal(fileUrl);
+                          openModal(doc.fileUrl);
                           setSingleDocModelOpen(true);
                         }}
                         className="inline-flex items-center px-2 py-1 border border-transparent text-xs font-medium rounded text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none"
                       >
                         <FaEye className="mr-1" /> View
                       </button>
-                    </td>
-                  </tr>
-                );
-              })}
+                    ) : (
+                      <button
+                        disabled
+                        className="inline-flex items-center px-2 py-1 border border-transparent text-xs font-medium rounded text-gray-500 bg-gray-200 cursor-not-allowed"
+                      >
+                        <FaTimesCircle className="mr-1" /> Not Uploaded
+                      </button>
+                    )}
+                  </td>{" "}
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
-        {SingleDocModelOpen && (
+
+        {/* Document Modal */}
+        {SingleDocModelOpen && currentDoc && (
           <DocumentModal
-            isOpen={DocumentModalOpen}
+            isOpen={SingleDocModelOpen}
             onClose={closeModal}
             docLink={currentDoc}
           />
@@ -1437,159 +1451,180 @@ const AssessorCustomers = () => {
         </div>
       ) : (
         /* View Application Details */
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="mb-6">
-            <button
-              onClick={() => setSelectedApplication(null)}
-              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500"
-            >
-              <BiArrowBack className="mr-2" /> Back to Applications
-            </button>
-          </div>
-
-          <div className="bg-white rounded-lg shadow-sm overflow-hidden mb-6">
-            <div className="px-4 py-5 sm:px-6 bg-emerald-600">
-              <div className="flex justify-between items-center">
-                <h3 className="text-lg leading-6 font-medium text-white">
-                  Application Details:{" "}
-                  {selectedApplication.applicationId || selectedApplication.id}
-                </h3>
-              </div>
+        <>
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="mb-6">
+              <button
+                onClick={() => setSelectedApplication(null)}
+                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500"
+              >
+                <BiArrowBack className="mr-2" /> Back to Applications
+              </button>
             </div>
 
-            <div className="border-t border-gray-200 p-4">
-              <div className="flex flex-wrap gap-4 mb-4">
-                <div className="flex-1 min-w-0 bg-gray-50 rounded-lg p-4">
-                  <h4 className="text-sm font-medium text-gray-500">
-                    Student{" "}
-                  </h4>
-                  <p className="font-semibold text-gray-900">
-                    {selectedApplication.user?.firstName}{" "}
-                    {selectedApplication.user?.lastName}
-                  </p>
-                  <p className="text-sm text-gray-500">
-                    {selectedApplication.user?.email}
-                  </p>
+            <div className="bg-white rounded-lg shadow-sm overflow-hidden mb-6">
+              <div className="px-4 py-5 sm:px-6 bg-emerald-600">
+                <div className="flex justify-between items-center">
+                  <h3 className="text-lg leading-6 font-medium text-white">
+                    Application Details:{" "}
+                    {selectedApplication.applicationId ||
+                      selectedApplication.id}
+                  </h3>
                 </div>
+              </div>
 
-                <div className="flex-1 min-w-0 bg-gray-50 rounded-lg p-4">
-                  <h4 className="text-sm font-medium text-gray-500">
-                    Submitted Date
-                  </h4>
-                  <p className="font-semibold text-gray-900">
-                    {formatDate(selectedApplication.status?.[0]?.time)}
-                  </p>
-                </div>
-                <div className="flex-1 min-w-0 bg-gray-50 rounded-lg p-4">
-                  <h4 className="text-sm font-medium text-gray-500">
-                    Payment Status
-                  </h4>
-                  <div className="mt-1">
-                    {selectedApplication.paid ? (
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                        <BiCheck className="mr-1" /> Paid
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                        <FaTimes className="mr-1" /> Unpaid
-                      </span>
-                    )}
+              <div className="border-t border-gray-200 p-4">
+                <div className="flex flex-wrap gap-4 mb-4">
+                  <div className="flex-1 min-w-0 bg-gray-50 rounded-lg p-4">
+                    <h4 className="text-sm font-medium text-gray-500">
+                      Student{" "}
+                    </h4>
+                    <p className="font-semibold text-gray-900">
+                      {selectedApplication.user?.firstName}{" "}
+                      {selectedApplication.user?.lastName}
+                    </p>
+                    <p className="text-sm text-gray-500">
+                      {selectedApplication.user?.email}
+                    </p>
+                  </div>
+
+                  <div className="flex-1 min-w-0 bg-gray-50 rounded-lg p-4">
+                    <h4 className="text-sm font-medium text-gray-500">
+                      Submitted Date
+                    </h4>
+                    <p className="font-semibold text-gray-900">
+                      {formatDate(selectedApplication.status?.[0]?.time)}
+                    </p>
+                  </div>
+                  <div className="flex-1 min-w-0 bg-gray-50 rounded-lg p-4">
+                    <h4 className="text-sm font-medium text-gray-500">
+                      Payment Status
+                    </h4>
+                    <div className="mt-1">
+                      {selectedApplication.paid ? (
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                          <BiCheck className="mr-1" /> Paid
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                          <FaTimes className="mr-1" /> Unpaid
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Notes Section */}
-              <div className="bg-white p-4 rounded-lg shadow-md mb-6">
-                <div className="flex justify-between items-center mb-2">
-                  <h2 className="text-lg font-semibold text-gray-800">Notes</h2>
+                {/* Notes Section */}
+                <div className="bg-white p-4 rounded-lg shadow-md mb-6">
+                  <div className="flex justify-between items-center mb-2">
+                    <h2 className="text-lg font-semibold text-gray-800">
+                      Notes
+                    </h2>
+                    <button
+                      onClick={() => {
+                        setNote(selectedApplication.assessorNote || "");
+                        setIsAddingNote(true);
+                      }}
+                      className="btn btn-primary btn-sm text-white bg-emerald-600 hover:bg-emerald-700 px-3 py-1 rounded-md"
+                    >
+                      {selectedApplication.assessorNote
+                        ? "Edit Note"
+                        : "Add Note"}
+                    </button>
+                  </div>
+                  {selectedApplication.assessorNote && !isAddingNote ? (
+                    <p className="text-gray-600">
+                      {selectedApplication.assessorNote}
+                    </p>
+                  ) : !isAddingNote ? (
+                    <p className="text-gray-500 italic">No notes added yet</p>
+                  ) : null}
+                </div>
+
+                {/* Tabs */}
+                <div className="border-b border-gray-200 mb-6">
+                  <nav className="flex -mb-px space-x-8">
+                    <button
+                      onClick={() => setSelectedTab("overview")}
+                      className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                        selectedTab === "overview"
+                          ? "border-emerald-500 text-emerald-600"
+                          : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                      }`}
+                    >
+                      Initial Screening
+                    </button>
+                    <button
+                      onClick={() => setSelectedTab("student")}
+                      className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                        selectedTab === "student"
+                          ? "border-emerald-500 text-emerald-600"
+                          : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                      }`}
+                    >
+                      Student Information
+                    </button>
+                    <button
+                      onClick={() => setSelectedTab("documents")}
+                      className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                        selectedTab === "documents"
+                          ? "border-emerald-500 text-emerald-600"
+                          : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                      }`}
+                    >
+                      Documents
+                    </button>
+                  </nav>
+                </div>
+
+                {/* Tab Content */}
+                <div className="bg-white rounded-lg p-4 mb-6">
+                  {selectedTab === "overview" && renderInitialFormDetails()}
+                  {selectedTab === "student" && renderStudentFormDetails()}
+                  {selectedTab === "documents" && renderDocumentsList()}
+                </div>
+
+                <div className="mt-6 flex flex-wrap gap-3">
                   <button
-                    onClick={() => {
-                      setNote(selectedApplication.assessorNote || "");
-                      setIsAddingNote(true);
-                    }}
-                    className="btn btn-primary btn-sm text-white bg-emerald-600 hover:bg-emerald-700 px-3 py-1 rounded-md"
+                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none"
+                    onClick={() => onClickViewDocuments(selectedApplication)}
                   >
-                    {selectedApplication.assessorNote
-                      ? "Edit Note"
-                      : "Add Note"}
+                    <BsEye className="mr-2" /> View All Documents
+                  </button>
+                  <button
+                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none"
+                    onClick={() => onClickInitiateCall(selectedApplication.id)}
+                  >
+                    <FaPhoneAlt className="mr-2" /> Initiate Call
+                  </button>
+
+                  <button
+                    onClick={handleSendToRTO}
+                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-purple-600 hover:bg-purple-700 focus:outline-none"
+                  >
+                    <FaFileAlt className="mr-2" /> Assessed - Send to RTO
+                  </button>
+                  <button
+                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-amber-500 hover:bg-amber-600 focus:outline-none"
+                    onClick={OpenRequestDocsModal}
+                  >
+                    Request More Documents
                   </button>
                 </div>
-                {selectedApplication.assessorNote && !isAddingNote ? (
-                  <p className="text-gray-600">
-                    {selectedApplication.assessorNote}
-                  </p>
-                ) : !isAddingNote ? (
-                  <p className="text-gray-500 italic">No notes added yet</p>
-                ) : null}
-              </div>
-
-              {/* Tabs */}
-              <div className="border-b border-gray-200 mb-6">
-                <nav className="flex -mb-px space-x-8">
-                  <button
-                    onClick={() => setSelectedTab("overview")}
-                    className={`py-4 px-1 border-b-2 font-medium text-sm ${
-                      selectedTab === "overview"
-                        ? "border-emerald-500 text-emerald-600"
-                        : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                    }`}
-                  >
-                    Initial Screening
-                  </button>
-                  <button
-                    onClick={() => setSelectedTab("student")}
-                    className={`py-4 px-1 border-b-2 font-medium text-sm ${
-                      selectedTab === "student"
-                        ? "border-emerald-500 text-emerald-600"
-                        : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                    }`}
-                  >
-                    Student Information
-                  </button>
-                  <button
-                    onClick={() => setSelectedTab("documents")}
-                    className={`py-4 px-1 border-b-2 font-medium text-sm ${
-                      selectedTab === "documents"
-                        ? "border-emerald-500 text-emerald-600"
-                        : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                    }`}
-                  >
-                    Documents
-                  </button>
-                </nav>
-              </div>
-
-              {/* Tab Content */}
-              <div className="bg-white rounded-lg p-4 mb-6">
-                {selectedTab === "overview" && renderInitialFormDetails()}
-                {selectedTab === "student" && renderStudentFormDetails()}
-                {selectedTab === "documents" && renderDocumentsList()}
-              </div>
-
-              <div className="mt-6 flex flex-wrap gap-3">
-                <button
-                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none"
-                  onClick={() => onClickViewDocuments(selectedApplication)}
-                >
-                  <BsEye className="mr-2" /> View All Documents
-                </button>
-                <button
-                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none"
-                  onClick={() => onClickInitiateCall(selectedApplication.id)}
-                >
-                  <FaPhoneAlt className="mr-2" /> Initiate Call
-                </button>
-
-                <button
-                  onClick={handleSendToRTO}
-                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-purple-600 hover:bg-purple-700 focus:outline-none"
-                >
-                  <FaFileAlt className="mr-2" /> Assessed - Send to RTO
-                </button>
               </div>
             </div>
           </div>
-        </div>
+          {showRequestDocsModal && (
+            <RequestMoreDocuments
+              applicationId={selectedApplication.id}
+              PreviouslyRequestedDocuments={
+                selectedApplication.requestedDocuments
+              }
+              UploadedDocuments={selectedApplication.document}
+              onClose={CloseRequestDocsModal}
+            />
+          )}
+        </>
       )}
 
       {/* View Documents Modal */}
