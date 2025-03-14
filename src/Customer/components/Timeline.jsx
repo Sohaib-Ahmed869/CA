@@ -342,7 +342,7 @@ const ImprovedTimeline = ({
         </div>
 
         {/* Application ID Pills */}
-        {applications.length > 1 && (
+        {applications && applications.length > 1 && (
           <div className="mb-4 hide-scrollbar">
             <div className="flex flex-wrap overflow-x-auto hide-scrollbar gap-2">
               {applications.map((app, index) => (

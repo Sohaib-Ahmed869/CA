@@ -45,9 +45,23 @@ const Login = () => {
             const role = userDoc.data().role;
             localStorage.setItem("role", role);
 
-            if (role === "admin") navigate("/admin");
-            else if (role === "customer") navigate("/");
-            else if (role === "rto") {
+            if (role === "admin") {
+              if (userDoc.data().type === "ceo") {
+                localStorage.setItem("type", "ceo");
+                localStorage.setItem("agentName", "");
+              } else if (userDoc.data().type === "agent") {
+                localStorage.setItem("type", "agent");
+                localStorage.setItem("agentName", userDoc.data().name);
+              } else if (userDoc.data().type === "manager") {
+                localStorage.setItem("type", "manager");
+                localStorage.setItem("agentName", "");
+              }
+              navigate("/admin");
+            } else if (role === "customer") {
+              localStorage.setItem("type", "customer");
+              localStorage.setItem("agentName", "");
+              navigate("/");
+            } else if (role === "rto") {
               localStorage.setItem("rtoType", userDoc.data().type);
               navigate("/rto");
             } else if (role === "agent") navigate("/agent");

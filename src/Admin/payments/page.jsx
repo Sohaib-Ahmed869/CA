@@ -815,20 +815,6 @@ const PaymentsPage = () => {
                           </span>
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right">
-                        <div className="flex space-x-2 justify-end">
-                          {!application.paid && (
-                            <button
-                              className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs rounded-md text-white bg-emerald-600 hover:bg-emerald-700"
-                              onClick={() =>
-                                navigate(`/payment-approval/${application.id}`)
-                              }
-                            >
-                              Approve Payment
-                            </button>
-                          )}
-                        </div>
-                      </td>
                     </tr>
                   ))}
                 </tbody>

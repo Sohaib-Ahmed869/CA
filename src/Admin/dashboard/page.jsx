@@ -7,6 +7,7 @@ import {
 import SpinnerLoader from "../../Customer/components/spinnerLoader";
 import dashb from "../../assets/dashb.png";
 import ApexCharts from "react-apexcharts";
+import { Briefcase } from "lucide-react";
 import { Cell, Legend, Line, LineChart } from "recharts";
 
 import {
@@ -36,6 +37,45 @@ import {
   BarChart2,
   PercentIcon,
 } from "lucide-react";
+const AgentApplicationsKPI = ({ applications }) => {
+  const [assignedApplications, setAssignedApplications] = useState([]);
+  const [agentName, setAgentName] = useState("");
+
+  useEffect(() => {
+    // Get agent name from localStorage
+    const storedAgentName = localStorage.getItem("agentName");
+    setAgentName(storedAgentName || "");
+
+    // Filter applications assigned to this agent
+    if (applications && applications.length > 0 && storedAgentName) {
+      const filtered = applications.filter(
+        (app) => app.assignedAdmin === storedAgentName
+      );
+      setAssignedApplications(filtered);
+    }
+  }, [applications]);
+
+  return (
+    <div className="rounded-xl shadow-sm p-6 border border-indigo-100 bg-indigo-50 transition-all hover:shadow-md">
+      <div className="flex justify-between items-start">
+        <div>
+          <p className="text-sm font-medium mb-1 text-indigo-800">
+            Your Assigned Applications
+          </p>
+          <h3 className="text-2xl font-bold text-indigo-800">
+            {assignedApplications.length}
+          </h3>
+          {agentName && (
+            <p className="text-xs text-indigo-600 mt-1">Agent: {agentName}</p>
+          )}
+        </div>
+        <div className="p-3 rounded-lg text-indigo-700 bg-white bg-opacity-50">
+          <Briefcase className="h-6 w-6" />
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const ApplicationFunnel = ({ applications }) => {
   // Runs when `applications` updates
@@ -213,6 +253,10 @@ const ColorStatusChart = ({ stats }) => {
                 show: true,
                 fontWeight: 700,
                 fontSize: "22px",
+                formatter: function (val) {
+                  // Format the value to show percentage with 1 decimal point
+                  return val.toFixed(1) + "%";
+                },
               },
               total: {
                 show: true,
@@ -255,7 +299,6 @@ const ColorStatusChart = ({ stats }) => {
         },
       ],
       title: {
-        text: "Lead Status Distribution",
         align: "left",
         style: {
           fontSize: "16px",
@@ -458,20 +501,7 @@ const StatusChart = ({ applications }) => {
         vertical: 5,
       },
     },
-    dataLabels: {
-      enabled: true,
-      formatter: function (val, opts) {
-        return data.series[opts.seriesIndex];
-      },
-      style: {
-        fontSize: "14px",
-        fontWeight: 600,
-        colors: ["#fff"],
-      },
-      dropShadow: {
-        enabled: false,
-      },
-    },
+
     plotOptions: {
       pie: {
         expandOnClick: false,
@@ -714,6 +744,21 @@ const Dashboard = () => {
       others: 0,
     },
   });
+  const hasFinanceAccess = () => {
+    const userType = localStorage.getItem("type");
+    return userType === "ceo";
+  };
+
+  const [agentName, setAgentName] = useState(null);
+  const [isAgentUser, setIsAgentUser] = useState(false);
+
+  useEffect(() => {
+    const userType = localStorage.getItem("type");
+    if (userType === "agent") {
+      setIsAgentUser(true);
+      setAgentName(localStorage.getItem("agentName"));
+    }
+  }, []);
 
   const [applications, setApplications] = useState([]);
   const [submissionLoading, setSubmissionLoading] = useState(false);
@@ -787,14 +832,7 @@ const Dashboard = () => {
       textColor: "text-green-800",
       iconColor: "text-green-700",
     },
-    {
-      label: "Total Payments",
-      value: `$${stats.totalPayments}`,
-      Icon: CreditCard,
-      bgColor: "bg-green-50",
-      textColor: "text-green-800",
-      iconColor: "text-green-700",
-    },
+
     {
       label: "Completion Rate",
       value: `${stats.completionRate}%`,
@@ -813,7 +851,34 @@ const Dashboard = () => {
       textColor: "text-purple-800",
       iconColor: "text-purple-700",
     },
+    {
+      label: "Payments Pending",
+      value: stats.pendingPayments,
+      Icon: Clock,
+      bgColor: "bg-yellow-50",
+      textColor: "text-yellow-800",
+      iconColor: "text-yellow-700",
+      ceoOnly: true,
+    },
 
+    {
+      label: "Payments Completed",
+      value: stats.paidApplications,
+      Icon: CheckCircle,
+      bgColor: "bg-green-50",
+      textColor: "text-green-800",
+      iconColor: "text-green-700",
+      ceoOnly: true,
+    },
+    {
+      label: "Total Payments",
+      value: `$${stats.totalPayments}`,
+      Icon: CreditCard,
+      bgColor: "bg-green-50",
+      textColor: "text-green-800",
+      iconColor: "text-green-700",
+      ceoOnly: true,
+    },
     {
       label: "Payment Plans Total",
       value: `$${stats.totalPaymentsWithPartial}`,
@@ -821,6 +886,7 @@ const Dashboard = () => {
       bgColor: "bg-green-50",
       textColor: "text-green-800",
       iconColor: "text-green-700",
+      ceoOnly: true,
     },
     {
       label: "Payment Plans Outstanding",
@@ -829,22 +895,7 @@ const Dashboard = () => {
       bgColor: "bg-yellow-50",
       textColor: "text-yellow-800",
       iconColor: "text-yellow-700",
-    },
-    {
-      label: "Payments Completed",
-      value: stats.paidApplications,
-      Icon: CheckCircle,
-      bgColor: "bg-green-50",
-      textColor: "text-green-800",
-      iconColor: "text-green-700",
-    },
-    {
-      label: "Payments Pending",
-      value: stats.pendingPayments,
-      Icon: Clock,
-      bgColor: "bg-yellow-50",
-      textColor: "text-yellow-800",
-      iconColor: "text-yellow-700",
+      ceoOnly: true,
     },
     {
       label: "Certificates Generated",
@@ -854,14 +905,7 @@ const Dashboard = () => {
       textColor: "text-green-800",
       iconColor: "text-green-700",
     },
-    {
-      label: "Sent to RTO",
-      value: stats.rtoApplications,
-      Icon: Send,
-      bgColor: "bg-green-50",
-      textColor: "text-green-800",
-      iconColor: "text-green-700",
-    },
+
     {
       label: "Total Agents",
       value: stats.totalAgents,
@@ -907,28 +951,31 @@ const Dashboard = () => {
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        {kpiData.map((kpi, index) => (
-          <div
-            key={index}
-            className={`rounded-xl shadow-sm p-6 border border-gray-100 transition-all hover:shadow-md ${kpi.bgColor}`}
-          >
-            <div className="flex justify-between items-start">
-              <div>
-                <p className={`text-sm font-medium mb-1 ${kpi.textColor}`}>
-                  {kpi.label}
-                </p>
-                <h3 className={`text-2xl font-bold ${kpi.textColor}`}>
-                  {kpi.value}
-                </h3>
-              </div>
-              <div
-                className={`p-3 rounded-lg ${kpi.iconColor} bg-white bg-opacity-50`}
-              >
-                <kpi.Icon className="h-6 w-6" />
+        {isAgentUser && <AgentApplicationsKPI applications={applications} />}
+        {kpiData
+          .filter((kpi) => !kpi.ceoOnly || hasFinanceAccess())
+          .map((kpi, index) => (
+            <div
+              key={index}
+              className={`rounded-xl shadow-sm p-6 border border-gray-100 transition-all hover:shadow-md ${kpi.bgColor}`}
+            >
+              <div className="flex justify-between items-start">
+                <div>
+                  <p className={`text-sm font-medium mb-1 ${kpi.textColor}`}>
+                    {kpi.label}
+                  </p>
+                  <h3 className={`text-2xl font-bold ${kpi.textColor}`}>
+                    {kpi.value}
+                  </h3>
+                </div>
+                <div
+                  className={`p-3 rounded-lg ${kpi.iconColor} bg-white bg-opacity-50`}
+                >
+                  <kpi.Icon className="h-6 w-6" />
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          ))}
       </div>
 
       {/* Charts Section */}

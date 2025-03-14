@@ -153,6 +153,7 @@ const CustomerDashboard = () => {
       );
     }
   }, [lastApplication]);
+  
 
   const navigateToExistingApplications = () =>
     navigate("/existing-applications");
@@ -216,6 +217,8 @@ const CustomerDashboard = () => {
   const handleCertificateClick = (certificateId) => {
     window.open(certificateId, "_blank");
   };
+
+  
 
   return (
     <div className="min-h-screen bg-gray-50">

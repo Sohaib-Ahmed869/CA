@@ -693,7 +693,7 @@ const ExistingApplicationsAdmin = () => {
                         <p className="text-gray-500 text-sm font-medium">
                           Popular Qualification
                         </p>
-                        <h3 className="text-xl font-bold text-gray-900 truncate">
+                        <h3 className="text-md font-bold text-gray-900 truncate text-wrap">
                           {stats.mostPopularQualification.name}
                         </h3>
                       </div>
@@ -1025,7 +1025,7 @@ const ExistingApplicationsAdmin = () => {
                               </div>
                             </div>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
+                          <td className="px-6 py-4 whitespace-nowrap text-wrap">
                             <div className="text-sm text-gray-900">
                               {application.isf?.lookingForWhatQualification ||
                                 "N/A"}

@@ -180,9 +180,11 @@ export const addAssessorNoteToApplication = async (applicationId, note) => {
   }
 };
 
-export const resendEmail = async (userId) => {
+export const resendEmail = async (applicationId) => {
   try {
-    const response = await axios.post(`${URL}/api/admin/resend/${userId}`);
+    const response = await axios.post(
+      `${URL}/api/admin/resend/${applicationId}`
+    );
     return response.data;
   } catch (error) {
     return "error";
@@ -246,11 +248,16 @@ export const updateEmail = async (userId, email) => {
   }
 };
 
-export const dividePayment = async (applicationId, payment1, payment2) => {
+export const dividePayment = async (
+  applicationId,
+  payment1,
+  payment2,
+  payment2Deadline
+) => {
   try {
     const response = await axios.put(
       `${URL}/api/applications/dividePayment/${applicationId}`,
-      { payment1, payment2 }
+      { payment1, payment2, payment2Deadline }
     );
     return response.data;
   } catch {

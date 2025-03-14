@@ -7,17 +7,17 @@ import { getFirestore } from "firebase/firestore";
 // https://firebase.google.com/docs/web/setup#available-libraries
 
 
-// const firebaseConfig = {
-//   apiKey: "AIzaSyDCfrf4npemD5T0ZzPcfRv3Kiq--Vs3m1A",
-//   authDomain: "certifiedaustralia1.firebaseapp.com",
-//   projectId: "certifiedaustralia1",
-//   storageBucket: "certifiedaustralia1.appspot.com",
-//   messagingSenderId: "803606042865",
-//   appId: "1:803606042865:web:e80a85af2ec46a9aa43150",
-//   measurementId: "G-ESBEFL4ZJ9",
-// };
-
 const firebaseConfig = {
+  apiKey: "AIzaSyDCfrf4npemD5T0ZzPcfRv3Kiq--Vs3m1A",
+  authDomain: "certifiedaustralia1.firebaseapp.com",
+  projectId: "certifiedaustralia1",
+  storageBucket: "certifiedaustralia1.appspot.com",
+  messagingSenderId: "803606042865",
+  appId: "1:803606042865:web:e80a85af2ec46a9aa43150",
+  measurementId: "G-ESBEFL4ZJ9",
+};
+
+const firebaseConfig2 = {
   apiKey: "AIzaSyAlDj_YjopzasGvveP1VNxJsMOk-fBICO8",
   authDomain: "testca-e3e5e.firebaseapp.com",
   projectId: "testca-e3e5e",
@@ -27,7 +27,7 @@ const firebaseConfig = {
   measurementId: "G-V2Z5CZHSPQ",
 };
 // Initialize Firebase
-const app = initializeApp(firebaseConfig);
+const app = initializeApp(firebaseConfig2);
 const analytics = getAnalytics(app);
 
 export const auth = getAuth();

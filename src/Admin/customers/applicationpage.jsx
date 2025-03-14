@@ -4,6 +4,7 @@ import { FaTimesCircle } from "react-icons/fa";
 import { BsEye } from "react-icons/bs";
 import { BiPlus } from "react-icons/bi";
 import { FaArrowLeft } from "react-icons/fa";
+
 import { FaArchive } from "react-icons/fa";
 import { FaEnvelope } from "react-icons/fa";
 import { MdNotes } from "react-icons/md";
@@ -107,6 +108,8 @@ const Application = ({
   const [selectedAdmin, setSelectedAdmin] = useState(
     application.assignedAdmin || ""
   );
+  const [showDeadlineModal, setShowDeadlineModal] = useState(null);
+  const [deadlineDate, setDeadlineDate] = useState("");
   const [assignAdminModal, setAssignAdminModal] = useState(false);
   // Document Modal
   const [DocumentModalOpen, setDocumentModalOpen] = useState(false);
@@ -132,6 +135,47 @@ const Application = ({
     const month = String(date.getMonth() + 1).padStart(2, "0");
     const year = date.getFullYear();
     return `${day}-${month}-${year}`;
+  };
+
+  const handleSetDeadline = async () => {
+    if (!deadlineDate || !showDeadlineModal) return;
+
+    try {
+      setSubmissionLoading(true);
+
+      // Call your API to update the deadline
+      const response = await fetch(
+        `${URL}/api/applications/payment2DeadlineDate/${showDeadlineModal}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ payment2Deadline: deadlineDate }),
+        }
+      );
+
+      if (response.ok) {
+        toast.success("Payment deadline set successfully");
+        // Refetch applications to update the UI
+        getApplicationsData();
+        // locally upon successful deadline update for instant UI update
+        const updatedApplication = {
+          ...application,
+          payment2Deadline: deadlineDate,
+        };
+        setSelectedApplication(updatedApplication);
+      } else {
+        toast.error("Failed to set payment deadline");
+      }
+    } catch (error) {
+      console.error("Error setting deadline:", error);
+      toast.error("An error occurred while setting the deadline");
+    } finally {
+      setSubmissionLoading(false);
+      setShowDeadlineModal(null);
+      setDeadlineDate("");
+    }
   };
 
   // Handle archive/delete application
@@ -160,6 +204,8 @@ const Application = ({
       setApplicationToDelete(null);
     }
   };
+
+  const [payment2Deadline, setPayment2Deadline] = useState("");
 
   // View documents handler
   const onClickViewDocuments = () => {
@@ -283,8 +329,9 @@ const Application = ({
       toast.error("Please enter valid payment amount.");
       return;
     }
-    if (!payment1 || !payment2) {
-      toast.error("Please enter  payment amount.");
+    if (!payment1 || !payment2 || !payment2Deadline) {
+      // Check deadline is provided
+      toast.error("Please enter payment amount and deadline.");
       return;
     }
 
@@ -298,7 +345,12 @@ const Application = ({
     }
     try {
       setSubmissionLoading(true);
-      const response = await dividePayment(application.id, payment1, payment2);
+      const response = await dividePayment(
+        application.id,
+        payment1,
+        payment2,
+        payment2Deadline
+      ); // Add deadline
       if (response === "error") {
         toast.error("Failed to divide payment.");
       } else {
@@ -601,7 +653,7 @@ const Application = ({
               </button>
 
               <button
-                onClick={() => resendEmailFunc(application.userId)}
+                onClick={() => resendEmailFunc(application.id)}
                 className="flex items-center px-3 py-1.5 bg-white bg-opacity-20 rounded-md text-white hover:bg-opacity-30 transition-all"
                 title="Resend Email"
               >
@@ -951,17 +1003,17 @@ const Application = ({
                         </p>
                         {console.log(application)}
                         {application.partialScheme &&
-                          application.payment1Date && (
+                          application.payment2Deadline && (
                             <>
                               <p className="flex justify-between">
                                 <span className="text-gray-500">
-                                  Date ofPayment 1 :
+                                  Date of Payment 2 :
                                 </span>
 
                                 <span className="font-medium">
-                                  {application.payment1Date
+                                  {application.payment2Deadline
                                     ? new Date(
-                                        application.payment1Date
+                                        application.payment2Deadline
                                       ).toLocaleDateString("en-US", {
                                         year: "numeric",
                                         month: "long",
@@ -970,25 +1022,6 @@ const Application = ({
                                         minute: "2-digit",
                                       })
                                     : "Not Available"}{" "}
-                                </span>
-                              </p>
-                              <p className="flex justify-between">
-                                <span className="text-gray-500">
-                                  Date of Payment 2 :
-                                </span>
-
-                                <span className="font-medium">
-                                  {application.payment2Date
-                                    ? new Date(
-                                        application.payment2Date
-                                      ).toLocaleDateString("en-US", {
-                                        year: "numeric",
-                                        month: "long",
-                                        day: "numeric",
-                                        hour: "2-digit",
-                                        minute: "2-digit",
-                                      })
-                                    : "Not Available"}
                                 </span>
                               </p>
                             </>
@@ -1236,6 +1269,25 @@ const Application = ({
                                 )}
                               </span>
                             </p>
+
+                            <p className="flex justify-between">
+                              <span className="text-gray-500">
+                                Due Date for Payment 2:
+                              </span>
+                              <span className="font-medium">
+                                {application.payment2Deadline
+                                  ? new Date(
+                                      application.payment2Deadline
+                                    ).toLocaleDateString("en-US", {
+                                      year: "numeric",
+                                      month: "long",
+                                      day: "numeric",
+                                      hour: "2-digit",
+                                      minute: "2-digit",
+                                    })
+                                  : "Not Available"}
+                              </span>
+                            </p>
                           </div>
                         )}
                       </div>
@@ -1312,6 +1364,13 @@ const Application = ({
                         >
                           <BiPlus />
                           Set Up Payment Plan
+                        </button>
+
+                        <button
+                          className="w-full px-4 py-2 flex items-center justify-center gap-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700"
+                          onClick={() => setShowDeadlineModal(application.id)}
+                        >
+                          Set Deadline
                         </button>
                       </div>
                     </div>
@@ -2107,7 +2166,11 @@ const Application = ({
                       setPayment1(enteredPayment);
                       setPayment2(
                         enteredPayment && enteredPayment < application.price
-                          ? application.price - enteredPayment
+                          ? application.discount
+                            ? application.price -
+                              enteredPayment -
+                              application.discount
+                            : application.price - enteredPayment
                           : ""
                       );
                     }}
@@ -2131,6 +2194,22 @@ const Application = ({
                     placeholder="Enter second payment amount"
                     min="0"
                     readOnly
+                  />
+                </div>
+                <div>
+                  <label
+                    htmlFor="payment2-deadline"
+                    className="block text-sm font-medium text-gray-500 mb-2"
+                  >
+                    Second Payment Deadline:
+                  </label>
+                  <input
+                    id="payment2-deadline"
+                    type="date"
+                    className="w-full border border-gray-300 rounded-md p-3 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                    value={payment2Deadline}
+                    onChange={(e) => setPayment2Deadline(e.target.value)}
+                    required
                   />
                 </div>
               </div>
@@ -2294,6 +2373,41 @@ const Application = ({
                 disabled={!selectedAdmin}
               >
                 Assign Sales Agent
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Deadline Setting Modal */}
+      {showDeadlineModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full">
+            <h3 className="text-lg font-medium mb-4">Set Payment Deadline</h3>
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Deadline Date
+              </label>
+              <input
+                type="date"
+                className="w-full border border-gray-300 rounded p-2"
+                value={deadlineDate}
+                onChange={(e) => setDeadlineDate(e.target.value)}
+                min={new Date().toISOString().split("T")[0]}
+              />
+            </div>
+            <div className="flex justify-end gap-2">
+              <button
+                className="px-4 py-2 bg-gray-200 rounded-lg text-gray-700"
+                onClick={() => setShowDeadlineModal(null)}
+              >
+                Cancel
+              </button>
+              <button
+                className="px-4 py-2 bg-emerald-600 rounded-lg text-white"
+                onClick={handleSetDeadline}
+              >
+                Save Deadline
               </button>
             </div>
           </div>

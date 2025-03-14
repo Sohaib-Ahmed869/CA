@@ -38,6 +38,11 @@ const AdminLogin = () => {
       if (userDoc.exists() && userDoc.data().role === "admin") {
         // User is an admin
         localStorage.setItem("role", "admin");
+        if (userDoc.data().type === "ceo") {
+          localStorage.setItem("type", "ceo");
+        } else {
+          localStorage.setItem("type", "agent");
+        }
         const idToken = await user.getIdToken();
         notify();
         setSubmissionLoading(false);

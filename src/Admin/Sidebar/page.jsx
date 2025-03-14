@@ -10,6 +10,7 @@ import Analytics from "../FinanceModule/Analytics";
 import Dashboard from "../dashboard/page";
 import Industries from "../Industries/page";
 import ArchivedApplications from "../archived/page";
+import PaymentDeadlinesPage from "../payments/pendingpayments";
 import {
   MdDashboard,
   MdKeyboardArrowDown,
@@ -48,11 +49,8 @@ const AdminSidebar = () => {
   };
 
   const hasFinanceAccess = () => {
-    const allowedUserIds = [
-      "IPWEpuB7KVhnjGYIorpGJayGjqp1",
-      "wJ1LPS7YLDMpGzKY6HHVm9na9wA2",
-    ];
-    return allowedUserIds.includes(currentUserId);
+    const userType = localStorage.getItem("type");
+    return userType === "ceo";
   };
 
   useEffect(() => {
@@ -289,16 +287,29 @@ const AdminSidebar = () => {
                     Finance
                   </h2>
                   <ul className="space-y-1">
+                    {hasFinanceAccess() && (
+                      <MenuItem
+                        icon={<FaMoneyBillWave className="text-xl" />}
+                        label="Payments"
+                        isActive={active === "Payments"}
+                        onClick={() => {
+                          setActive("Payments");
+                          setIsOpen(false);
+                        }}
+                        hasBorder={false}
+                      />
+                    )}
                     <MenuItem
-                      icon={<FaMoneyBillWave className="text-xl" />}
-                      label="Payments"
-                      isActive={active === "Payments"}
+                      icon={<RiMoneyDollarCircleLine className="text-xl" />}
+                      label="Payment Deadlines"
+                      isActive={active === "Payment Deadlines"}
                       onClick={() => {
-                        setActive("Payments");
+                        setActive("Payment Deadlines");
                         setIsOpen(false);
                       }}
                       hasBorder={false}
                     />
+
                     {hasFinanceAccess() && (
                       <li
                         className={`cursor-pointer transition-all duration-200 ease-in-out 
@@ -342,16 +353,18 @@ const AdminSidebar = () => {
                     Configuration
                   </h2>
                   <ul className="space-y-1">
-                    <MenuItem
-                      icon={<FaIndustry className="text-xl" />}
-                      label="Industries"
-                      isActive={active === "Industries"}
-                      onClick={() => {
-                        setActive("Industries");
-                        setIsOpen(false);
-                      }}
-                      hasBorder={false}
-                    />
+                    {hasFinanceAccess() && (
+                      <MenuItem
+                        icon={<FaIndustry className="text-xl" />}
+                        label="Industries"
+                        isActive={active === "Industries"}
+                        onClick={() => {
+                          setActive("Industries");
+                          setIsOpen(false);
+                        }}
+                        hasBorder={false}
+                      />
+                    )}
                     <MenuItem
                       icon={<RiLockPasswordLine className="text-xl" />}
                       label="Change Password"
@@ -413,7 +426,6 @@ const AdminSidebar = () => {
                 label="Dashboard"
                 isActive={active === "Dashboard"}
                 onClick={() => setActive("Dashboard")}
-                badge="New"
               />
               <MenuItem
                 icon={<FaUserFriends className="text-xl" />}
@@ -441,11 +453,23 @@ const AdminSidebar = () => {
               Finance
             </h2>
             <ul>
+              {hasFinanceAccess() && (
+                <MenuItem
+                  icon={<FaMoneyBillWave className="text-xl" />}
+                  label="Payments"
+                  isActive={active === "Payments"}
+                  onClick={() => setActive("Payments")}
+                />
+              )}
               <MenuItem
-                icon={<FaMoneyBillWave className="text-xl" />}
-                label="Payments"
-                isActive={active === "Payments"}
-                onClick={() => setActive("Payments")}
+                icon={<RiMoneyDollarCircleLine className="text-xl" />}
+                label="Payment Deadlines"
+                isActive={active === "Payment Deadlines"}
+                onClick={() => {
+                  setActive("Payment Deadlines");
+                  setIsOpen(false);
+                }}
+                hasBorder={false}
               />
               {renderFinanceSection()}
             </ul>
@@ -456,12 +480,14 @@ const AdminSidebar = () => {
               Configuration
             </h2>
             <ul>
-              <MenuItem
-                icon={<FaIndustry className="text-xl" />}
-                label="Industries"
-                isActive={active === "Industries"}
-                onClick={() => setActive("Industries")}
-              />
+              {hasFinanceAccess() && (
+                <MenuItem
+                  icon={<FaIndustry className="text-xl" />}
+                  label="Industries"
+                  isActive={active === "Industries"}
+                  onClick={() => setActive("Industries")}
+                />
+              )}
               <MenuItem
                 icon={<RiLockPasswordLine className="text-xl" />}
                 label="Change Password"
@@ -492,6 +518,7 @@ const AdminSidebar = () => {
         {active === "Students" && <CustomersInfo />}
         {active === "Applications" && <ExistingApplicationsAdmin />}
         {active === "Payments" && <PaymentApproval />}
+        {active === "Payment Deadlines" && <PaymentDeadlinesPage />}
         {active === "Industries" && <Industries />}
         {active === "Archived Applications" && <ArchivedApplications />}
         {active === "Change Password" && <ChangePassword />}

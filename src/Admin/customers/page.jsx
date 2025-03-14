@@ -22,6 +22,8 @@ import {
   FaCheckCircle,
   FaArrowUp,
   FaArrowDown,
+  FaArrowLeft,
+  FaArrowRight,
   FaEllipsisH,
   FaPhoneAlt,
   FaEnvelope,
@@ -100,7 +102,7 @@ const CustomersInfo = () => {
 
   // State for sorting
   const [sortField, setSortField] = useState("dateCreated");
-  const [sortDirection, setSortDirection] = useState("desc");
+  const [sortDirection, setSortDirection] = useState("asc");
 
   // State for data
   const [submissionLoading, setSubmissionLoading] = useState(false);
@@ -1088,7 +1090,7 @@ const CustomersInfo = () => {
                       </td>
 
                       {/* Industry/Qualification */}
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="px-6 py-4">
                         <div className="text-sm text-gray-900">
                           {application.isf?.industry || "N/A"}
                         </div>
@@ -1132,7 +1134,7 @@ const CustomersInfo = () => {
                             <div className="flex items-center gap-2 max-w-xs">
                               <div className="bg-gray-50 rounded-md px-3 py-1.5 text-sm text-gray-700 truncate flex-grow text-left">
                                 {application.note.length > 30
-                                  ? `${application.note.substring(0, 30)}...`
+                                  ? `${application.note.substring(0, 10)}...`
                                   : application.note}
                               </div>
                               <button
