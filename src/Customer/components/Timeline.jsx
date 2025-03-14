@@ -119,9 +119,9 @@ const ImprovedTimeline = ({
       Object.keys(selectedApp.documentsForm).length > 0 &&
       (!hasRequestedDocuments || areRequestedDocumentsUploaded);
 
-    const isPaymentDone =
-      // selectedApp.paid ||
-      selectedApp.partialScheme === true && selectedApp.full_paid === true;
+    const isPaymentDone = selectedApp.partialScheme
+      ? selectedApp.full_paid
+      : selectedApp.paid;
 
     const isCertificateGenerated =
       selectedApp.certificateId ||
