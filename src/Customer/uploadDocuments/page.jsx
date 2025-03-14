@@ -166,7 +166,7 @@ const UploadDocuments = () => {
     };
 
     fetchApplication();
-  }, [applicationId]); // Toast helpers
+  }, [applicationId, resume]); // Toast helpers
   console.log("resume", resume);
   const successToast = () => toast.success("Documents uploaded successfully");
   const errorToast = (message = "Please fill in all the required fields") =>
@@ -320,6 +320,7 @@ const UploadDocuments = () => {
                 <SingleFileUploader
                   applicationId={applicationId}
                   fieldName="driversLicense"
+                  existingFileUrl={hundredPointsOfID.driversLicense} // ✅ Pass preloaded document URL
                   label={
                     <div className="flex justify-between w-full">
                       <span>Driver's License</span>
@@ -335,6 +336,7 @@ const UploadDocuments = () => {
                 <SingleFileUploader
                   applicationId={applicationId}
                   fieldName="idCard"
+                  existingFileUrl={hundredPointsOfID.idCard} // ✅ Pass preloaded document URL
                   label={
                     <div className="flex justify-between w-full">
                       <span>ID Card</span>
@@ -350,6 +352,7 @@ const UploadDocuments = () => {
                 <SingleFileUploader
                   applicationId={applicationId}
                   fieldName="passport"
+                  existingFileUrl={hundredPointsOfID.passport} // ✅ Pass preloaded document URL
                   label={
                     <div className="flex justify-between w-full">
                       <span>Passport</span>
@@ -365,6 +368,7 @@ const UploadDocuments = () => {
                 <SingleFileUploader
                   applicationId={applicationId}
                   fieldName="birthCertificate"
+                  existingFileUrl={hundredPointsOfID.birthCertificate} // ✅ Pass preloaded document URL
                   label={
                     <div className="flex justify-between w-full">
                       <span>Birth Certificate</span>
@@ -380,6 +384,7 @@ const UploadDocuments = () => {
                 <SingleFileUploader
                   applicationId={applicationId}
                   fieldName="medicareCard"
+                  existingFileUrl={hundredPointsOfID.medicareCard} // ✅ Pass preloaded document URL
                   label={
                     <div className="flex justify-between w-full">
                       <span>Medicare Card</span>
@@ -395,6 +400,7 @@ const UploadDocuments = () => {
                 <SingleFileUploader
                   applicationId={applicationId}
                   fieldName="creditcard"
+                  existingFileUrl={hundredPointsOfID.creditcard} // ✅ Pass preloaded document URL
                   label={
                     <div className="flex justify-between w-full">
                       <span>Credit Card</span>
@@ -410,6 +416,7 @@ const UploadDocuments = () => {
                 <SingleFileUploader
                   applicationId={applicationId}
                   fieldName="australianCitizenship"
+                  existingFileUrl={hundredPointsOfID.australianCitizenship} // ✅ Pass preloaded document URL
                   label={
                     <div className="flex justify-between w-full">
                       <span>Australian Citizenship</span>
@@ -440,6 +447,7 @@ const UploadDocuments = () => {
                   fieldName="resume"
                   label="Resume"
                   required={true}
+                  existingFileUrl={resume} // ✅ Pass preloaded document URL
                   onUploadSuccess={(field, fileUrl) => setResume(fileUrl)}
                   onDeleteSuccess={() => setResume("")}
                 />
@@ -450,6 +458,7 @@ const UploadDocuments = () => {
                   fieldName="previousQualifications"
                   label="Previous Qualifications"
                   required={true}
+                  existingFileUrl={previousQualifications} // ✅ Pass preloaded document URL
                   onUploadSuccess={(field, fileUrl) =>
                     setPreviousQualifications(fileUrl)
                   }
@@ -476,6 +485,7 @@ const UploadDocuments = () => {
                   fieldName="reference1"
                   label="Reference One"
                   required={true}
+                  existingFileUrl={twoReferences.reference1} // ✅ Pass preloaded document URL
                   onUploadSuccess={(field, fileUrl) =>
                     setTwoReferences((prev) => ({
                       ...prev,
@@ -493,6 +503,7 @@ const UploadDocuments = () => {
                   applicationId={applicationId}
                   fieldName="reference2"
                   label="Reference Two"
+                  existingFileUrl={twoReferences.reference2} // ✅ Pass preloaded document URL
                   onUploadSuccess={(field, fileUrl) =>
                     setTwoReferences((prev) => ({
                       ...prev,
@@ -524,6 +535,7 @@ const UploadDocuments = () => {
                   fieldName="employmentLetter"
                   label="Employment Letter"
                   required={true}
+                  existingFileUrl={employmentLetter} // ✅ Pass preloaded document URL
                   onUploadSuccess={(field, fileUrl) =>
                     setEmploymentLetter(fileUrl)
                   }
@@ -536,6 +548,7 @@ const UploadDocuments = () => {
                   applicationId={applicationId}
                   fieldName="payslip"
                   label="Payslip/Invoice"
+                  existingFileUrl={payslip} // ✅ Pass preloaded document URL
                   required={true}
                   onUploadSuccess={(field, fileUrl) => setPayslip(fileUrl)}
                   onDeleteSuccess={() => setPayslip("")}
@@ -566,6 +579,7 @@ const UploadDocuments = () => {
                     applicationId={applicationId}
                     fieldName="image1"
                     label="Image 1"
+                    existingFileUrl={images.image1} // ✅ Pass preloaded document URL
                     required={true}
                     onUploadSuccess={(field, fileUrl) =>
                       setImages((prev) => ({ ...prev, image1: fileUrl }))
@@ -581,6 +595,7 @@ const UploadDocuments = () => {
                     applicationId={applicationId}
                     fieldName="image2"
                     label="Image 2"
+                    existingFileUrl={images.image2} // ✅ Pass preloaded document URL
                     required={true}
                     onUploadSuccess={(field, fileUrl) =>
                       setImages((prev) => ({ ...prev, image2: fileUrl }))
@@ -596,6 +611,7 @@ const UploadDocuments = () => {
                     applicationId={applicationId}
                     fieldName="image3"
                     label="Image 3"
+                    existingFileUrl={images.image3} // ✅ Pass preloaded document URL
                     required={true}
                     onUploadSuccess={(field, fileUrl) =>
                       setImages((prev) => ({ ...prev, image3: fileUrl }))
@@ -611,6 +627,7 @@ const UploadDocuments = () => {
                     applicationId={applicationId}
                     fieldName="image4"
                     label="Image 4"
+                    existingFileUrl={images.image4} // ✅ Pass preloaded document URL
                     required={true}
                     onUploadSuccess={(field, fileUrl) =>
                       setImages((prev) => ({ ...prev, image4: fileUrl }))
@@ -626,6 +643,7 @@ const UploadDocuments = () => {
                     applicationId={applicationId}
                     fieldName="video1"
                     label="Video 1"
+                    existingFileUrl={videos.video1} // ✅ Pass preloaded document URL
                     required={true}
                     onUploadSuccess={(field, fileUrl) =>
                       setVideos((prev) => ({ ...prev, video1: fileUrl }))
@@ -641,6 +659,7 @@ const UploadDocuments = () => {
                     applicationId={applicationId}
                     fieldName="video2"
                     label="Video 2"
+                    existingFileUrl={videos.video2} // ✅ Pass preloaded document URL
                     required={true}
                     onUploadSuccess={(field, fileUrl) =>
                       setVideos((prev) => ({ ...prev, video2: fileUrl }))
