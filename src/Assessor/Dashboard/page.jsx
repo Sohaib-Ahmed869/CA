@@ -385,14 +385,14 @@ const AdminDashboard = ({ setActive }) => {
 
         {/* Second Row Stats */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <StatCard
+          {/* <StatCard
             title="Total Revenue"
             value={formatCurrency(metrics.totalRevenue)}
             subtitle="From all applications"
             icon={DollarSign}
             color="bg-emerald-600"
             trend={3.2}
-          />
+          /> */}
           {/* <StatCard
             title="Paid Applications"
             value={metrics.paidApplications}
@@ -401,14 +401,14 @@ const AdminDashboard = ({ setActive }) => {
             color="bg-cyan-600"
             trend={5.1}
           /> */}
-          <StatCard
+          {/* <StatCard
             title="Conversion Rate"
             value={`${metrics.conversionRate}%`}
             subtitle="Applications paid"
             icon={Percent}
             color="bg-indigo-600"
             trend={0.8}
-          />
+          /> */}
           <StatCard
             title="Completion Rate"
             value={`${metrics.completionRate}%`}

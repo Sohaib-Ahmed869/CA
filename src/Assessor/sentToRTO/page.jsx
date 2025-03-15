@@ -59,7 +59,7 @@ const ViewApplicationModal = ({ application, onClose }) => {
 
         <div className="space-y-6 mt-4 px-2">
           {/* Status and Payment */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+          {/* <div className="bg-white rounded-lg shadow-sm border border-gray-200">
             <div className="p-5">
               <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
                 <FaFileAlt className="mr-2 text-emerald-600" />
@@ -110,7 +110,7 @@ const ViewApplicationModal = ({ application, onClose }) => {
                 )}
               </div>
             </div>
-          </div>
+          </div> */}
 
           {/* Personal Information */}
           <div className="bg-white rounded-lg shadow-sm border border-gray-200">

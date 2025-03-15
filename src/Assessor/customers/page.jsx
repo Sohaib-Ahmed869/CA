@@ -32,6 +32,8 @@ import {
   FaLanguage,
   FaGlobe,
 } from "react-icons/fa";
+const URL = import.meta.env.VITE_REACT_BACKEND_URL;
+
 import { MdLocationOn, MdWorkOutline, MdSchool } from "react-icons/md";
 import { VscDebugBreakpointData } from "react-icons/vsc";
 import { TbReportMoney } from "react-icons/tb";
@@ -41,6 +43,7 @@ import applicationsimg from "../../assets/applications.png";
 import { getAuth } from "firebase/auth";
 import SpinnerLoader from "../../Customer/components/spinnerLoader";
 import Loader from "../../Customer/components/loader";
+import { downloadAllDocsAsZip } from "../../utils/downloadAllDocs";
 import {
   getApplications,
   verifyApplication,
@@ -53,6 +56,7 @@ import {
 import { initiateVerificationCall } from "../../Customer/Services/twilioService";
 import DocumentModal from "../../Customer/components/viewDocsModal";
 import RequestMoreDocuments from "../../RTO/RequestMoreDocuments/RequestMoreDocuments";
+import { saveAs } from "file-saver";
 
 const AssessorCustomers = () => {
   const [applications, setApplications] = useState([]);
@@ -65,7 +69,10 @@ const AssessorCustomers = () => {
   const [viewDocuments, setViewDocuments] = useState(false);
   const [selectedTab, setSelectedTab] = useState("overview");
   const [certificateFile, setCertificateFile] = useState(null);
-
+  const [isDownloading, setIsDownloading] = useState({
+    success: false,
+    loading: false,
+  });
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
@@ -242,8 +249,6 @@ const AssessorCustomers = () => {
     // Update total pages
     setTotalPages(Math.ceil(filtered.length / itemsPerPage));
   }, [search, selectedIndustryFilter, dateFilter, applications]);
-
-  // View documents handler
   const onClickViewDocuments = async (application) => {
     console.log("Viewing documents for application:", application);
 
@@ -273,26 +278,25 @@ const AssessorCustomers = () => {
       "video2",
     ];
 
-    // Get predefined documents with valid file URLs
+    // Modified: Format matches RTO component
+    // Collect predefined documents that have valid URLs
     const predefinedDocuments = documentKeys
-      .map((docKey) => {
-        const fileData = application.document?.[docKey]; // Get file data object
-        return fileData?.fileUrl
-          ? { name: docKey, url: fileData.fileUrl }
-          : null;
-      })
-      .filter(Boolean); // Remove null values
+      .map((docKey) => ({
+        name: docKey,
+        url: application.document && application.document[docKey],
+      }))
+      .filter((doc) => doc.url); // Filter out null/undefined URLs
 
-    // Get requested documents with valid file URLs
+    // Modified: Format matches RTO component
+    // Collect requested documents that exist in application.document
     const requestedDocuments =
-      application.requestedDocuments?.map((doc) => {
-        const fileData = application.document?.[doc.name]; // Get file data object
-        return fileData?.fileUrl
-          ? { name: doc.name, url: fileData.fileUrl }
-          : null;
-      }) || [];
+      application.requestedDocuments?.map((doc) => ({
+        name: doc.name,
+        url: application.document && application.document[doc.name],
+      })) || [];
 
-    const validRequestedDocuments = requestedDocuments.filter(Boolean); // Remove null values
+    // Filter requested documents that have valid URLs
+    const validRequestedDocuments = requestedDocuments.filter((doc) => doc.url);
 
     // Combine predefined and requested documents
     const links = [...predefinedDocuments, ...validRequestedDocuments];
@@ -300,53 +304,6 @@ const AssessorCustomers = () => {
     setDocumentLinks(links);
     setViewDocuments(true);
   };
-
-  // Download all documents as zip
-  const downloadAllDocsAsZip = async () => {
-    try {
-      setSubmissionLoading(true);
-      const zip = new JSZip();
-      const folder = zip.folder("Documents");
-
-      // Create an array of promises for each fetch
-      const fetchPromises = documentLinks.map(async (doc) => {
-        try {
-          const response = await fetch(doc.url);
-          const blob = await response.blob();
-
-          // Get file extension from URL or default to '.pdf'
-          const fileExtension = doc.url.split(".").pop().toLowerCase() || "pdf";
-          const fileName = `${doc.name}.${fileExtension}`;
-
-          folder.file(fileName, blob);
-          return true;
-        } catch (error) {
-          console.error(`Error fetching ${doc.name}:`, error);
-          return false;
-        }
-      });
-
-      // Wait for all fetches to complete
-      await Promise.all(fetchPromises);
-
-      // Create a download link for the zip file
-      const zipContent = await zip.generateAsync({ type: "blob" });
-      const downloadLink = document.createElement("a");
-      downloadLink.href = URL.createObjectURL(zipContent);
-      downloadLink.download = "Documents.zip";
-      document.body.appendChild(downloadLink);
-      downloadLink.click();
-      document.body.removeChild(downloadLink);
-
-      toast.success("Documents downloaded successfully");
-    } catch (error) {
-      console.error("Error creating zip file:", error);
-      toast.error("Failed to download documents");
-    } finally {
-      setSubmissionLoading(false);
-    }
-  };
-
   // Pagination calculations
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
@@ -818,178 +775,7 @@ const AssessorCustomers = () => {
       </div>
     );
   };
-  //   const studentForm = selectedApplication.sif;
 
-  //   return (
-  //     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-  //       <div className="space-y-4">
-  //         {[
-  //           {
-  //             label: "Full Name",
-  //             value: `${selectedApplication.user.firstName} ${selectedApplication.user.lastName}`,
-  //             icon: FaUser,
-  //           },
-  //           {
-  //             label: "USI",
-  //             value: studentForm.USI,
-  //             icon: VscDebugBreakpointData,
-  //           },
-  //           { label: "Gender", value: studentForm.gender, icon: FaUser },
-  //           {
-  //             label: "Date of Birth",
-  //             value: studentForm.dob,
-  //             icon: BsCalendarDate,
-  //           },
-  //           {
-  //             label: "Home Address",
-  //             value: studentForm.homeAddress,
-  //             icon: MdLocationOn,
-  //           },
-  //           {
-  //             label: "Contact Number",
-  //             value: selectedApplication.user.phone,
-  //             icon: FaPhoneAlt,
-  //           },
-  //           {
-  //             label: "Email",
-  //             value: selectedApplication.user.email,
-  //             icon: FaEnvelope,
-  //           },
-  //           { label: "State", value: studentForm.state, icon: MdLocationOn },
-  //           { label: "Suburb", value: studentForm.suburb, icon: MdLocationOn },
-  //           {
-  //             label: "Postcode",
-  //             value: studentForm.postcode,
-  //             icon: MdLocationOn,
-  //           },
-  //           {
-  //             label: "Credits Transfer",
-  //             value: studentForm.creditsTransfer ? "Yes" : "No",
-  //             icon: VscDebugBreakpointData,
-  //           },
-  //           {
-  //             label: "Year Completed",
-  //             value: studentForm.YearCompleted,
-  //             icon: MdSchool,
-  //           },
-  //           {
-  //             label: "Highest Qualification",
-  //             value: studentForm.nameOfQualification,
-  //             icon: MdSchool,
-  //           },
-  //           {
-  //             label: "Nationality",
-  //             value: studentForm.nationality,
-  //             icon: FaGlobe,
-  //           },
-  //           {
-  //             label: "Language Spoken",
-  //             value: studentForm.languageSpoken,
-  //             icon: FaLanguage,
-  //           },
-  //         ].map((item, index) => (
-  //           <div key={index} className="flex items-start">
-  //             <item.icon className="text-emerald-600 text-xl mt-0.5 mr-3 flex-shrink-0" />
-  //             <div>
-  //               <p className="text-sm text-gray-500">{item.label}</p>
-  //               <p className="font-medium">{item.value || "N/A"}</p>
-  //             </div>
-  //           </div>
-  //         ))}
-  //       </div>
-
-  //       <div className="space-y-4">
-  //         {[
-  //           {
-  //             label: "Emergency Contact Name",
-  //             value: studentForm.emergencyContactName,
-  //             icon: FaUserFriends,
-  //           },
-  //           {
-  //             label: "Emergency Contact Number",
-  //             value: studentForm.emergencyContactNumber,
-  //             icon: FaPhoneAlt,
-  //           },
-  //           {
-  //             label: "Relationship to Student",
-  //             value: studentForm.relationshipToStudent,
-  //             icon: FaUserTie,
-  //           },
-  //           {
-  //             label: "Disability Status",
-  //             value: studentForm.disabilityStatus ? "Yes" : "No",
-  //             icon: FaAccessibleIcon,
-  //           },
-  //           {
-  //             label: "Disability Details",
-  //             value: studentForm.disabilityDetails,
-  //             icon: FaNotesMedical,
-  //           },
-  //           {
-  //             label: "Previous Institution",
-  //             value: studentForm.previousInstitution,
-  //             icon: MdSchool,
-  //           },
-  //           {
-  //             label: "Course Name",
-  //             value: studentForm.courseName,
-  //             icon: FaBook,
-  //           },
-  //           {
-  //             label: "Enrollment Status",
-  //             value: studentForm.enrollmentStatus,
-  //             icon: FaClipboardList,
-  //           },
-  //           {
-  //             label: "Study Mode",
-  //             value: studentForm.studyMode,
-  //             icon: FaLaptop,
-  //           },
-  //           {
-  //             label: "Start Date",
-  //             value: studentForm.startDate,
-  //             icon: BsCalendarDate,
-  //           },
-  //           {
-  //             label: "End Date",
-  //             value: studentForm.endDate,
-  //             icon: BsCalendarDate,
-  //           },
-  //           {
-  //             label: "Guardian Name",
-  //             value: studentForm.guardianName,
-  //             icon: FaUserShield,
-  //           },
-  //           {
-  //             label: "Guardian Contact",
-  //             value: studentForm.guardianContact,
-  //             icon: FaPhoneAlt,
-  //           },
-  //           {
-  //             label: "Guardian Email",
-  //             value: studentForm.guardianEmail,
-  //             icon: FaEnvelope,
-  //           },
-  //           {
-  //             label: "Special Requirements",
-  //             value: studentForm.specialRequirements,
-  //             icon: FaExclamationCircle,
-  //           },
-  //         ].map((item, index) => (
-  //           <div key={index} className="flex items-start">
-  //             <item.icon className="text-emerald-600 text-xl mt-0.5 mr-3 flex-shrink-0" />
-  //             <div>
-  //               <p className="text-sm text-gray-500">{item.label}</p>
-  //               <p className="font-medium">{item.value || "N/A"}</p>
-  //             </div>
-  //           </div>
-  //         ))}
-  //       </div>
-  //     </div>
-  //   );
-  // };
-
-  // Render Documents List
   const renderDocumentsList = () => {
     if (
       !selectedApplication?.document &&
@@ -1494,7 +1280,7 @@ const AssessorCustomers = () => {
                       {formatDate(selectedApplication.status?.[0]?.time)}
                     </p>
                   </div>
-                  <div className="flex-1 min-w-0 bg-gray-50 rounded-lg p-4">
+                  {/* <div className="flex-1 min-w-0 bg-gray-50 rounded-lg p-4">
                     <h4 className="text-sm font-medium text-gray-500">
                       Payment Status
                     </h4>
@@ -1509,7 +1295,7 @@ const AssessorCustomers = () => {
                         </span>
                       )}
                     </div>
-                  </div>
+                  </div> */}
                 </div>
 
                 {/* Notes Section */}
@@ -1639,7 +1425,7 @@ const AssessorCustomers = () => {
 
             {documentLinks.length === 0 ? (
               <div className="text-center py-8">
-                <div className="mx-auto h-12 w-12 text-gray-400 flex items-center justify-center rounded-full bg-gray-100">
+                <div className="mx-auto h-12 w-12 text-gray-400  flex items-center justify-center rounded-full bg-gray-100">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     className="h-6 w-6"
@@ -1665,10 +1451,61 @@ const AssessorCustomers = () => {
             ) : (
               <>
                 <button
-                  onClick={downloadAllDocsAsZip}
-                  className="mb-4 px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 transition-colors flex items-center justify-center"
+                  onClick={() => {
+                    // Reset state before starting
+                    setIsDownloading({
+                      success: false,
+                      loading: true,
+                    });
+
+                    // Show loading toast
+                    toast.loading(
+                      `Documents of ${
+                        selectedApplication.applicationId || "Application"
+                      }  are downloading in the background`
+                    );
+
+                    // Start download process with proper callbacks
+                    downloadAllDocsAsZip(
+                      documentLinks,
+                      selectedApplication.applicationId,
+                      {
+                        loading: (isLoading) => {
+                          setIsDownloading((prev) => ({
+                            ...prev,
+                            loading: isLoading,
+                          }));
+                        },
+                        success: (isSuccess) => {
+                          setIsDownloading((prev) => ({
+                            ...prev,
+                            success: isSuccess,
+                          }));
+
+                          // Dismiss loading toast and show appropriate final toast
+                          toast.dismiss();
+                          if (isSuccess) {
+                            toast.success(
+                              `Documents of ${selectedApplication.applicationId} downloaded successfully`
+                            );
+                          } else {
+                            toast.error(
+                              "Failed to download documents. Please try again!"
+                            );
+                          }
+                        },
+                      }
+                    );
+                  }}
+                  disabled={isDownloading.loading}
+                  className="mb-4 px-4 py-2 bg-emerald-600 text-white rounded-md
+                  hover:bg-emerald-700 transition-colors flex items-center
+                  justify-center"
                 >
-                  <FaFileDownload className="mr-2" /> Download All Documents
+                  <FaFileDownload className="mr-2" />{" "}
+                  {isDownloading.loading
+                    ? "Downloading..."
+                    : "Download All Documents"}
                 </button>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-4">
@@ -1676,17 +1513,6 @@ const AssessorCustomers = () => {
                     const fileUrl = doc.url;
 
                     if (!fileUrl) return null; // Skip if no valid URL
-
-                    // const handleViewDocument = (url) => {
-                    //   const newWindow = window.open("about:blank", "_blank"); // Open blank tab first
-                    //   if (newWindow) {
-                    //     setTimeout(() => {
-                    //       newWindow.location.href = url; // Redirect to file URL
-                    //     }, 500);
-                    //   } else {
-                    //     window.location.href = url; // Fallback if pop-up is blocked
-                    //   }
-                    // };
 
                     return (
                       <div
@@ -1701,7 +1527,9 @@ const AssessorCustomers = () => {
                           className="flex items-center text-indigo-600 hover:text-indigo-800 w-full text-left"
                         >
                           <FaFileAlt className="mr-2 text-gray-500" />
-                          <span className="truncate">{doc.name}</span>
+                          <span className="truncate capitalize">
+                            {doc.name}
+                          </span>
                         </button>
                       </div>
                     );

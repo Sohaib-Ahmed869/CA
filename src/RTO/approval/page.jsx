@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import JSZip from "jszip";
 import { BsEye, BsClock, BsCalendarDate } from "react-icons/bs";
 import {
   BiCertification,
@@ -21,9 +20,12 @@ import {
   FaCheckCircle,
   FaTimesCircle,
 } from "react-icons/fa";
+const URL = import.meta.env.VITE_REACT_BACKEND_URL;
 import { MdLocationOn, MdWorkOutline, MdSchool } from "react-icons/md";
 import { VscDebugBreakpointData } from "react-icons/vsc";
 import { TbReportMoney } from "react-icons/tb";
+// import JSZip from "jszip";
+import { saveAs } from "file-saver";
 import { Toaster } from "react-hot-toast";
 import toast from "react-hot-toast";
 import pending from "../../assets/pending.png";
@@ -35,7 +37,7 @@ import {
 import SpinnerLoader from "../../Customer/components/spinnerLoader";
 import DocumentModal from "../../Customer/components/viewDocsModal";
 import RequestMoreDocuments from "../RequestMoreDocuments/RequestMoreDocuments";
-
+import { downloadAllDocsAsZip } from "../../utils/downloadAllDocs";
 const Approval = () => {
   const [submissionLoading, setSubmissionLoading] = useState(false);
   const [applications, setApplications] = useState([]);
@@ -60,6 +62,10 @@ const Approval = () => {
   const [SingleDocModelOpen, setSingleDocModelOpen] = useState(false);
   const [showRequestDocsModal, setShowRequestDocsModal] = useState(false);
 
+  const [isDownloading, setIsDownloading] = useState({
+    success: false,
+    loading: false,
+  });
   const CloseRequestDocsModal = () => {
     setShowRequestDocsModal(false);
   };
@@ -244,51 +250,6 @@ const Approval = () => {
   useEffect(() => {
     getRTOApplications();
   }, []);
-
-  const downloadAllDocsAsZip = async () => {
-    try {
-      setSubmissionLoading(true);
-      const zip = new JSZip();
-      const folder = zip.folder("Documents");
-
-      // Create an array of promises for each fetch
-      const fetchPromises = documentLinks.map(async (doc) => {
-        try {
-          const response = await fetch(doc.url);
-          const blob = await response.blob();
-
-          // Get file extension from URL or default to '.pdf'
-          const fileExtension = doc.url.split(".").pop().toLowerCase() || "pdf";
-          const fileName = `${doc.name}.${fileExtension}`;
-
-          folder.file(fileName, blob);
-          return true;
-        } catch (error) {
-          console.error(`Error fetching ${doc.name}:`, error);
-          return false;
-        }
-      });
-
-      // Wait for all fetches to complete
-      await Promise.all(fetchPromises);
-
-      // Create a download link for the zip file
-      const zipContent = await zip.generateAsync({ type: "blob" });
-      const downloadLink = document.createElement("a");
-      downloadLink.href = URL.createObjectURL(zipContent);
-      downloadLink.download = "Documents.zip";
-      document.body.appendChild(downloadLink);
-      downloadLink.click();
-      document.body.removeChild(downloadLink);
-
-      toast.success("Documents downloaded successfully");
-    } catch (error) {
-      console.error("Error creating zip file:", error);
-      toast.error("Failed to download documents");
-    } finally {
-      setSubmissionLoading(false);
-    }
-  };
 
   // Pagination handlers
   const handleNextPage = () =>
@@ -1236,7 +1197,7 @@ const Approval = () => {
                       {formatDate(selectedApplication.status?.[0]?.time)}
                     </p>
                   </div>
-                  <div className="flex-1 min-w-0 bg-gray-50 rounded-lg p-4">
+                  {/* <div className="flex-1 min-w-0 bg-gray-50 rounded-lg p-4">
                     <h4 className="text-sm font-medium text-gray-500">
                       Payment Status
                     </h4>
@@ -1251,7 +1212,7 @@ const Approval = () => {
                         </span>
                       )}
                     </div>
-                  </div>
+                  </div> */}
                 </div>
 
                 {/* Tabs */}
@@ -1310,7 +1271,7 @@ const Approval = () => {
                   >
                     <BiCertification className="mr-2" /> Issue Certificate
                   </button>
-                  <button
+                  {/* <button
                     onClick={() => {
                       handleReject(selectedApplication.id);
                       setSelectedApplication(null);
@@ -1318,7 +1279,7 @@ const Approval = () => {
                     className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-red-500 hover:bg-red-600 focus:outline-none"
                   >
                     <FaTimes className="mr-2" /> Reject Application
-                  </button>
+                  </button> */}
                   <button
                     className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-amber-500 hover:bg-amber-600 focus:outline-none"
                     onClick={OpenRequestDocsModal}
@@ -1450,10 +1411,61 @@ const Approval = () => {
           ) : (
             <>
               <button
-                onClick={downloadAllDocsAsZip}
-                className="mb-4 px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 transition-colors flex items-center justify-center"
+                onClick={() => {
+                  // Reset state before starting
+                  setIsDownloading({
+                    success: false,
+                    loading: true,
+                  });
+
+                  // Show loading toast
+                  toast.loading(
+                    `Documents of ${
+                      selectedApplication.applicationId || "Application"
+                    }  are downloading  in the background`
+                  );
+
+                  // Start download process with proper callbacks
+                  downloadAllDocsAsZip(
+                    documentLinks,
+                    selectedApplication.applicationId,
+                    {
+                      loading: (isLoading) => {
+                        setIsDownloading((prev) => ({
+                          ...prev,
+                          loading: isLoading,
+                        }));
+                      },
+                      success: (isSuccess) => {
+                        setIsDownloading((prev) => ({
+                          ...prev,
+                          success: isSuccess,
+                        }));
+
+                        // Dismiss loading toast and show appropriate final toast
+                        toast.dismiss();
+                        if (isSuccess) {
+                          toast.success(
+                            `Documents of ${selectedApplication.applicationId} downloaded successfully`
+                          );
+                        } else {
+                          toast.error(
+                            "Failed to download documents. Please try again!"
+                          );
+                        }
+                      },
+                    }
+                  );
+                }}
+                disabled={isDownloading.loading}
+                className="mb-4 px-4 py-2 bg-emerald-600 text-white rounded-md
+                                hover:bg-emerald-700 transition-colors flex items-center
+                                justify-center"
               >
-                <FaFileDownload className="mr-2" /> Download All Documents
+                <FaFileDownload className="mr-2" />{" "}
+                {isDownloading.loading
+                  ? "Downloading..."
+                  : "Download All Documents"}
               </button>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-4">
@@ -1473,7 +1485,7 @@ const Approval = () => {
                         className="flex items-center text-indigo-600 hover:text-indigo-800 w-full text-left"
                       >
                         <FaFileAlt className="mr-2 text-gray-500" />
-                        <span className="truncate">{doc.name}</span>
+                        <span className="truncate capitalize ">{doc.name}</span>
                       </button>
                     </div>
                   );
