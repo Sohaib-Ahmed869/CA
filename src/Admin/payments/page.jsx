@@ -32,6 +32,19 @@ const PaymentsPage = () => {
   const [sortDirection, setSortDirection] = useState("desc");
   const [activeFilter, setActiveFilter] = useState("All Payments");
   const [showFiltersPanel, setShowFiltersPanel] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [paymentsPerPage, setPaymentsPerPage] = useState(10);
+  const [paginatedApplications, setPaginatedApplications] = useState([]);
+
+  useEffect(() => {
+    const indexOfLastPayment = currentPage * paymentsPerPage;
+    const indexOfFirstPayment = indexOfLastPayment - paymentsPerPage;
+    setPaginatedApplications(
+      filteredApplications.slice(indexOfFirstPayment, indexOfLastPayment)
+    );
+  }, [filteredApplications, currentPage, paymentsPerPage]);
+
+  const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
   // Payment status options for filtering
   const statuses = [
@@ -734,7 +747,7 @@ const PaymentsPage = () => {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {filteredApplications.map((application) => (
+                  {paginatedApplications.map((application) => (
                     <tr key={application.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex flex-col">
@@ -819,6 +832,77 @@ const PaymentsPage = () => {
                   ))}
                 </tbody>
               </table>
+              {/* Pagination */}
+              <div className="px-6 py-4 bg-white border-t border-gray-200">
+                <div className="flex items-center justify-between">
+                  <div className="text-sm text-gray-500">
+                    Showing {paginatedApplications.length} of{" "}
+                    {filteredApplications.length} payments
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <select
+                      className="border border-gray-300 rounded px-2 py-1 text-sm"
+                      value={paymentsPerPage}
+                      onChange={(e) => {
+                        setPaymentsPerPage(Number(e.target.value));
+                        setCurrentPage(1);
+                      }}
+                    >
+                      <option value={5}>5 per page</option>
+                      <option value={10}>10 per page</option>
+                      <option value={25}>25 per page</option>
+                      <option value={50}>50 per page</option>
+                    </select>
+
+                    <button
+                      className="px-3 py-1 rounded border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                      onClick={() => paginate(currentPage - 1)}
+                      disabled={currentPage === 1}
+                    >
+                      Previous
+                    </button>
+
+                    {Array.from({
+                      length: Math.ceil(
+                        filteredApplications.length / paymentsPerPage
+                      ),
+                    })
+                      .map((_, index) => (
+                        <button
+                          key={index}
+                          className={`px-3 py-1 rounded ${
+                            currentPage === index + 1
+                              ? "bg-emerald-600 text-white"
+                              : "border border-gray-300 text-gray-700 hover:bg-gray-50"
+                          }`}
+                          onClick={() => paginate(index + 1)}
+                        >
+                          {index + 1}
+                        </button>
+                      ))
+                      .slice(
+                        Math.max(0, currentPage - 3),
+                        Math.min(
+                          Math.ceil(
+                            filteredApplications.length / paymentsPerPage
+                          ),
+                          currentPage + 2
+                        )
+                      )}
+
+                    <button
+                      className="px-3 py-1 rounded border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                      onClick={() => paginate(currentPage + 1)}
+                      disabled={
+                        currentPage ===
+                        Math.ceil(filteredApplications.length / paymentsPerPage)
+                      }
+                    >
+                      Next
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
           )}
         </div>

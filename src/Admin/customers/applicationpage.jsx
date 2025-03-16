@@ -355,7 +355,14 @@ const Application = ({
         toast.error("Failed to divide payment.");
       } else {
         toast.success("Payment divided successfully!");
-        setSelectedApplication(null);
+        const updatedApplication = {
+          ...application,
+          partialScheme: true,
+          payment1: payment1,
+          payment2: payment2,
+          payment2Deadline: payment2Deadline,
+        };
+        setSelectedApplication(updatedApplication);
         await getApplicationsData();
       }
     } catch (error) {

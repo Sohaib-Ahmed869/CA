@@ -805,7 +805,7 @@ const Dashboard = () => {
       (app) => app.full_paid || parseFloat(app.amount_paid) > 0
     ).length;
     const completedApplications = applications.filter(
-      (app) => app.status && app.status.includes("Completed")
+      (app) => app.currentStatus === "Certificate Generated"
     ).length;
 
     const conversionRate = totalApplications
