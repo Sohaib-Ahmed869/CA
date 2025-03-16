@@ -728,6 +728,9 @@ const ApplicationTrends = ({ applications }) => {
   );
 };
 const Dashboard = () => {
+   useEffect(() => {
+      window.scrollTo(0, 0);
+    }, []);
   const [stats, setStats] = useState({
     totalApplications: 0,
     totalPayments: 0,
@@ -985,11 +988,13 @@ const Dashboard = () => {
       </div>
       <div className="grid grid-cols-1 xl:grid-cols-2 my-6  gap-6">
         <TopQualificationsChart applications={applications} />
-        <ApplicationTrends applications={applications} />
+        <ApplicationFunnel applications={applications} />
       </div>
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
         <ColorStatusChart stats={stats} />
-        <ApplicationFunnel applications={applications} />
+        {hasFinanceAccess() && (
+          <ApplicationTrends applications={applications} />
+        )}
       </div>
     </div>
   );

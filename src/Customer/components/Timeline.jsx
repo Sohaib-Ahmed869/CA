@@ -61,6 +61,47 @@ const ImprovedTimeline = ({
   const [isExpanded, setIsExpanded] = useState(false);
   const [certificateStatus, setCertificateStatus] = useState(false);
   const navigate = useNavigate();
+  const [certificateModalOpen, setCertificateModalOpen] = useState(false);
+  const [certificateToView, setCertificateToView] = useState("");
+
+  const CertificateViewerModal = ({ isOpen, onClose, certificateUrl }) => {
+    if (!isOpen) return null;
+
+    return (
+      <div className="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center bg-black bg-opacity-50">
+        <div className="relative bg-white rounded-xl shadow-xl max-w-4xl w-full h-5/6 mx-4">
+          <div className="flex justify-between items-center p-4 border-b border-gray-200">
+            <h3 className="font-bold text-lg text-gray-900">Certificate</h3>
+            <button
+              onClick={onClose}
+              className="text-gray-400 hover:text-gray-500 focus:outline-none"
+            >
+              <svg
+                className="h-6 w-6"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </button>
+          </div>
+          <div className="p-0 h-full">
+            <iframe
+              src={certificateUrl}
+              title="Certificate"
+              className="w-full h-full border-0"
+            />
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   // Set the most recent application as selected by default
   useEffect(() => {
@@ -219,6 +260,7 @@ const ImprovedTimeline = ({
           }
         },
       },
+      // Find this code block in the timeline data array (around line 136-149):
       {
         id: "certificate",
         title: "Certificate",
@@ -230,13 +272,13 @@ const ImprovedTimeline = ({
           : "pending",
         date: getStepDate(selectedApp, "Certificate Generated"),
         icon: <FaCertificate className="text-white" />,
-        description:
-          "Your certificate will be generated and ready for download once all steps are completed.",
+        description: isCertificateGenerated
+          ? "Your certificate is ready for download."
+          : "Your certificate will be generated once all steps are complete.",
         action: () => {
-          if (onCertificateClick && selectedApp.certificateId) {
-            onCertificateClick(selectedApp.certificateId);
-          } else if (selectedApp.certificateId) {
-            window.open(selectedApp.certificateId, "_blank");
+          if (selectedApp.certificateId) {
+            setCertificateToView(selectedApp.certificateId);
+            setCertificateModalOpen(true);
           }
         },
       },
@@ -493,7 +535,8 @@ const ImprovedTimeline = ({
                 {/* Action Button if applicable - now using the defined action handler */}
                 {step.status === "current" ||
                 (step.status === "pending" && index === completedSteps) ||
-                step.status === "pending" ? (
+                step.status === "pending" ||
+                (step.id === "certificate" && selectedApp.certificateId) ? (
                   <button
                     onClick={step.action}
                     className="mt-2 inline-flex items-center text-sm font-medium text-emerald-600 hover:text-emerald-800 transition-colors"
@@ -501,13 +544,13 @@ const ImprovedTimeline = ({
                     {step.id === "payment" && "Make Payment"}
                     {step.id === "documents" && "Upload Files"}
                     {step.id === "form" && "Complete Student Form"}
-                    {step.id === "certificate" && certificateStatus
-                      ? "View Certificate"
-                      : null}
+                    {step.id === "certificate" &&
+                      selectedApp.certificateId &&
+                      "Download Certificate"}
                     {step.id !== "certificate" && (
                       <FaArrowRight className="ml-1 text-xs" />
                     )}
-                    {step.id === "certificate" && certificateStatus && (
+                    {step.id === "certificate" && selectedApp.certificateId && (
                       <FaArrowRight className="ml-1 text-xs" />
                     )}
                   </button>
@@ -615,6 +658,12 @@ const ImprovedTimeline = ({
           )}
         </button>
       </div>
+      {/* Certificate Viewer Modal */}
+      <CertificateViewerModal
+        isOpen={certificateModalOpen}
+        onClose={() => setCertificateModalOpen(false)}
+        certificateUrl={certificateToView}
+      />
     </div>
   );
 };

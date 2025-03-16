@@ -219,7 +219,7 @@ const Sidebar = () => {
             </ul>
           </div>
 
-          <div className="mt-auto px-4 pt-6 border-t border-emerald-700">
+          <div className="px-4 pt-6 border-t border-emerald-700">
             <button
               className="flex items-center gap-3 w-full p-3 text-red-200 hover:bg-red-900/20 rounded-xl transition-colors"
               onClick={onClickLogout}

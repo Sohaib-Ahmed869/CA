@@ -6,6 +6,9 @@ import { FaTimes } from "react-icons/fa";
 import { getDashboardStats } from "../../Customer/Services/rtoservices";
 
 const Dashboard = () => {
+   useEffect(() => {
+      window.scrollTo(0, 0);
+    }, []);
   const [totalApplications, setTotalApplications] = useState(0);
   const [applicationsPending, setApplicationsPending] = useState(0);
   const [applicationsCompletedThisMonth, setApplicationsCompletedThisMonth] =

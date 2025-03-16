@@ -21,6 +21,9 @@ import paymentsimg from "../../assets/payments.png";
 import { resendEmail } from "../../Customer/Services/adminServices";
 
 const PaymentDeadlinesPage = () => {
+   useEffect(() => {
+      window.scrollTo(0, 0);
+    }, []);
   const navigate = useNavigate();
   const [applications, setApplications] = useState([]);
   const [allUpcomingPayments, setAllUpcomingPayments] = useState([]); // Original data

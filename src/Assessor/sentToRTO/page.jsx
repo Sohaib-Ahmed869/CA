@@ -458,6 +458,9 @@ const ViewApplicationModal = ({ application, onClose }) => {
 };
 
 const RTOApplications = () => {
+   useEffect(() => {
+      window.scrollTo(0, 0);
+    }, []);
   const [applications, setApplications] = useState([]);
   const [filteredApplications, setFilteredApplications] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -755,8 +758,8 @@ const RTOApplications = () => {
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
-                          {app.currentStatus}
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-900">
+                         Assessed
                         </span>
                       </td>
                       <td className="px-6 py-4">

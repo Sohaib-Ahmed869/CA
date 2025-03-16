@@ -55,6 +55,9 @@ const PDFViewer = ({ url, onClose }) => {
 };
 
 const Completed = () => {
+   useEffect(() => {
+      window.scrollTo(0, 0);
+    }, []);
   const [applications, setApplications] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [submissionLoading, setSubmissionLoading] = useState(false);

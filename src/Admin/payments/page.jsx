@@ -22,6 +22,9 @@ import { BsCalendarCheck, BsWallet2 } from "react-icons/bs";
 import paymentsimg from "../../assets/payments.png";
 
 const PaymentsPage = () => {
+   useEffect(() => {
+      window.scrollTo(0, 0);
+    }, []);
   const navigate = useNavigate();
   const [applications, setApplications] = useState([]);
   const [filteredApplications, setFilteredApplications] = useState([]);

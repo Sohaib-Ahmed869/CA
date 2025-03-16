@@ -39,6 +39,9 @@ import {
 } from "lucide-react";
 
 const AdminDashboard = ({ setActive }) => {
+   useEffect(() => {
+      window.scrollTo(0, 0);
+    }, []);
   const navigate = useNavigate();
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -286,7 +289,7 @@ const AdminDashboard = ({ setActive }) => {
     trend,
   }) => (
     <div
-      onClick={onClick}
+      
       className={`bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow ${
         onClick ? "cursor-pointer" : ""
       }`}
@@ -419,129 +422,9 @@ const AdminDashboard = ({ setActive }) => {
           />
         </div>
 
-        {/* Charts Row */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-          {/* Applications Trend */}
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 lg:col-span-2">
-            <div className="flex justify-between items-center mb-6">
-              <div>
-                <h2 className="text-lg font-semibold text-gray-800">
-                  Application Trends
-                </h2>
-                <p className="text-gray-500 text-sm">
-                  Monthly applications and revenue
-                </p>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="flex items-center gap-1">
-                  <div className="w-3 h-3 rounded-full bg-blue-500"></div>
-                  <span className="text-xs text-gray-500">Applications</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                  <span className="text-xs text-gray-500">Revenue ($)</span>
-                </div>
-              </div>
-            </div>
-            <div className="h-80">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={filterDataByTime(monthlyData)}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                  <XAxis
-                    dataKey="month"
-                    tick={{ fontSize: 12 }}
-                    tickLine={false}
-                    axisLine={{ stroke: "#e5e7eb" }}
-                  />
-                  <YAxis
-                    yAxisId="left"
-                    tick={{ fontSize: 12 }}
-                    tickLine={false}
-                    axisLine={{ stroke: "#e5e7eb" }}
-                    tickFormatter={(value) => formatNumber(value)}
-                  />
-                  <YAxis
-                    yAxisId="right"
-                    orientation="right"
-                    tick={{ fontSize: 12 }}
-                    tickLine={false}
-                    axisLine={{ stroke: "#e5e7eb" }}
-                    tickFormatter={(value) => `$${formatNumber(value)}`}
-                  />
-                  <Tooltip content={<CustomTooltip />} />
-                  <Line
-                    yAxisId="left"
-                    type="monotone"
-                    dataKey="applications"
-                    stroke="#4F46E5"
-                    strokeWidth={2}
-                    name="Applications"
-                    dot={{ r: 4, strokeWidth: 2 }}
-                    activeDot={{ r: 6 }}
-                  />
-                  <Line
-                    yAxisId="right"
-                    type="monotone"
-                    dataKey="revenue"
-                    stroke="#10B981"
-                    strokeWidth={2}
-                    name="Revenue"
-                    dot={{ r: 4, strokeWidth: 2 }}
-                    activeDot={{ r: 6 }}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-
-          {/* Status Distribution Pie Chart */}
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-            <div className="flex justify-between items-center mb-6">
-              <div>
-                <h2 className="text-lg font-semibold text-gray-800">
-                  Applications by Status
-                </h2>
-                <p className="text-gray-500 text-sm">
-                  Distribution of all applications
-                </p>
-              </div>
-              <PieChartIcon size={18} className="text-gray-400" />
-            </div>
-            <div className="h-80 flex items-center justify-center">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={statusDistribution}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    outerRadius={80}
-                    fill="#8884d8"
-                    dataKey="value"
-                    nameKey="name"
-                    label={({ name, percent }) =>
-                      `${name}: ${(percent * 100).toFixed(0)}%`
-                    }
-                  >
-                    {statusDistribution.map((entry, index) => (
-                      <Cell
-                        key={`cell-${index}`}
-                        fill={COLORS[index % COLORS.length]}
-                      />
-                    ))}
-                  </Pie>
-                  <Tooltip
-                    formatter={(value) => [`${value} applications`, "Count"]}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-        </div>
-
         {/* Recent Applications and Top Qualifications */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-          {/* Recent Applications */}
+        <div className="grid grid-cols-1 lg:grid-cols-1 gap-6 mb-8">
+          {/* Recent Applications
           <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 lg:col-span-2">
             <div className="flex justify-between items-center mb-4">
               <div>
@@ -614,9 +497,15 @@ const AdminDashboard = ({ setActive }) => {
                 </tbody>
               </table>
             </div>
-          </div>
+          </div> */}
 
           {/* Top Qualifications */}
+     
+        </div>
+
+        {/* Charts Row */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          {/* Applications Trend */}
           <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
             <div className="flex justify-between items-center mb-4">
               <div>
@@ -662,10 +551,55 @@ const AdminDashboard = ({ setActive }) => {
               </ResponsiveContainer>
             </div>
           </div>
+          {/* Status Distribution Pie Chart */}
+          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+            <div className="flex justify-between items-center mb-6">
+              <div>
+                <h2 className="text-lg font-semibold text-gray-800">
+                  Applications by Status
+                </h2>
+                <p className="text-gray-500 text-sm">
+                  Distribution of all applications
+                </p>
+              </div>
+              <PieChartIcon size={18} className="text-gray-400" />
+            </div>
+            <div className="h-80 flex items-center justify-center">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={statusDistribution}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    outerRadius={80}
+                    fill="#8884d8"
+                    dataKey="value"
+                    legendType="circle"
+
+                    nameKey="name"
+                    label={({ name, percent }) =>
+                      `${name}: ${(percent * 100).toFixed(0)}%`
+                    }
+                  >
+                    {statusDistribution.map((entry, index) => (
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={COLORS[index % COLORS.length]}
+                      />
+                    ))}
+                  </Pie>
+                  <Tooltip
+                    formatter={(value) => [`${value} applications`, "Count"]}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
         </div>
 
         {/* Quick Actions */}
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+        {/* <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
           <h2 className="text-lg font-semibold text-gray-800 mb-4">
             Quick Actions
           </h2>
@@ -692,7 +626,7 @@ const AdminDashboard = ({ setActive }) => {
               <span className="text-sm font-medium">Certificates</span>
             </button>
           </div>
-        </div>
+        </div> */}
       </div>
     </div>
   );

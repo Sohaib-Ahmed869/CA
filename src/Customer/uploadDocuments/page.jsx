@@ -142,23 +142,21 @@ const UploadDocuments = () => {
           });
           setEmploymentLetter(documents.employmentLetter?.fileUrl || "");
           setPayslip(documents.payslip?.fileUrl || "");
-
+          console.log("ok", documents);
           // Preload images and videos if they exist
-          if (documents.images) {
-            setImages({
-              image1: documents.image1?.fileUrl || "",
-              image2: documents.image2?.fileUrl || "",
-              image3: documents.image3?.fileUrl || "",
-              image4: documents.image4?.fileUrl || "",
-            });
-          }
 
-          if (documents.videos) {
-            setVideos({
-              video1: documents.video1?.fileUrl || "",
-              video2: documents.video2?.fileUrl || "",
-            });
-          }
+          console.log("ok", documents.images);
+          setImages({
+            image1: documents.image1?.fileUrl || "",
+            image2: documents.image2?.fileUrl || "",
+            image3: documents.image3?.fileUrl || "",
+            image4: documents.image4?.fileUrl || "",
+          });
+
+          setVideos({
+            video1: documents.video1?.fileUrl || "",
+            video2: documents.video2?.fileUrl || "",
+          });
         }
       } catch (error) {
         console.error("Error fetching application:", error);
@@ -691,8 +689,8 @@ const UploadDocuments = () => {
                 <div className="mt-2 text-sm text-green-700">
                   <ul className="list-disc space-y-1 pl-5">
                     <li>All documents must be clear and legible</li>
-                    <li>Supported formats: PDF, PNG, JPG, DOCX</li>
-                    <li>Maximum file size: 5MB per document</li>
+                    <li>Supported formats: PDF, PNG, JPG, DOCX, MP4</li>
+
                     <li>You need 100+ points from the ID documents section</li>
                     <li>All fields marked with * are required</li>
                   </ul>

@@ -462,6 +462,9 @@ const ViewApplicationModal = ({ application, onClose }) => {
 };
 
 const CertificateApplications = () => {
+   useEffect(() => {
+      window.scrollTo(0, 0);
+    }, []);
   const [applications, setApplications] = useState([]);
   const [filteredApplications, setFilteredApplications] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -696,7 +699,7 @@ const CertificateApplications = () => {
                       scope="col"
                       className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                     >
-                      Certificate ID
+                      Certificate Status
                     </th>
                     <th
                       scope="col"

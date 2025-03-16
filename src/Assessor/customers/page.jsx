@@ -59,6 +59,9 @@ import RequestMoreDocuments from "../RequestMoreDocuments/RequestMoreDocuments";
 import { saveAs } from "file-saver";
 
 const AssessorCustomers = () => {
+   useEffect(() => {
+      window.scrollTo(0, 0);
+    }, []);
   const [applications, setApplications] = useState([]);
   const [filteredApplications, setFilteredApplications] = useState([]);
   const [selectedApplication, setSelectedApplication] = useState(null);
@@ -1375,12 +1378,12 @@ const AssessorCustomers = () => {
                   >
                     <BsEye className="mr-2" /> View All Documents
                   </button>
-                  <button
+                  {/* <button
                     className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none"
                     onClick={() => onClickInitiateCall(selectedApplication.id)}
                   >
                     <FaPhoneAlt className="mr-2" /> Initiate Call
-                  </button>
+                  </button> */}
 
                   <button
                     onClick={handleSendToRTO}

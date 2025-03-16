@@ -44,6 +44,7 @@ const CustomerDashboard = () => {
 
   // Payment modal state
   const [showPaymentModal, setShowPaymentModal] = useState(false);
+
   const [paymentDetails, setPaymentDetails] = useState({
     price: 0,
     discount: 0,
@@ -55,6 +56,7 @@ const CustomerDashboard = () => {
     payment2: 0,
     full_paid: false,
   });
+
   const [DocumentModalOpen, setDocumentModalOpen] = useState(false);
   const [currentDoc, setCurrentDoc] = useState("");
 
@@ -219,6 +221,7 @@ const CustomerDashboard = () => {
 
   // Handler for certificate download
   const handleCertificateClick = (certificateId) => {
+    //open in app
     window.open(certificateId, "_blank");
   };
 

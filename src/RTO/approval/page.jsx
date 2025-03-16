@@ -40,6 +40,9 @@ import RequestMoreDocuments from "../RequestMoreDocuments/RequestMoreDocuments";
 import { downloadAllDocsAsZip } from "../../utils/downloadAllDocs";
 import { use } from "react";
 const Approval = () => {
+   useEffect(() => {
+      window.scrollTo(0, 0);
+    }, []);
   const [submissionLoading, setSubmissionLoading] = useState(false);
   const [applications, setApplications] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
@@ -679,6 +682,12 @@ const Approval = () => {
       { key: "reference2", label: "Reference 2" },
       { key: "employmentLetter", label: "Employment Letter" },
       { key: "payslip", label: "Payslip" },
+      { key: "image1", label: "Image 1" },
+      { key: "image2", label: "Image 2" },
+      { key: "image3", label: "Image 3" },
+      { key: "image4", label: "Image 4" },
+      { key: "video1", label: "Video 1" },
+      { key: "video2", label: "Video 2" },
     ];
 
     // Step 1: Include all predefined documents (mark as "Not Uploaded" if missing)

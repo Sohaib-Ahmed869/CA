@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { FaTrash } from "react-icons/fa";
 const URL = import.meta.env.VITE_REACT_BACKEND_URL;
-axios.defaults.baseURL = URL;
 
 const SingleFileUploader = ({
   applicationId,
@@ -19,7 +18,8 @@ const SingleFileUploader = ({
   const [initializing, setInitializing] = useState(true);
   // Initialize with existing file URL
   useEffect(() => {
-    if (existingFileUrl) { // ✅ Add check for existing file URL
+    if (existingFileUrl) {
+      // ✅ Add check for existing file URL
       setFileUrl(existingFileUrl);
 
       try {
@@ -39,11 +39,6 @@ const SingleFileUploader = ({
     const file = e.target.files[0];
     if (!file) return;
 
-    if (file.size > 5 * 1024 * 1024) {
-      alert("File size is too large. Maximum file size is 5MB.");
-      return;
-    }
-
     setUploading(true);
     setAction("upload");
     try {
@@ -53,7 +48,7 @@ const SingleFileUploader = ({
       formData.append("fieldName", fieldName);
 
       const response = await axios.post(
-        `/api/users/${applicationId}/uploadSingle`,
+        `${URL}/api/users/${applicationId}/uploadSingle`,
         formData,
         {
           headers: {
@@ -85,7 +80,7 @@ const SingleFileUploader = ({
     setAction("delete");
     try {
       await axios.delete(
-        `/api/users/${applicationId}/deleteSingle?fieldName=${fieldName}&fileUrl=${encodeURIComponent(
+        `${URL}/api/users/${applicationId}/deleteSingle?fieldName=${fieldName}&fileUrl=${encodeURIComponent(
           fileUrl
         )}`
       );
@@ -153,7 +148,7 @@ const SingleFileUploader = ({
             disabled={uploading}
             onChange={handleFileChange}
             className="hidden"
-            accept=".pdf,.png,.jpg,.jpeg,.docx,.mp4"
+            accept=".pdf,.png,.jpg,.jpeg,.docx,.mp4, .mov, .avi, .mp3, .wav, .mkv"
           />
           <span className="text-gray-500 ml-2 truncate">
             {uploading ? fileName : "No file chosen"}

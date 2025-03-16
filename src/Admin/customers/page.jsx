@@ -66,6 +66,9 @@ import customersImg from "../../assets/customers.png"; // Make sure you have thi
 const URL = import.meta.env.VITE_REACT_BACKEND_URL;
 
 const CustomersInfo = () => {
+   useEffect(() => {
+      window.scrollTo(0, 0);
+    }, []);
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef(null);
@@ -75,10 +78,9 @@ const CustomersInfo = () => {
     "Assigned to Gabi",
     "Assigned to Ibrahim",
     "Assigned to Sidra",
-    "Assigned to Sameer",
-    "Assigned to Aayan",
+
     "Assigned to Ilhan",
-    "Assigned to Azhar",
+
     "Assigned to Waniya",
     "Assigned to N/A",
   ]);

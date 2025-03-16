@@ -10,6 +10,9 @@ import { AiOutlineFileSearch } from "react-icons/ai";
 import { MdDeleteOutline, MdRestoreFromTrash } from "react-icons/md";
 
 const ArchivedApplications = () => {
+   useEffect(() => {
+      window.scrollTo(0, 0);
+    }, []);
   const navigate = useNavigate();
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(false);
