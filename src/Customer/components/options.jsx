@@ -58,6 +58,11 @@ const CustomerDashboard = () => {
   const [DocumentModalOpen, setDocumentModalOpen] = useState(false);
   const [currentDoc, setCurrentDoc] = useState("");
 
+  //scroll to top when page loads
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   // Function to open modal with selected document
   const openModal = (doc) => {
     setCurrentDoc(doc); // Directly set the file URL
@@ -153,7 +158,6 @@ const CustomerDashboard = () => {
       );
     }
   }, [lastApplication]);
-  
 
   const navigateToExistingApplications = () =>
     navigate("/existing-applications");
@@ -217,8 +221,6 @@ const CustomerDashboard = () => {
   const handleCertificateClick = (certificateId) => {
     window.open(certificateId, "_blank");
   };
-
-  
 
   return (
     <div className="min-h-screen bg-gray-50">

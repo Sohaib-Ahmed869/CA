@@ -1,5 +1,6 @@
 import JSZip from "jszip";
 import { saveAs } from "file-saver";
+const URL = import.meta.env.VITE_REACT_BACKEND_URL;
 
 export async function downloadAllDocsAsZip(
   documentLinks,
@@ -49,7 +50,7 @@ export async function downloadAllDocsAsZip(
         updateProgress();
 
         // Use your proxy endpoint
-        const proxyUrl = `http://localhost:5000/proxy-file?url=${encodeURIComponent(
+        const proxyUrl = `${URL}/proxy-file?url=${encodeURIComponent(
           doc.url.fileUrl
         )}`;
         console.log(`Fetching file ${i + 1}: ${doc.name || "Unnamed"}`);

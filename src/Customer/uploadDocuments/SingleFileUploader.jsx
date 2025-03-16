@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { FaTrash } from "react-icons/fa";
-
-axios.defaults.baseURL = "http://localhost:5000/";
+const URL = import.meta.env.VITE_REACT_BACKEND_URL;
+axios.defaults.baseURL = URL;
 
 const SingleFileUploader = ({
   applicationId,
