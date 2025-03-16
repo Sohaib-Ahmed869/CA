@@ -19,7 +19,7 @@ const SingleFileUploader = ({
   const [initializing, setInitializing] = useState(true);
   // Initialize with existing file URL
   useEffect(() => {
-    if (existingFileUrl) {
+    if (existingFileUrl) { // ✅ Add check for existing file URL
       setFileUrl(existingFileUrl);
 
       try {
