@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import JSZip from "jszip";
 import { BsEye, BsClock, BsCalendarDate } from "react-icons/bs";
 import {
@@ -55,7 +55,7 @@ import {
 } from "../../Customer/Services/adminServices";
 import { initiateVerificationCall } from "../../Customer/Services/twilioService";
 import DocumentModal from "../../Customer/components/viewDocsModal";
-import RequestMoreDocuments from "../../RTO/RequestMoreDocuments/RequestMoreDocuments";
+import RequestMoreDocuments from "../RequestMoreDocuments/RequestMoreDocuments";
 import { saveAs } from "file-saver";
 
 const AssessorCustomers = () => {
@@ -1401,10 +1401,6 @@ const AssessorCustomers = () => {
           {showRequestDocsModal && (
             <RequestMoreDocuments
               applicationId={selectedApplication.id}
-              PreviouslyRequestedDocuments={
-                selectedApplication.requestedDocuments
-              }
-              UploadedDocuments={selectedApplication.document}
               onClose={CloseRequestDocsModal}
             />
           )}

@@ -86,23 +86,26 @@ const ScreeningForm2 = () => {
       toast.error("Please select an option");
       return;
     }
-    console.log(step);
-    if (step === 3 && formalEducation.length === 0) {
-      toast.error("Please Select an option");
-      return;
-    }
-    if (
-      step === 3 &&
-      formalEducation === "Yes" &&
-      formalEducationAnswer.length === 0
-    ) {
-      toast.error("Please fill in the required fields");
-      return;
+
+    // For step 3 - formal education validation
+    if (step === 3) {
+      if (formalEducation === "" || formalEducation.length === 0) {
+        toast.error("Please select an option for formal education");
+        return;
+      }
+
+      if (
+        formalEducation === "Yes" &&
+        (formalEducationAnswer === "" || formalEducationAnswer.length === 0)
+      ) {
+        toast.error("Please provide details about your formal education");
+        return;
+      }
     }
 
+    // If all validations pass, go to next step
     setStep((prevStep) => Math.min(prevStep + 1, 3));
   };
-
   const handleBack = () => {
     setStep((prevStep) => Math.max(prevStep - 1, 0));
   };
@@ -173,6 +176,7 @@ const ScreeningForm2 = () => {
         type,
         price,
       };
+
       console.log("Data: ", data);
       const response = await createNewApplication(data, userId);
       console.log("Response: ", response);
@@ -182,7 +186,27 @@ const ScreeningForm2 = () => {
       console.log(error);
     }
   };
+  const isFormValid = () => {
+    if (step === 3) {
+      // Check if formal education is selected
+      if (formalEducation === "" || formalEducation.length === 0) {
+        // toast.error("Please select an option for formal education");
 
+        return false;
+      }
+
+      // If formal education is "Yes", check if details are provided
+      if (
+        formalEducation === "Yes" &&
+        (formalEducationAnswer === "" || formalEducationAnswer.length === 0)
+      ) {
+        toast.success("Please provide details about your formal education");
+        return false;
+      }
+    }
+
+    return true;
+  };
   return (
     <div className="min-h-screen">
       <Toaster position="top right" />
@@ -254,7 +278,8 @@ const ScreeningForm2 = () => {
             ) : (
               <button
                 onClick={onClickSubmit}
-                className="btn bg-primary px-4 py-2 m-2 rounded"
+                disabled={!isFormValid()}
+                className={"btn bg-primary px-4 py-2 m-2 rounded"}
               >
                 Submit
               </button>

@@ -1402,7 +1402,7 @@ const Application = ({
                           className="border rounded-lg p-4 hover:bg-gray-50 transition-colors"
                         >
                           <div className="flex justify-between items-center">
-                            <p className="font-medium text-gray-700">
+                            <p className="font-medium capitalize text-gray-700">
                               {doc.name}
                             </p>
                             <button

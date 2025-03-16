@@ -552,12 +552,6 @@ const AdminDashboard = ({ setActive }) => {
                   Last 5 applications submitted
                 </p>
               </div>
-              <button
-                onClick={() => setActive("Customers")}
-                className="text-sm text-indigo-600 hover:text-indigo-800 flex items-center"
-              >
-                View All <ArrowRight size={16} className="ml-1" />
-              </button>
             </div>
             <div className="overflow-x-auto">
               <table className="min-w-full">
@@ -574,9 +568,6 @@ const AdminDashboard = ({ setActive }) => {
                     </th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Date
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Actions
                     </th>
                   </tr>
                 </thead>
@@ -607,14 +598,6 @@ const AdminDashboard = ({ setActive }) => {
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700">
                         {new Date(app.status?.[0]?.time).toLocaleDateString()}
-                      </td>
-                      <td className="px-4 py-3 whitespace-nowrap text-sm">
-                        <button
-                          onClick={() => setActive("Customers")}
-                          className="text-indigo-600 hover:text-indigo-900 font-medium"
-                        >
-                          View
-                        </button>
                       </td>
                     </tr>
                   ))}

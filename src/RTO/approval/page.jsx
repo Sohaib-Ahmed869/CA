@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { BsEye, BsClock, BsCalendarDate } from "react-icons/bs";
 import {
   BiCertification,
@@ -38,6 +38,7 @@ import SpinnerLoader from "../../Customer/components/spinnerLoader";
 import DocumentModal from "../../Customer/components/viewDocsModal";
 import RequestMoreDocuments from "../RequestMoreDocuments/RequestMoreDocuments";
 import { downloadAllDocsAsZip } from "../../utils/downloadAllDocs";
+import { use } from "react";
 const Approval = () => {
   const [submissionLoading, setSubmissionLoading] = useState(false);
   const [applications, setApplications] = useState([]);
@@ -66,6 +67,7 @@ const Approval = () => {
     success: false,
     loading: false,
   });
+
   const CloseRequestDocsModal = () => {
     setShowRequestDocsModal(false);
   };
@@ -1293,10 +1295,6 @@ const Approval = () => {
           {showRequestDocsModal && (
             <RequestMoreDocuments
               applicationId={selectedApplication.id}
-              PreviouslyRequestedDocuments={
-                selectedApplication.requestedDocuments
-              }
-              UploadedDocuments={selectedApplication.document}
               onClose={CloseRequestDocsModal}
             />
           )}
