@@ -19,10 +19,10 @@
 
 /* Apply grow animation on active steps */
 .animate-grow {
-  animation: grow 0.5s ease-in-out forwards;
+  animation: grow 0.5s ease-in-out forwards; /* Apply animation to the step */
 }
 
 /* Apply fill animation to the line */
 .animate-fill {
-  animation: fill 0.5s ease-in-out forwards;
+  animation: fill 0.5s ease-in-out forwards; /* Apply animation to the line */
 }
