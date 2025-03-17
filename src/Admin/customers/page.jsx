@@ -81,7 +81,7 @@ const CustomersInfo = () => {
 
     "Assigned to Ilhan",
 
-    "Assigned to Waniya",
+    "Assigned to Wania",
     "Assigned to N/A",
   ]);
   const [selectedFilter, setSelectedFilter] = useState("All");

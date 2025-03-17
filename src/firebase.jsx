@@ -17,15 +17,7 @@ const firebaseConfig = {
   measurementId: "G-ESBEFL4ZJ9",
 };
 
-const firebaseConfig2 = {
-  apiKey: "AIzaSyAlDj_YjopzasGvveP1VNxJsMOk-fBICO8",
-  authDomain: "testca-e3e5e.firebaseapp.com",
-  projectId: "testca-e3e5e",
-  storageBucket: "testca-e3e5e.firebasestorage.app",
-  messagingSenderId: "92801329690",
-  appId: "1:92801329690:web:6daa5db44133212b3bffa3",
-  measurementId: "G-V2Z5CZHSPQ",
-};
+
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);

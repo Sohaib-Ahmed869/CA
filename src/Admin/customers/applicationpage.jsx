@@ -51,9 +51,9 @@ const Application = ({
   resendEmailFunc,
   onClickPayment,
 }) => {
-   useEffect(() => {
-      window.scrollTo(0, 0);
-    }, []);
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
   const [submissionLoading, setSubmissionLoading] = useState(false);
   const [activeView, setActiveView] = useState("overview");
   const [viewIntakeForm, setViewIntakeForm] = useState(false);
@@ -1027,8 +1027,6 @@ const Application = ({
                                         year: "numeric",
                                         month: "long",
                                         day: "numeric",
-                                        hour: "2-digit",
-                                        minute: "2-digit",
                                       })
                                     : "Not Available"}{" "}
                                 </span>
