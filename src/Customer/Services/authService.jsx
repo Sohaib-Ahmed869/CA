@@ -80,3 +80,16 @@ export const registerAgent = async (firstName, lastName, email, password) => {
     return error.response ? error.response.data : { message: "Network Error" };
   }
 };
+
+export const checkIfUserCanAccess = async (userId, userRole) => {
+  try {
+    const response = await axios.get(
+      `${URL}/api/admin/check-access/${userId}/${userRole}`
+    );
+
+    return response.data;
+  } catch (error) {
+    console.error("Check access error:", error); // Log the error for debugging
+    return error.response ? error.response.data : { message: "Network Error" };
+  }
+};

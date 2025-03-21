@@ -11,6 +11,7 @@ import Dashboard from "../dashboard/page";
 import Industries from "../Industries/page";
 import ArchivedApplications from "../archived/page";
 import PaymentDeadlinesPage from "../payments/pendingpayments";
+import { checkIfUserCanAccess } from "../../Customer/Services/authService";
 import {
   MdDashboard,
   MdKeyboardArrowDown,
@@ -59,11 +60,39 @@ const AdminSidebar = () => {
       if (user) {
         setCurrentUserId(user.uid);
       }
+      if (!user) {
+        navigate("/login");
+      }
     });
 
     return () => unsubscribe();
   }, []);
 
+  const verifyUserAccess = async () => {
+    if (currentUserId) {
+      try {
+        const response = await checkIfUserCanAccess(currentUserId, "admin");
+
+        if (response.error) {
+          navigate("/login");
+        } else {
+          // Optionally store user type in localStorage if needed
+          if (response.userType) {
+            localStorage.setItem("type", response.userType);
+          }
+        }
+      } catch (error) {
+        console.error("Error verifying access:", error);
+        navigate("/login");
+      }
+    }
+  };
+
+  useEffect(() => {
+    if (currentUserId) {
+      verifyUserAccess();
+    }
+  }, [currentUserId]);
   const handleFinanceClick = (option) => {
     setActive("Finances");
     setActiveFinance(option);
@@ -80,13 +109,13 @@ const AdminSidebar = () => {
     badge = null,
   }) => (
     <li
-      className={`cursor-pointer transition-all duration-200 ease-in-out 
-      ${hasBorder ? "border-b border-emerald-600/20" : ""} 
+      className={`cursor-pointer transition-all duration-200 ease-in-out
+      ${hasBorder ? "border-b border-emerald-600/20" : ""}
       ${
         isActive
           ? "bg-emerald-700/30 text-white"
           : "text-emerald-50 hover:bg-emerald-700/20"
-      } 
+      }
       rounded-xl my-1`}
       onClick={onClick}
     >
@@ -113,7 +142,7 @@ const AdminSidebar = () => {
   // Finance dropdown items
   const FinanceDropdownItem = ({ label, isActive, onClick }) => (
     <button
-      className={`w-full text-left p-2 pl-12 my-1 rounded-lg transition-colors duration-200 flex items-center gap-2 
+      className={`w-full text-left p-2 pl-12 my-1 rounded-lg transition-colors duration-200 flex items-center gap-2
       ${
         isActive
           ? "bg-emerald-700/30 text-white"
@@ -163,13 +192,13 @@ const AdminSidebar = () => {
 
     return (
       <li
-        className={`cursor-pointer transition-all duration-200 ease-in-out 
-          border-b border-emerald-600/20 
+        className={`cursor-pointer transition-all duration-200 ease-in-out
+          border-b border-emerald-600/20
           ${
             active === "Finances"
               ? "bg-emerald-700/30 text-white"
               : "text-emerald-50 hover:bg-emerald-700/20"
-          } 
+          }
           rounded-xl my-1`}
       >
         <div
@@ -312,12 +341,12 @@ const AdminSidebar = () => {
 
                     {hasFinanceAccess() && (
                       <li
-                        className={`cursor-pointer transition-all duration-200 ease-in-out 
+                        className={`cursor-pointer transition-all duration-200 ease-in-out
                           ${
                             active === "Finances"
                               ? "bg-emerald-700/30 text-white"
                               : "text-emerald-50 hover:bg-emerald-700/20"
-                          } 
+                          }
                           rounded-xl`}
                       >
                         <div
@@ -445,7 +474,6 @@ const AdminSidebar = () => {
                 isActive={active === "Archived Applications"}
                 onClick={() => setActive("Archived Applications")}
               />
-              
             </ul>
           </div>
 

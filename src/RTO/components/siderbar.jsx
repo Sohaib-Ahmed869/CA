@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import certifiedAustralia from "../../assets/certifiedAustralia.png";
 import Approval from "../approval/page";
@@ -16,17 +17,59 @@ import { getAuth, signOut } from "firebase/auth";
 import { RiLockPasswordLine } from "react-icons/ri";
 import { motion, AnimatePresence } from "framer-motion";
 import ChangePassword from "../../Admin/ChangePassword/page";
+import { checkIfUserCanAccess } from "../../Customer/Services/authService";
 
 const Sidebar = () => {
   const navigate = useNavigate();
   const [active, setActive] = useState("Dashboard");
   const [isOpen, setIsOpen] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState(null);
   const auth = getAuth();
 
   const onClickLogout = async () => {
     await signOut(auth);
     navigate("/login");
   };
+
+  useEffect(() => {
+    const auth = getAuth();
+    const unsubscribe = auth.onAuthStateChanged((user) => {
+      if (user) {
+        setCurrentUserId(user.uid);
+      }
+      if (!user) {
+        navigate("/login");
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  const verifyUserAccess = async () => {
+    if (currentUserId) {
+      try {
+        const response = await checkIfUserCanAccess(currentUserId, "rto");
+
+        if (response.error) {
+          navigate("/login");
+        } else {
+          // Optionally store user type in localStorage if needed
+          if (response.userType) {
+            localStorage.setItem("type", response.userType);
+          }
+        }
+      } catch (error) {
+        console.error("Error verifying access:", error);
+        navigate("/login");
+      }
+    }
+  };
+
+  useEffect(() => {
+    if (currentUserId) {
+      verifyUserAccess();
+    }
+  }, [currentUserId]);
 
   const MenuItem = ({
     icon,
