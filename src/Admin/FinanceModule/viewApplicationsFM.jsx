@@ -21,6 +21,7 @@ import {
   Calendar,
   ArrowLeft,
 } from "lucide-react";
+import { UpdateExpense } from "../../Customer/Services/adminServices";
 
 const URL = import.meta.env.VITE_REACT_BACKEND_URL;
 
@@ -354,6 +355,7 @@ const FinanceManagement = () => {
   const [otherselectedApplication, setOtherSelectedApplication] =
     useState(null);
   const [addExpenseModal, setAddExpenseModal] = useState(false);
+  const [newExpense, setNewExpense] = useState(0);
   const [expense, setExpense] = useState({
     amount: "",
     description: "",
@@ -423,38 +425,27 @@ const FinanceManagement = () => {
     searchByIDorName();
   }, [search]);
 
-  const handleAddExpense = async () => {
-    if (!expense.amount || !expense.description) {
+  const handleUpdateExpense = async () => {
+    if (!newExpense) {
       toast.error("Please fill all fields");
       return;
     }
 
     try {
       setSubmissionLoading(true);
-      const response = await fetch(
-        `${URL}/api/applications/expense/${selectedApplication.id}`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(expense),
-        }
-      );
 
-      if (!response.ok) throw new Error("Failed to add expense");
+      const response = await UpdateExpense(selectedApplication.id, newExpense);
+
+      if (response.error)
+        throw new Error(response.message || "Failed to add expense");
 
       toast.success("Expense added successfully");
       setAddExpenseModal(false);
-      setExpense({
-        amount: "",
-        description: "",
-        date: new Date().toISOString().split("T")[0],
-      });
+      setNewExpense("");
       await getFinancialApplications();
     } catch (error) {
       console.error("Failed to add expense:", error);
-      toast.error("Failed to add expense");
+      toast.error(error.message || "Failed to add expense");
     } finally {
       setSubmissionLoading(false);
     }
@@ -687,15 +678,7 @@ const FinanceManagement = () => {
                           : "0"}
                       </td>
                       <td className="p-4 text-center font-medium">
-                        $
-                        {application.expenses
-                          ? application.expenses
-                              .reduce(
-                                (sum, exp) => sum + parseFloat(exp.amount),
-                                0
-                              )
-                              .toFixed(2)
-                          : "0"}
+                        ${application.isf.expense}
                       </td>
                       <td className="p-4">
                         <div className="flex justify-center gap-2">
@@ -703,16 +686,17 @@ const FinanceManagement = () => {
                             className="bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded flex items-center gap-1 text-sm"
                             onClick={() => {
                               setSelectedApplication(application);
+                              setNewExpense(application.isf.expense);
                               setAddExpenseModal(true);
                             }}
                             title="Add Expense"
                           >
                             <PlusCircle size={14} />
                             <span className="hidden md:inline">
-                              Add Expense
+                              Update Expense
                             </span>
                           </button>
-                          <button
+                          {/* <button
                             className="bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded flex items-center gap-1 text-sm"
                             onClick={() => handleViewExpenses(application)}
                             disabled={!application.expenses?.length}
@@ -722,7 +706,7 @@ const FinanceManagement = () => {
                             <span className="hidden md:inline">
                               View Expenses
                             </span>
-                          </button>
+                          </button> */}
                         </div>
                       </td>
                     </tr>
@@ -870,7 +854,7 @@ const FinanceManagement = () => {
                 <div className="flex items-center justify-between mb-6">
                   <h2 className="text-xl font-semibold text-gray-800 flex items-center">
                     <PlusCircle size={20} className="mr-2 text-green-700" />
-                    Add Expense
+                    Update Expense
                   </h2>
                   <button
                     onClick={() => {
@@ -886,53 +870,24 @@ const FinanceManagement = () => {
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Amount
+                      Update Expense Amount
                     </label>
                     <input
                       type="number"
                       className="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                      value={expense.amount}
-                      onChange={(e) =>
-                        setExpense({ ...expense, amount: e.target.value })
-                      }
-                      placeholder="Enter amount"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Description
-                    </label>
-                    <textarea
-                      className="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                      value={expense.description}
-                      onChange={(e) =>
-                        setExpense({ ...expense, description: e.target.value })
-                      }
-                      placeholder="Enter expense description"
-                      rows={4}
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Date
-                    </label>
-                    <input
-                      type="date"
-                      className="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                      value={expense.date}
-                      onChange={(e) =>
-                        setExpense({ ...expense, date: e.target.value })
-                      }
+                      value={newExpense}
+                      onChange={(e) => {
+                        setNewExpense(e.target.value);
+                      }}
+                      placeholder="Enter expense amount"
                     />
                   </div>
 
                   <button
                     className="w-full bg-green-700 hover:bg-green-800 text-white font-medium py-2 rounded-md transition-colors mt-4"
-                    onClick={handleAddExpense}
+                    onClick={handleUpdateExpense}
                   >
-                    Add Expense
+                    Update Expense
                   </button>
                 </div>
               </div>

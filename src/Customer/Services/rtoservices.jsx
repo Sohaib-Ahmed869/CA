@@ -10,6 +10,24 @@ export const getApplications = async () => {
     return error.response.data;
   }
 };
+export const SendApplicationToRto = async (application, rto) => {
+  try {
+    const response = await axios.post(`${URL}/api/rto/sendApplicationtoRto`, {
+      application,
+      rto,
+    });
+
+    return response.data; // Ensure response is returned
+  } catch (error) {
+    console.error("Error sending application:", error);
+
+    // Ensure function always returns an object
+    return {
+      success: false,
+      message: error.response?.data?.message || "Failed to send application",
+    };
+  }
+};
 
 export const getDashboardStats = async () => {
   try {

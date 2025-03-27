@@ -45,7 +45,6 @@ import SpinnerLoader from "../../Customer/components/spinnerLoader";
 import Loader from "../../Customer/components/loader";
 import { downloadAllDocsAsZip } from "../../utils/downloadAllDocs";
 import {
-  getApplications,
   verifyApplication,
   addNoteToApplication,
   resendEmail,
@@ -53,15 +52,16 @@ import {
   uploadCertificate,
   requestMoreDocuments,
 } from "../../Customer/Services/adminServices";
+import { getApplications } from "../../Customer/Services/assesorServices";
 import { initiateVerificationCall } from "../../Customer/Services/twilioService";
 import DocumentModal from "../../Customer/components/viewDocsModal";
 import RequestMoreDocuments from "../RequestMoreDocuments/RequestMoreDocuments";
 import { saveAs } from "file-saver";
 
 const AssessorCustomers = () => {
-   useEffect(() => {
-      window.scrollTo(0, 0);
-    }, []);
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
   const [applications, setApplications] = useState([]);
   const [filteredApplications, setFilteredApplications] = useState([]);
   const [selectedApplication, setSelectedApplication] = useState(null);
@@ -624,7 +624,7 @@ const AssessorCustomers = () => {
             </div>
           </div>
 
-          <div className="flex items-start">
+          {/* <div className="flex items-start">
             <TbReportMoney className="text-emerald-600 text-xl mt-0.5 mr-3 flex-shrink-0" />
             <div>
               <p className="text-sm text-gray-500">Price</p>
@@ -636,7 +636,7 @@ const AssessorCustomers = () => {
                   ` (Discount: $${selectedApplication.discount})`}
               </p>
             </div>
-          </div>
+          </div> */}
         </div>
       </div>
     );
@@ -661,7 +661,7 @@ const AssessorCustomers = () => {
             <div>
               <p className="text-sm text-gray-500">Full Name</p>
               <p className="font-medium">
-                {selectedApplication.user.firstName}{" "}
+                {selectedApplication.user.firstName || "N/A"}{" "}
                 {selectedApplication.user.lastName}
               </p>
             </div>

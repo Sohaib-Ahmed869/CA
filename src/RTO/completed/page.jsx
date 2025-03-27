@@ -55,9 +55,9 @@ const PDFViewer = ({ url, onClose }) => {
 };
 
 const Completed = () => {
-   useEffect(() => {
-      window.scrollTo(0, 0);
-    }, []);
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
   const [applications, setApplications] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [submissionLoading, setSubmissionLoading] = useState(false);
@@ -101,9 +101,9 @@ const Completed = () => {
         const isPaymentComplete = app.paid === true;
 
         // If rtoType is 'all', don't filter by type
-        if (rtoType.toLowerCase() === "all") {
-          return isPaymentComplete;
-        }
+        // if (rtoType.toLowerCase() === "all") {
+        //   return isPaymentComplete;
+        // }
 
         // Otherwise, filter by matching type or default
         return isPaymentComplete;

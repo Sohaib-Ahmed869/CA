@@ -54,7 +54,7 @@ const Login = () => {
       setSubmissionLoading(false);
 
       // Redirect to dashboard
-      navigate("/");
+      // navigate("/");
     } catch (err) {
       setError("Invalid email or password");
       console.error("Login error:", err);

@@ -1,10 +1,76 @@
 import axios from "axios";
 //get url from .env file vite project
 const URL = import.meta.env.VITE_REACT_BACKEND_URL;
+import { authAxios } from "../../utils/axiosInstance";
+// adminServices.js
+// Enhanced updateAgentTarget function
+export const updateAgentTarget = async (agentId, targetData) => {
+  try {
+    const response = await authAxios.patch(
+      `${URL}/api/admin/targets/${agentId}`,
+      targetData,
+      {
+        timeout: 5000, // ✅ Keep timeout to handle slow network
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Network Error:", error.message);
 
+    return {
+      error: true,
+      message:
+        error.response?.data?.message || "Could not connect to the server.",
+    };
+  }
+};
+
+export const getAgentTargets = async () => {
+  try {
+    const response = await authAxios.get(`${URL}/api/admin/targets`);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching targets:", error);
+    return (
+      error.response?.data || {
+        error: true,
+        message: "Failed to fetch targets",
+      }
+    );
+  }
+};
+export const UpdateExpense = async (applicationId, newExpense) => {
+  try {
+    const response = await authAxios.patch(
+      `${URL}/api/admin/updateExpense/${applicationId}`,
+      { newExpense } // Send as an object with newExpense key
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error updating expense:", error);
+    return (
+      error.response?.data || {
+        error: true,
+        message: "Failed to update expense",
+      }
+    );
+  }
+};
 export const getCustomers = async () => {
   try {
-    const response = await axios.get(`${URL}/api/admin/customers`);
+    const response = await authAxios.get(`${URL}/api/admin/customers`);
+    console.log(response.data);
+    return response.data;
+  } catch (error) {
+    return error.response.data;
+  }
+};
+export const getAgents = async () => {
+  try {
+    const response = await authAxios.get(`${URL}/api/admin/getAgents`);
     console.log(response.data);
     return response.data;
   } catch (error) {
@@ -14,7 +80,9 @@ export const getCustomers = async () => {
 
 export const verifyCustomer = async (customerId) => {
   try {
-    const response = await axios.put(`${URL}/api/admin/verify/${customerId}`);
+    const response = await authAxios.put(
+      `${URL}/api/admin/verify/${customerId}`
+    );
     return response.data;
   } catch (error) {
     return error.response.data;
@@ -23,7 +91,7 @@ export const verifyCustomer = async (customerId) => {
 
 export const getApplications = async () => {
   try {
-    const response = await axios.get(`${URL}/api/admin/applications`);
+    const response = await authAxios.get(`${URL}/api/admin/applications`);
     console.log(response.data);
     return response.data;
   } catch (error) {
@@ -33,7 +101,9 @@ export const getApplications = async () => {
 
 export const getAdminApplications = async (userId) => {
   try {
-    const response = await axios.get(`${URL}/api/admin/applications/${userId}`);
+    const response = await authAxios.get(
+      `${URL}/api/admin/applications/${userId}`
+    );
     console.log(response.data);
     return response.data;
   } catch (error) {
@@ -43,7 +113,7 @@ export const getAdminApplications = async (userId) => {
 
 export const verifyApplication = async (applicationId) => {
   try {
-    const response = await axios.put(
+    const response = await authAxios.put(
       `${URL}/api/admin/verifyApplication/${applicationId}`
     );
     return response.data;
@@ -54,7 +124,7 @@ export const verifyApplication = async (applicationId) => {
 
 export const markApplicationAsPaid = async (applicationId) => {
   try {
-    const response = await axios.put(
+    const response = await authAxios.put(
       `${URL}/api/admin/markApplicationAsPaid/${applicationId}`
     );
     return response.data;
@@ -92,7 +162,9 @@ export const requestMoreDocuments = async (applicationId, message) => {
 export const getDashboardStats = async ({ id }) => {
   try {
     console.log("ID:", id);
-    const response = await axios.get(`${URL}/api/admin/dashboardStats/${id}`);
+    const response = await authAxios.get(
+      `${URL}/api/admin/dashboardStats/${id}`
+    );
     return response.data;
   } catch (error) {
     return error.response.data;
@@ -155,10 +227,21 @@ export const getIndustries = async () => {
     return error.response.data;
   }
 };
+export const updateQualification = async (id, data) => {
+  try {
+    const response = await authAxios.patch(
+      `${URL}/api/admin/updateQualification/${id}`,
+      data
+    );
+    return response.data;
+  } catch (error) {
+    return "error";
+  }
+};
 
 export const addNoteToApplication = async (applicationId, note) => {
   try {
-    const response = await axios.put(
+    const response = await authAxios.put(
       `${URL}/api/admin/addNoteToApplication/${applicationId}`,
       { note }
     );
@@ -182,7 +265,7 @@ export const addAssessorNoteToApplication = async (applicationId, note) => {
 
 export const resendEmail = async (applicationId) => {
   try {
-    const response = await axios.post(
+    const response = await authAxios.post(
       `${URL}/api/admin/resend/${applicationId}`
     );
     return response.data;
@@ -205,7 +288,7 @@ export const updatePrice = async (certificationName, updatedPrice) => {
 
 export const addColorToApplication = async (applicationId, color) => {
   try {
-    const response = await axios.put(
+    const response = await authAxios.put(
       `${URL}/api/admin/colorToApplication/${applicationId}`,
       { colorToBeAdded: color }
     );
@@ -252,12 +335,13 @@ export const dividePayment = async (
   applicationId,
   payment1,
   payment2,
-  payment2Deadline
+  payment2Deadline,
+  payment2DeadlineTime
 ) => {
   try {
     const response = await axios.put(
       `${URL}/api/applications/dividePayment/${applicationId}`,
-      { payment1, payment2, payment2Deadline }
+      { payment1, payment2, payment2Deadline, payment2DeadlineTime }
     );
     return response.data;
   } catch {

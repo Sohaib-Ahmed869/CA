@@ -40,9 +40,9 @@ import RequestMoreDocuments from "../RequestMoreDocuments/RequestMoreDocuments";
 import { downloadAllDocsAsZip } from "../../utils/downloadAllDocs";
 import { use } from "react";
 const Approval = () => {
-   useEffect(() => {
-      window.scrollTo(0, 0);
-    }, []);
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
   const [submissionLoading, setSubmissionLoading] = useState(false);
   const [applications, setApplications] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
@@ -500,7 +500,7 @@ const Approval = () => {
             </div>
           </div>
 
-          <div className="flex items-start">
+          {/* <div className="flex items-start">
             <TbReportMoney className="text-emerald-600 text-xl mt-0.5 mr-3 flex-shrink-0" />
             <div>
               <p className="text-sm text-gray-500">Price</p>
@@ -510,7 +510,7 @@ const Approval = () => {
                   : "N/A"}
               </p>
             </div>
-          </div>
+          </div> */}
         </div>
       </div>
     );

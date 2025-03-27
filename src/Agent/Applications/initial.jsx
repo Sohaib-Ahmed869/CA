@@ -65,6 +65,7 @@ const ScreeningFormAgent = () => {
   const [toc, setToc] = useState(false);
   const [type, setType] = useState("");
   const [price, setPrice] = useState(0);
+  const [expense, setexpense] = useState(0);
   const [agentId, setAgentId] = useState("");
   const [submissionLoading, setSubmissionLoading] = useState(false);
   useEffect(() => {
@@ -98,6 +99,8 @@ const ScreeningFormAgent = () => {
       password,
       type,
       price,
+      "expense",
+      expense,
       agentId
     );
   }, [
@@ -155,6 +158,7 @@ const ScreeningFormAgent = () => {
         toc,
         password,
         type,
+        expense,
         price,
         agentId
       );
@@ -210,11 +214,12 @@ const ScreeningFormAgent = () => {
               industry={industry}
               setIndustry={setIndustry}
               qualification={qualification}
-              setQualification={setQualificationToggle}
+              setQualification={setQualification}
               type={type}
               setType={setType}
               price={price}
               setPrice={setPrice}
+              setexpense={setexpense}
             />
           )}
           {step === 1 && (

@@ -121,7 +121,7 @@ const ViewApplications = ({
   const handleLogout = async () => {
     try {
       await signOut(auth);
-      navigate("/login");
+      // navigate("/login");
     } catch (error) {
       console.error("Error signing out:", error);
     }
@@ -414,8 +414,114 @@ const ViewApplications = ({
     );
   };
 
+  // const renderDocumentsForm = () => {
+  //   console.log("Documents Form:", application?.document);
+  //   if (!application?.document) return null;
+
+  //   const requestedDocuments = application.requestedDocuments || [];
+
+  //   const predefinedDocuments = [
+  //     { label: "Driver's License", key: "driversLicense" },
+  //     { label: "ID Card", key: "idCard" },
+  //     { label: "Passport", key: "passport" },
+  //     { label: "Birth Certificate", key: "birthCertificate" },
+  //     { label: "Medicare Card", key: "medicareCard" },
+  //     { label: "Credit Card", key: "creditcard" },
+  //     { label: "Australian Citizenship", key: "australianCitizenship" },
+  //     { label: "Resume", key: "resume" },
+  //     { label: "Previous Qualifications", key: "previousQualifications" },
+  //     { label: "Reference 1", key: "reference1" },
+  //     { label: "Reference 2", key: "reference2" },
+  //     { label: "Employment Letter", key: "employmentLetter" },
+  //     { label: "Payslip", key: "payslip" },
+  //     { label: "Image 1", key: "image1" },
+  //     { label: "Image 2", key: "image2" },
+  //     { label: "Image 3", key: "image3" },
+  //     { label: "Image 4", key: "image4" },
+  //     { label: "Video 1", key: "video1" },
+  //     { label: "Video 2", key: "video2" },
+  //   ].filter((doc) => application.document && doc.key in application.document);
+
+  //   // Fix: Change access path from documentsForm to document
+  //   const additionalDocuments = Object.keys(application.document)
+  //     .map((key) => ({
+  //       label: application.document[key]?.name || key,
+  //       key,
+  //     }))
+  //     .filter((doc) => doc.label);
+
+  //   const documentsList = [...predefinedDocuments, ...additionalDocuments];
+
+  //   return (
+  //     <>
+  //       <div className="bg-white rounded-xl shadow-md overflow-hidden">
+  //         <div className="p-6">
+  //           <div className="overflow-x-auto">
+  //             <table className="min-w-full border-collapse">
+  //               <thead>
+  //                 <tr className="bg-gray-50 border-b border-gray-200">
+  //                   <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+  //                     Document Type
+  //                   </th>
+  //                   <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+  //                     Status
+  //                   </th>
+  //                   <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+  //                     Actions
+  //                   </th>
+  //                 </tr>
+  //               </thead>
+  //               <tbody className="divide-y divide-gray-200">
+  //                 {documentsList.map((doc, index) => {
+  //                   const docObject = application.documentsForm[doc.key];
+  //                   const isUploaded = !!docObject && !!docObject.fileUrl;
+  //                   const fileUrl = docObject?.fileUrl;
+
+  //                   return (
+  //                     <tr key={index} className="hover:bg-gray-50">
+  //                       <td className="py-3 px-4">{doc.label}</td>
+  //                       <td className="py-3 px-4">
+  //                         {isUploaded ? (
+  //                           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
+  //                             <FaCheckCircle className="mr-1" /> Uploaded
+  //                           </span>
+  //                         ) : (
+  //                           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+  //                             <FaTimesCircle className="mr-1" /> Not Uploaded
+  //                           </span>
+  //                         )}
+  //                       </td>
+  //                       <td className="py-3 px-4">
+  //                         {isUploaded ? (
+  //                           <button
+  //                             onClick={() => openModal(fileUrl)}
+  //                             className="inline-flex items-center text-emerald-600 hover:text-emerald-800 transition-colors"
+  //                           >
+  //                             <FaEye className="mr-1" /> View
+  //                           </button>
+  //                         ) : (
+  //                           <span className="text-gray-400">Not Available</span>
+  //                         )}
+  //                       </td>
+  //                     </tr>
+  //                   );
+  //                 })}
+  //               </tbody>
+  //             </table>
+  //           </div>
+  //         </div>
+  //       </div>
+  //       <DocumentModal
+  //         isOpen={DocumentModalOpen}
+  //         onClose={closeModal}
+  //         docLink={currentDoc}
+  //       />
+  //     </>
+  //   );
+  // };
   const renderDocumentsForm = () => {
-    if (!application?.documentsForm) return null;
+    console.log("Documents Form:", application?.document);
+    if (!application?.document) return null;
 
     const requestedDocuments = application.requestedDocuments || [];
 
@@ -439,18 +545,31 @@ const ViewApplications = ({
       { label: "Image 4", key: "image4" },
       { label: "Video 1", key: "video1" },
       { label: "Video 2", key: "video2" },
-    ].filter(
-      (doc) => application.documentsForm && doc.key in application.documentsForm
-    );
+    ];
+    // Extract unique documents from predefined list and application.document
+    const documentKeys = new Set();
 
-    const additionalDocuments = Object.keys(application.documentsForm)
+    // Add predefined documents (only if they exist in application.document)
+    const filteredPredefinedDocuments = predefinedDocuments.filter((doc) => {
+      if (application.document && doc.key in application.document) {
+        documentKeys.add(doc.key);
+        return true;
+      }
+      return false;
+    });
+
+    // Add additional documents (only if they are not already added)
+    const additionalDocuments = Object.keys(application.document || {})
+      .filter((key) => !documentKeys.has(key)) // Avoid duplicates
       .map((key) => ({
-        label: application.documentsForm[key]?.name || key,
+        label: application.document[key]?.name || key,
         key,
-      }))
-      .filter((doc) => doc.label);
+      }));
 
-    const documentsList = [...predefinedDocuments, ...additionalDocuments];
+    const documentsList = [
+      ...filteredPredefinedDocuments,
+      ...additionalDocuments,
+    ];
 
     return (
       <>
@@ -473,7 +592,7 @@ const ViewApplications = ({
                 </thead>
                 <tbody className="divide-y divide-gray-200">
                   {documentsList.map((doc, index) => {
-                    const docObject = application.documentsForm[doc.key];
+                    const docObject = application.document[doc.key];
                     const isUploaded = !!docObject && !!docObject.fileUrl;
                     const fileUrl = docObject?.fileUrl;
 

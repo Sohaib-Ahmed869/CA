@@ -20,6 +20,12 @@ const AssessorSidebar = () => {
   const auth = getAuth();
   const onClickLogout = async () => {
     await signOut(auth);
+    localStorage.removeItem("authrole");
+    localStorage.removeItem("role");
+    localStorage.removeItem("type");
+    localStorage.removeItem("jwtToken");
+    localStorage.removeItem("firebaseToken");
+
     navigate("/login");
   };
 

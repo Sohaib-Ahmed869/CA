@@ -66,9 +66,9 @@ import customersImg from "../../assets/customers.png"; // Make sure you have thi
 const URL = import.meta.env.VITE_REACT_BACKEND_URL;
 
 const CustomersInfo = () => {
-   useEffect(() => {
-      window.scrollTo(0, 0);
-    }, []);
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef(null);
@@ -160,9 +160,18 @@ const CustomersInfo = () => {
       let applicationsData = await getApplications();
 
       // Sort by most recent
-      applicationsData.sort(
-        (a, b) => new Date(b.status[0]?.time) - new Date(a.status[0]?.time)
-      );
+      // applicationsData.sort(
+      //   (a, b) => new Date(b.status[0]?.time) - new Date(a.status[0]?.time)
+      // );
+      applicationsData.sort((a, b) => {
+        const dateA = a.status?.length
+          ? new Date(a.status[0].time)
+          : new Date(0);
+        const dateB = b.status?.length
+          ? new Date(b.status[0].time)
+          : new Date(0);
+        return dateB - dateA; // Sort in descending order
+      });
 
       setApplications(applicationsData);
       setFilteredApplications(applicationsData);
@@ -267,15 +276,45 @@ const CustomersInfo = () => {
     filtered = filtered.filter((app) => !app.archive);
 
     // Sort applications
+    // filtered.sort((a, b) => {
+    //   let comparison = 0;
+
+    //   if (sortField === "dateCreated") {
+    //     comparison = new Date(b.status[0]?.time) - new Date(a.status[0]?.time);
+    //   } else if (sortField === "customerName") {
+    //     comparison = (a.user?.firstName + " " + a.user?.lastName).localeCompare(
+    //       b.user?.firstName + " " + b.user?.lastName
+    //     );
+    //   } else if (sortField === "status") {
+    //     comparison = (a.currentStatus || "").localeCompare(
+    //       b.currentStatus || ""
+    //     );
+    //   } else if (sortField === "payment") {
+    //     // Sort by payment status (full_paid > partial > unpaid)
+    //     if (a.full_paid && !b.full_paid) comparison = -1;
+    //     else if (!a.full_paid && b.full_paid) comparison = 1;
+    //     else if (a.paid && !b.paid) comparison = -1;
+    //     else if (!a.paid && b.paid) comparison = 1;
+    //     else comparison = 0;
+    //   }
+
+    //   return sortDirection === "asc" ? comparison : -comparison;
+    // });
     filtered.sort((a, b) => {
       let comparison = 0;
 
       if (sortField === "dateCreated") {
-        comparison = new Date(b.status[0]?.time) - new Date(a.status[0]?.time);
+        const dateA =
+          a.status?.length > 0 ? new Date(a.status[0].time) : new Date(0);
+        const dateB =
+          b.status?.length > 0 ? new Date(b.status[0].time) : new Date(0);
+        comparison = dateB - dateA; // Sort in descending order
       } else if (sortField === "customerName") {
-        comparison = (a.user?.firstName + " " + a.user?.lastName).localeCompare(
-          b.user?.firstName + " " + b.user?.lastName
-        );
+        const nameA =
+          (a.user?.firstName || "") + " " + (a.user?.lastName || "");
+        const nameB =
+          (b.user?.firstName || "") + " " + (b.user?.lastName || "");
+        comparison = nameA.localeCompare(nameB);
       } else if (sortField === "status") {
         comparison = (a.currentStatus || "").localeCompare(
           b.currentStatus || ""
@@ -564,30 +603,65 @@ const CustomersInfo = () => {
     }
   };
 
+  // const getStatusClass = (status) => {
+  //   switch (status) {
+  //     case "Waiting for Verification":
+  //       return "bg-yellow-100 text-yellow-800";
+  //     case "Waiting for Payment":
+  //       return "bg-green-100 text-green-800";
+  //     case "Student Intake Form":
+  //       return "bg-blue-100 text-blue-800";
+  //     case "Upload Documents":
+  //       return "bg-red-100 text-red-800";
+  //     case "Certificate Generated":
+  //       return "bg-emerald-100 text-emerald-800";
+  //     case "Dispatched":
+  //       return "bg-gray-100 text-gray-800";
+  //     case "Completed":
+  //       return "bg-green-100 text-green-800";
+  //     case "Sent to RTO":
+  //     case "Sent to Assessor":
+  //       return "bg-red-100 text-red-800";
+  //     default:
+  //       return "bg-gray-100 text-gray-800";
+  //   }
+  // };
   const getStatusClass = (status) => {
-    switch (status) {
-      case "Waiting for Verification":
-        return "bg-yellow-100 text-yellow-800";
-      case "Waiting for Payment":
-        return "bg-green-100 text-green-800";
-      case "Student Intake Form":
-        return "bg-blue-100 text-blue-800";
-      case "Upload Documents":
-        return "bg-red-100 text-red-800";
-      case "Certificate Generated":
-        return "bg-emerald-100 text-emerald-800";
-      case "Dispatched":
-        return "bg-gray-100 text-gray-800";
-      case "Completed":
-        return "bg-green-100 text-green-800";
-      case "Sent to RTO":
-      case "Sent to Assessor":
-        return "bg-red-100 text-red-800";
-      default:
-        return "bg-gray-100 text-gray-800";
-    }
+    const statusClasses = {
+      "Certificate Generated": "bg-green-100 text-green-800",
+      Assessed: "bg-purple-100 text-purple-800",
+      "Waiting Assessment": "bg-blue-100 text-blue-800",
+      "Payment Pending": "bg-yellow-100 text-yellow-800",
+      "Documents Pending": "bg-orange-100 text-orange-800",
+      "Student Intake Form": "bg-cyan-100 text-cyan-800",
+      "Student Intake Form Pending": "bg-red-100 text-red-800",
+      "Not Started": "bg-gray-100 text-gray-800",
+      "Sent to RTO": "bg-red-100 text-red-800",
+      "Sent to Assessor": "bg-red-100 text-red-800",
+    };
+    return statusClasses[status] || "bg-gray-100 text-gray-800";
   };
+  const getApplicationStatus = (application) => {
+    if (application.currentStatus === "Certificate Generated")
+      return "Certificate Generated";
+    if (application.currentStatus === "Sent to RTO") return "Sent to RTO";
+    // if (application.currentStatus === "Sent to Assessor")
+    // return "Sent to Assessor";
+    if (application.assessed) return "Assessed";
 
+    const hasForm = application.studentIntakeFormSubmitted;
+    const hasDocs = application.documentsUploaded;
+    const hasPaid = application.full_paid;
+
+    if (hasForm && hasDocs && hasPaid) return "Waiting Assessment";
+    if (hasForm && hasDocs) return "Payment Pending";
+    if (hasForm && hasPaid) return "Documents Pending";
+    if (hasForm) return "Student Intake Form";
+    if (hasPaid && !hasForm) return "Student Intake Form Pending";
+    // if (hasDocs || hasPaid) return "Incomplete Submission";
+
+    return "Not Started";
+  };
   const getLeadStatusLabel = (color) => {
     switch (color) {
       case "red":
@@ -1052,7 +1126,9 @@ const CustomersInfo = () => {
                             #{application.applicationId || application.id}
                           </div>
                           <div className="text-xs text-gray-500">
-                            {formatDate(application.status[0]?.time)}
+                            {application.status?.length
+                              ? formatDate(application.status[0].time)
+                              : "N/A"}
                           </div>
 
                           {application.assignedAdmin && (
@@ -1104,14 +1180,20 @@ const CustomersInfo = () => {
 
                       {/* Status */}
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span
+                        {/* <span
                           className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusClass(
                             application.currentStatus
                           )}`}
                         >
                           {application.currentStatus || "N/A"}
+                        </span> */}
+                        <span
+                          className={`block w-full text-center  px-2.5 py-1 rounded-full text-xs font-medium ${getStatusClass(
+                            getApplicationStatus(application)
+                          )}`}
+                        >
+                          {getApplicationStatus(application) || "N/A"}
                         </span>
-
                         {application.contactStatus && (
                           <div className="text-xs text-gray-500 mt-1">
                             Contact: {application.contactStatus}

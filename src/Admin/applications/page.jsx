@@ -71,7 +71,7 @@ const ExistingApplicationsAdmin = () => {
   const [showKpis, setShowKpis] = useState(true);
   const [showViewModal, setShowViewModal] = useState(false);
   const [selectedViewApplication, setSelectedViewApplication] = useState(null);
- useEffect(() => {
+  useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
   const statuses = [

@@ -61,7 +61,7 @@ const ScreeningForm2 = () => {
   const [submissionLoading, setSubmissionLoading] = useState(false);
   const [type, setType] = useState("");
   const [price, setPrice] = useState(0);
-
+  const [expense, setexpense] = useState(0);
   const [step, setStep] = useState(0);
 
   useEffect(() => {
@@ -151,6 +151,7 @@ const ScreeningForm2 = () => {
     console.log("State: ", state);
     console.log("Formal Education: ", formalEducation);
     console.log("Formal Education Answer: ", formalEducationAnswer);
+    console.log("expense ", expense);
   }),
     [
       industry,
@@ -169,6 +170,7 @@ const ScreeningForm2 = () => {
         industry,
         lookingForWhatQualification: qualification,
         yearsOfExperience,
+        expense,
         locationOfExperience,
         state,
         formal_education: formalEducation,
@@ -239,6 +241,7 @@ const ScreeningForm2 = () => {
               setType={setType}
               price={price}
               setPrice={setPrice}
+              setexpense={setexpense}
             />
           )}
           {step === 1 && (

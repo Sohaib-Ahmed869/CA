@@ -1,10 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { BiCheckCircle } from "react-icons/bi";
-import { FaTimesCircle } from "react-icons/fa";
+import { FaCheck, FaCheckCircle, FaTimesCircle } from "react-icons/fa";
 import { BsEye } from "react-icons/bs";
 import { BiPlus } from "react-icons/bi";
 import { FaArrowLeft } from "react-icons/fa";
-
 import { FaArchive } from "react-icons/fa";
 import { FaEnvelope } from "react-icons/fa";
 import { MdNotes } from "react-icons/md";
@@ -16,11 +15,12 @@ import { Settings } from "lucide-react";
 import { IoCall } from "react-icons/io5";
 import { MdPayment } from "react-icons/md";
 import SpinnerLoader from "../../Customer/components/spinnerLoader";
-import { Toaster } from "react-hot-toast";
+import toast, { Toaster } from "react-hot-toast";
 import { BiEdit } from "react-icons/bi";
 import { getAuth } from "firebase/auth";
 import Papa from "papaparse";
-import { toast } from "react-hot-toast";
+import { ClipLoader } from "react-spinners";
+
 import DocumentModal from "../../Customer/components/viewDocsModal";
 const URL = import.meta.env.VITE_REACT_BACKEND_URL;
 
@@ -42,6 +42,10 @@ import {
 } from "../../Customer/Services/adminServices";
 
 import { initiateVerificationCall } from "../../Customer/Services/twilioService";
+import { getRtos } from "../../Customer/Services/customerApplication";
+import { SendApplicationToRto } from "../../Customer/Services/rtoservices";
+import ChangeQualification from "./changeQualification";
+import DirectDebitCheckout from "../../Customer/directDebitCheckout";
 
 const Application = ({
   application,
@@ -54,6 +58,7 @@ const Application = ({
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
+  const [isApplicationCompleted, setIsApplicationCompleted] = useState(false);
   const [submissionLoading, setSubmissionLoading] = useState(false);
   const [activeView, setActiveView] = useState("overview");
   const [viewIntakeForm, setViewIntakeForm] = useState(false);
@@ -88,7 +93,7 @@ const Application = ({
   const [openPaymentModal, setOpenPaymentModal] = useState(false);
   const [discountModalOpen, setDiscountModalOpen] = useState(false);
   const [discount, setDiscount] = useState("");
-
+  const [isdirectDebitSuccessful, setIsdirectDebitSuccessful] = useState(false);
   // User information states
   const [updatedPhone, setUpdatedPhone] = useState(
     application.user?.phone || ""
@@ -116,6 +121,62 @@ const Application = ({
   // Document Modal
   const [DocumentModalOpen, setDocumentModalOpen] = useState(false);
   const [currentDoc, setCurrentDoc] = useState("");
+  const [Rtos, setRtos] = useState([]);
+  const [selectedRto, setSelectedRto] = useState("");
+  const [isAgentManager, setIsAgentManager] = useState(false);
+
+  useEffect(() => {
+    const userType = localStorage.getItem("type");
+
+    if (userType === "manager" || userType === "ceo") {
+      setIsAgentManager(true);
+    }
+  }, []);
+
+  useEffect;
+  useEffect(() => {
+    if (
+      application.studentIntakeFormSubmitted &&
+      application.documentsUploaded &&
+      application.full_paid
+    ) {
+      setIsApplicationCompleted(true);
+    }
+    getRtos().then((data) => setRtos(data));
+  }, [application]);
+  console.log("rtos", Rtos);
+  useEffect(() => {
+    console.log("selectedRto", selectedRto);
+    console.log("APPLICATION TO SEND", application);
+  }, [selectedRto]);
+  const [loading, setLoading] = useState(false);
+
+  const handleSendToRto = async () => {
+    if (!selectedRto) {
+      toast.error("Please select an RTO");
+      return;
+    }
+
+    // Show a loading toast
+
+    // const toastId = toast.loading("Sending application to Rto...");
+    setLoading(true);
+
+    try {
+      const response = await SendApplicationToRto(application, selectedRto);
+
+      if (response && response.success) {
+        // toast.dismiss(toastId);
+        toast.success("Application sent to RTO successfully");
+      }
+    } catch (error) {
+      console.error(error);
+      // toast.dismiss(toastId);
+      toast.error("Failed to send application to RTO");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Function to open modal with selected document
   const openModal = (doc) => {
@@ -208,7 +269,18 @@ const Application = ({
   };
 
   const [payment2Deadline, setPayment2Deadline] = useState("");
-
+  const [payment2DeadlineTime, setPayment2DeadlineTime] = useState("");
+  const [hour, setHour] = useState("06");
+  const [minute, setMinute] = useState("00");
+  const [amPm, setAmPm] = useState("PM");
+  const [timeSelected, setTimeSelected] = useState(false);
+  const [autoDeductPayment2, setAutoDeductPayment2] = useState(false);
+  const [showDirectDebitModal, setShowDirectDebitModal] = useState(false);
+  const handleSetTime = () => {
+    setTimeSelected(true);
+    const formattedTime = `${hour}:${minute} ${amPm}`;
+    setPayment2DeadlineTime(formattedTime);
+  };
   // View documents handler
   const onClickViewDocuments = () => {
     const documentKeys = [
@@ -331,7 +403,7 @@ const Application = ({
       toast.error("Please enter valid payment amount.");
       return;
     }
-    if (!payment1 || !payment2 || !payment2Deadline) {
+    if (!payment1 || !payment2 || !payment2Deadline || !payment2DeadlineTime) {
       // Check deadline is provided
       toast.error("Please enter payment amount and deadline.");
       return;
@@ -351,7 +423,8 @@ const Application = ({
         application.id,
         payment1,
         payment2,
-        payment2Deadline
+        payment2Deadline,
+        payment2DeadlineTime
       ); // Add deadline
       if (response === "error") {
         toast.error("Failed to divide payment.");
@@ -363,6 +436,7 @@ const Application = ({
           payment1: payment1,
           payment2: payment2,
           payment2Deadline: payment2Deadline,
+          payment2DeadlineTime: payment2DeadlineTime,
         };
         setSelectedApplication(updatedApplication);
         await getApplicationsData();
@@ -1880,26 +1954,29 @@ const Application = ({
 
                   <div className="grid grid-cols-1 md:grid-cols-1 gap-6">
                     {/* Admin Assignment */}
-                    <div className="border rounded-lg p-4">
-                      <h3 className="text-lg font-medium text-gray-700 mb-3">
-                        Admin Assignment
-                      </h3>
-                      <p className="text-gray-600 mb-4">
-                        Current Assignment:{" "}
-                        <span className="font-medium">
-                          {application.assignedAdmin || "None"}
-                        </span>
-                      </p>
-                      <button
-                        onClick={() => setAssignAdminModal(true)}
-                        className="w-full px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 flex items-center justify-center gap-2"
-                      >
-                        <BiUser />
-                        {application.assignedAdmin
-                          ? "Reassign Sales Agent"
-                          : "Assign Sales Agent"}
-                      </button>
-                    </div>
+
+                    {isAgentManager && (
+                      <div className="border rounded-lg p-4">
+                        <h3 className="text-lg font-medium text-gray-700 mb-3">
+                          Admin Assignment
+                        </h3>
+                        <p className="text-gray-600 mb-4">
+                          Current Assignment:{" "}
+                          <span className="font-medium">
+                            {application.assignedAdmin || "None"}
+                          </span>
+                        </p>
+                        <button
+                          onClick={() => setAssignAdminModal(true)}
+                          className="w-full px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 flex items-center justify-center gap-2"
+                        >
+                          <BiUser />
+                          {application.assignedAdmin
+                            ? "Reassign Sales Agent"
+                            : "Assign Sales Agent"}
+                        </button>
+                      </div>
+                    )}
 
                     {/* Contact Status */}
                     <div className="border rounded-lg p-4">
@@ -1955,6 +2032,56 @@ const Application = ({
                         Update Lead Status
                       </button>
                     </div>
+                    {!isApplicationCompleted &&
+                      !application.certificateGenerated &&
+                      !application.assessed && (
+                        <div className="border rounded-lg p-4">
+                          <h3 className="text-lg font-medium text-gray-700 mb-3">
+                            Change Qualification
+                          </h3>
+                          <ChangeQualification id={application.id} />
+                        </div>
+                      )}
+                    {isApplicationCompleted &&
+                      !application.certificateGenerated && (
+                        <div className="border rounded-lg p-4">
+                          <h3 className="text-lg font-medium text-gray-700 mb-3">
+                            Send to Rto
+                          </h3>
+
+                          <select
+                            name=""
+                            id=""
+                            onChange={(e) => setSelectedRto(e.target.value)}
+                            className="w-1/2 px-4 py-2 my-4  rounded-md flex items-center justify-center gap-2"
+                          >
+                            <option value="">Select Rto</option>
+                            {Rtos.map((rto) => (
+                              <option value={rto.email} key={rto.id}>
+                                {rto.email}
+                              </option>
+                            ))}
+                          </select>
+                          <div className="flex items-center gap-2 my-2">
+                            <label className="font-medium text-gray-700">
+                              Selected RTO:
+                            </label>
+                            <label>{selectedRto || "No Rto Selected"}</label>
+                          </div>
+                          <button
+                            onClick={handleSendToRto}
+                            disabled={loading}
+                            className="w-full px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 flex items-center justify-center gap-2"
+                          >
+                            {loading ? (
+                              <ClipLoader size={20} color="#ffffff" />
+                            ) : (
+                              <MdLabel />
+                            )}
+                            {loading ? "Sending..." : "Send Application To RTO"}
+                          </button>
+                        </div>
+                      )}
                   </div>
                 </div>
               </div>
@@ -2134,7 +2261,6 @@ const Application = ({
             <h3 className="text-xl font-bold text-gray-900 mb-4">
               Set Up Payment Plan
             </h3>
-
             <div className="mb-6">
               <p className="text-sm text-gray-600 mb-4">
                 {application.user.firstName} {application.user.lastName} has
@@ -2217,12 +2343,132 @@ const Application = ({
                     required
                   />
                 </div>
+
+                <div>
+                  <label
+                    htmlFor="payment2-deadline-Time"
+                    className="block text-sm font-medium text-gray-500 mb-6"
+                  >
+                    Second Payment Deadline Time:
+                  </label>
+
+                  <div className="flex space-x-2 items-end">
+                    {/* Hour Selector */}
+                    <div className="flex flex-col gap-1">
+                      <span className="text-sm text-gray-700">Hours</span>
+                      <select
+                        value={hour}
+                        onChange={(e) => setHour(e.target.value)}
+                        className="border border-gray-300 rounded-md p-2"
+                      >
+                        {[...Array(12).keys()].map((h) => {
+                          const formattedHour = (h + 1)
+                            .toString()
+                            .padStart(2, "0");
+                          return (
+                            <option key={formattedHour} value={formattedHour}>
+                              {formattedHour}
+                            </option>
+                          );
+                        })}
+                      </select>
+                    </div>
+
+                    {/* Minute Selector */}
+                    <div className="flex flex-col gap-1">
+                      <span className="text-sm text-gray-700">Minutes</span>
+                      <select
+                        value={minute}
+                        onChange={(e) => setMinute(e.target.value)}
+                        className="border border-gray-300 rounded-md p-2"
+                      >
+                        {[...Array(60).keys()].map((m) => {
+                          const formattedMinute = m.toString().padStart(2, "0");
+                          return (
+                            <option
+                              key={formattedMinute}
+                              value={formattedMinute}
+                            >
+                              {formattedMinute}
+                            </option>
+                          );
+                        })}
+                      </select>
+                    </div>
+
+                    {/* AM/PM Selector */}
+                    <div className="flex flex-col gap-1">
+                      <span className="text-sm text-gray-700">AM/PM</span>
+                      <select
+                        value={amPm}
+                        onChange={(e) => setAmPm(e.target.value)}
+                        className="border border-gray-300 rounded-md p-2"
+                      >
+                        <option value="AM">AM</option>
+                        <option value="PM">PM</option>
+                      </select>
+                    </div>
+
+                    {/* Set Time Button */}
+                    <button
+                      onClick={handleSetTime}
+                      className="bg-emerald-600 text-white px-4 py-2 rounded-md hover:bg-emerald-700 transition-all duration-300 ease-in-out"
+                    >
+                      Set Time
+                    </button>
+                  </div>
+
+                  <div className="my-3 ">
+                    {timeSelected && amPm && hour && minute && (
+                      <span className="text-sm text-green-800">
+                        <FaCheckCircle className="inline-block mr-2 text-green-500" />
+                        Selected Time: {hour}:{minute} {amPm}
+                      </span>
+                    )}
+                  </div>
+                </div>
               </div>
+            </div>
+            {/* Add this section after the deadline time section */}
+            <div className="my-4">
+              {!isdirectDebitSuccessful && !application.full_paid ? (
+                <>
+                  <label className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      checked={autoDeductPayment2}
+                      onChange={(e) => {
+                        const shouldEnable = e.target.checked;
+                        setAutoDeductPayment2(shouldEnable);
+                        if (shouldEnable) {
+                          setOpenPaymentModal(false);
+                          setShowDirectDebitModal(true);
+                        }
+                      }}
+                      className="h-4 w-4 text-emerald-600 focus:ring-emerald-500 border-gray-300 rounded"
+                    />
+                    <span className="text-sm text-red-700">
+                      Automatically deduct second payment using Square Direct
+                      Debit
+                    </span>
+                  </label>
+                </>
+              ) : (
+                <label className="text-sm text-green-800 ">
+                  <FaCheckCircle className="inline-block mr-2 text-green-500" />
+                  {application.full_paid
+                    ? "Fully Paid"
+                    : "Direct Debit Information Stored"}
+                </label>
+              )}
             </div>
 
             <div className="flex justify-end gap-3">
               <button
-                onClick={() => setOpenPaymentModal(false)}
+                onClick={() => {
+                  setOpenPaymentModal(false);
+                  setTimeSelected(false);
+                }}
                 className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
               >
                 Cancel
@@ -2238,7 +2484,29 @@ const Application = ({
           </div>
         </div>
       )}
-
+      {showDirectDebitModal && (
+        <DirectDebitCheckout
+          applicationId={application.id}
+          setIsdirectDebitSuccessful={setIsdirectDebitSuccessful}
+          setOpenPaymentModal={setOpenPaymentModal}
+          setShowDirectDebitModal={(value) => {
+            setShowDirectDebitModal(value);
+            if (!value) {
+              // Reset checkbox if modal is closed without completion
+              setAutoDeductPayment2(false);
+            }
+          }}
+          paymentAmount={application.price}
+          paymentDeadline={payment2Deadline}
+          userId={application.userId}
+          onSuccess={() => {
+            // Keep checkbox checked if setup succeeds
+            setAutoDeductPayment2(true);
+            setShowDirectDebitModal(false);
+            setIsdirectDebitSuccessful(true);
+          }}
+        />
+      )}
       {/* Call Attempts Modal */}
       {isCallStatusModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">

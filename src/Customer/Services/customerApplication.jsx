@@ -20,6 +20,15 @@ export const getUserInfo = async (userId) => {
     return error.response.data;
   }
 };
+export const getRtos = async () => {
+  try {
+    const response = await axios.get(`${URL}/api/rto/getAllRtos`);
+
+    return response.data;
+  } catch (error) {
+    return error.response.data;
+  }
+};
 
 export const studentIntakeForm = async (data, applicationId) => {
   try {

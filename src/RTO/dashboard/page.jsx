@@ -6,9 +6,9 @@ import { FaTimes } from "react-icons/fa";
 import { getDashboardStats } from "../../Customer/Services/rtoservices";
 
 const Dashboard = () => {
-   useEffect(() => {
-      window.scrollTo(0, 0);
-    }, []);
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
   const [totalApplications, setTotalApplications] = useState(0);
   const [applicationsPending, setApplicationsPending] = useState(0);
   const [applicationsCompletedThisMonth, setApplicationsCompletedThisMonth] =
@@ -64,7 +64,7 @@ const Dashboard = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {/* Total Applications Card */}
-        <div className="bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition-shadow duration-300">
+        {/* <div className="bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition-shadow duration-300">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-gray-700">
               Total Applications
@@ -74,7 +74,7 @@ const Dashboard = () => {
           <h1 className="text-3xl font-bold text-emerald-600">
             {totalApplications}
           </h1>
-        </div>
+        </div> */}
 
         {/* Applications Pending Card */}
         <div className="bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition-shadow duration-300">

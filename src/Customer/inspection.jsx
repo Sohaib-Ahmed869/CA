@@ -16,6 +16,7 @@ import { db } from "../firebase";
 import { auth } from "../firebase";
 import SpinnerLoader from "./components/spinnerLoader";
 import { signInWithEmailAndPassword } from "firebase/auth";
+const URL = import.meta.env.VITE_REACT_BACKEND_URL;
 
 import "./stepper.css";
 
@@ -70,8 +71,9 @@ const ScreeningForm = () => {
   const [toc, setToc] = useState(false);
   const [type, setType] = useState("");
   const [price, setPrice] = useState(0);
+  const [expense, setexpense] = useState(0);
   const [submissionLoading, setSubmissionLoading] = useState(false);
-
+  const navigate = useNavigate();
   useEffect(() => {
     //send data to server
     console.log(
@@ -91,7 +93,8 @@ const ScreeningForm = () => {
       toc,
       password,
       type,
-      price
+      price,
+      expense
     );
   }, [
     industry,
@@ -109,6 +112,7 @@ const ScreeningForm = () => {
     questions,
     toc,
     password,
+    expense,
   ]);
 
   const [step, setStep] = useState(0);
@@ -119,7 +123,7 @@ const ScreeningForm = () => {
 
   const notifyError = (message) => toast.error(message);
 
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
   const handleNext = () => {
     if ((step === 0 && industry === "") || qualification === "") {
       toast.error("Please fill in the required fields");
@@ -190,6 +194,7 @@ const ScreeningForm = () => {
       const response = await register(
         industry,
         qualification,
+        expense,
         yearsOfExperience,
         locationOfExperience,
         state,
@@ -245,6 +250,7 @@ const ScreeningForm = () => {
       // Fetch the user's role from Firestore
       const userDocRef = doc(db, "users", user.uid); // Assuming you store user roles in Firestore under 'users' collection
       const userDoc = await getDoc(userDocRef);
+      const idToken = await user.getIdToken();
 
       if (userDoc.data().role !== "customer") {
         console.log(userDoc.data().role);
@@ -252,6 +258,22 @@ const ScreeningForm = () => {
         alert("Invalid email or password");
         return;
       }
+      const response = await fetch(`${URL}/api/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ idToken }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Login failed");
+      }
+      const userData = userDoc.data();
+      const data = await response.json();
+      localStorage.setItem("usertoken", data.token);
+      localStorage.setItem("jwtToken", data.token);
+      localStorage.removeItem("2faPending");
+      localStorage.setItem("role", userData.role);
 
       setSubmissionLoading(false);
 
@@ -296,6 +318,7 @@ const ScreeningForm = () => {
               setType={setType}
               price={price}
               setPrice={setPrice}
+              setexpense={setexpense}
             />
           )}
           {step === 1 && (

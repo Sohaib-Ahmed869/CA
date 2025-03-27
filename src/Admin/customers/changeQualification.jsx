@@ -1,25 +1,64 @@
 import React, { useState, useEffect } from "react";
-import { getIndustries } from "../Services/adminServices";
-import SpinnerLoader from "../components/spinnerLoader";
-
-const Screen1 = ({
-  industry,
-  setIndustry,
-  qualification,
-  setQualification,
-  type,
-  setType,
-  price,
-  setPrice,
-  setexpense,
-}) => {
-  const [submissionLoading, setSubmissionLoading] = useState(false);
+import { getIndustries } from "../../Customer/Services/adminServices";
+import { MdLabel } from "react-icons/md";
+import { updateQualification } from "../../Customer/Services/adminServices";
+import toast from "react-hot-toast";
+const ChangeQualification = ({ id }) => {
   const [industries, setIndustries] = useState([]);
   const [qualificationOptions, setQualificationOptions] = useState([]);
-
+  const [qualification, setQualification] = useState("");
+  const [expense, setExpense] = useState(0);
+  const [type, setType] = useState("");
+  const [price, setPrice] = useState(0);
+  const [industry, setIndustry] = useState("");
   // Store the selected industry ID
   const [selectedIndustryId, setSelectedIndustryId] = useState(null);
 
+  const handleUpdateQualification = async () => {
+    if (!selectedIndustryId || !qualification || !type || !price) {
+      toast.error("Please fill all the fields");
+      return;
+    }
+    const toastid = toast.loading("Updating Qualification...");
+    try {
+      const response = await updateQualification(id, {
+        industry,
+        qualification,
+        type,
+        price,
+        expense,
+      });
+      toast.dismiss(toastid);
+      toast.success("Qualification updated successfully");
+      console.log("Qualification updated successfully:", response);
+      setSelectedIndustryId(null);
+      setQualification("");
+      setIndustry("");
+      setType("");
+      setPrice(0);
+      setExpense(0);
+    } catch (err) {
+      console.log(err);
+      toast.error("Failed to update qualification");
+    }
+  };
+  useEffect(() => {
+    console.log(
+      "  Selected Industry ID:",
+      selectedIndustryId,
+      "   Qualification:",
+      qualification,
+      "   type",
+      type,
+      "   price ",
+      price,
+      "applicationId",
+      id,
+      "expense",
+      expense,
+      qualificationOptions
+    );
+  }, [industry, qualification, type, price]);
   const onChangeCertificate = (e) => {
     setQualification(e.target.value);
 
@@ -32,12 +71,11 @@ const Screen1 = ({
     if (selectedCertificate) {
       setType(selectedCertificate.type);
       setPrice(selectedCertificate.price);
-      setexpense(selectedCertificate.expense);
+      setExpense(selectedCertificate.expense);
     }
   };
 
   const fetchIndustries = async () => {
-    setSubmissionLoading(true);
     try {
       const response = await getIndustries();
       console.log("Industries:", response.industries);
@@ -49,10 +87,8 @@ const Screen1 = ({
       );
       setQualificationOptions(updatedQualifications);
       console.log("Certifications:", updatedQualifications);
-      setSubmissionLoading(false);
     } catch (err) {
       console.log(err);
-      setSubmissionLoading(false);
     }
   };
 
@@ -62,6 +98,7 @@ const Screen1 = ({
 
   const handleIndustryChange = (e) => {
     const selectedIndustryName = e.target.value;
+    setQualification("");
     setIndustry(selectedIndustryName);
 
     // Find the selected industry's ID
@@ -77,18 +114,22 @@ const Screen1 = ({
   };
 
   return (
-    <div className="flex flex-col items-center animate-fade w-full">
-      {submissionLoading && <SpinnerLoader />}
-      <div className="flex flex-col items-center">
-        <div className="mb-4 flex flex-col gap-4 text-center mt-4">
-          <label htmlFor="industry">What industry is your experience in?</label>
+    <div className="flex flex-col items-center animate-fade w-full bg-gray-50 my-4">
+      <div className="flex flex-col ">
+        <div className="mb-4 flex flex-col gap-4  mt-4">
+          <label
+            htmlFor="industry"
+            className="text-base text-gray-700 font-outfit "
+          >
+            Select Industry?
+          </label>
           <select
             id="industry"
             className="input lg:w-96 max-sm:w-full"
             value={industry}
             onChange={handleIndustryChange}
           >
-            <option value="">Select an option</option>
+            <option value="">Select Industry</option>
             {industries.map((option) => (
               <option key={option.id} value={option.name}>
                 {option.name}
@@ -98,9 +139,13 @@ const Screen1 = ({
         </div>
       </div>
       <div className="flex flex-col items-center">
-        <div className="mb-4 flex flex-col gap-4 text-center">
-          <label htmlFor="qualification">
-            What qualification are you looking for?
+        <div className="mb-4 flex flex-col gap-4 ">
+          <label
+            htmlFor="qualification"
+            className="text-base text-gray-700 font-outfit "
+          >
+            {" "}
+            Choose Qualification{" "}
           </label>
           <select
             id="qualification"
@@ -119,8 +164,15 @@ const Screen1 = ({
           </select>
         </div>
       </div>
+      <button
+        onClick={handleUpdateQualification}
+        className="w-full px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 flex items-center justify-center gap-2"
+      >
+        <MdLabel />
+        Update Qualification
+      </button>
     </div>
   );
 };
 
-export default Screen1;
+export default ChangeQualification;

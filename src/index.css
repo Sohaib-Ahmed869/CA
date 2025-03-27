@@ -14,3 +14,25 @@ html {
   background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent black */
   backdrop-filter: blur(4px); /* Blurs everything behind it */
 }
+
+.ant-form-item-label label {
+  font-family: 'Outfit', sans-serif !important;
+  font-weight: 500 !important;
+  color: #1f2937 !important; /* gray-800 */
+  font-size: 0.875rem !important; /* text-sm */
+  text-transform: capitalize;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.5rem !important;
+}
+
+.ant-form-item .ant-input,
+.ant-form-item .ant-select-selector,
+.ant-form-item .ant-picker {
+  border-radius: 8px !important;
+  padding: 0.5rem 1rem !important;
+}
+
+.ant-form-item-explain {
+  font-family: 'Outfit', sans-serif !important;
+  font-size: 0.75rem !important;
+}

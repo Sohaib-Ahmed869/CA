@@ -169,6 +169,13 @@ const CustomerDashboard = () => {
   const handleLogout = async () => {
     try {
       await signOut(auth);
+      localStorage.removeItem("authrole");
+      localStorage.removeItem("role");
+      localStorage.removeItem("type");
+      localStorage.removeItem("jwtToken");
+      localStorage.removeItem("usertoken");
+      sessionStorage.removeItem("userId");
+      localStorage.removeItem("firebaseToken");
       navigate("/login");
     } catch (error) {
       console.error("Error signing out:", error);

@@ -33,6 +33,7 @@ import { motion, AnimatePresence } from "framer-motion"; // Add framer-motion fo
 
 import ChangePassword from "../ChangePassword/page";
 import { getDashboardStats } from "../../Customer/Services/adminServices";
+import AssignTargets from "../AssignTargets/AssignTargets";
 
 const AdminSidebar = () => {
   const navigate = useNavigate();
@@ -41,10 +42,17 @@ const AdminSidebar = () => {
   const [activeFinance, setActiveFinance] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const [isFinanceOpen, setIsFinanceOpen] = useState(false);
+  const [isAgentManager, setIsAgentManager] = useState(false);
   const auth = getAuth();
 
   const onClickLogout = async () => {
     await signOut(auth);
+    localStorage.removeItem("authrole");
+    localStorage.removeItem("role");
+    localStorage.removeItem("type");
+    localStorage.removeItem("jwtToken");
+    localStorage.removeItem("firebaseToken");
+
     navigate("/login");
   };
 
@@ -54,6 +62,10 @@ const AdminSidebar = () => {
   };
 
   useEffect(() => {
+    const UserName = localStorage.getItem("type");
+    if (UserName === "manager") {
+      setIsAgentManager(true);
+    }
     const auth = getAuth();
     const unsubscribe = auth.onAuthStateChanged((user) => {
       if (user) {
@@ -445,7 +457,14 @@ const AdminSidebar = () => {
                 isActive={active === "Archived Applications"}
                 onClick={() => setActive("Archived Applications")}
               />
-              
+              {isAgentManager && (
+                <MenuItem
+                  icon={<FaFileArchive className="text-xl" />}
+                  label="AssignTargets"
+                  isActive={active === "AssignTargets"}
+                  onClick={() => setActive("AssignTargets")}
+                />
+              )}
             </ul>
           </div>
 
@@ -523,6 +542,7 @@ const AdminSidebar = () => {
         {active === "Industries" && <Industries />}
         {active === "Archived Applications" && <ArchivedApplications />}
         {active === "Change Password" && <ChangePassword />}
+        {active === "AssignTargets" && <AssignTargets />}
         {active === "Finances" && activeFinance === "Management" && (
           <FinanceManagement />
         )}

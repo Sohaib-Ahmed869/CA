@@ -105,7 +105,7 @@ const FinalScreen = ({
 
           <span
             type="button"
-            className=" absolute top-full left-1/3 text-gray-500 text-sm   mt-6 rounded cursor-pointer mt-2 text-center"
+            className=" absolute top-full left-1/3 text-gray-500 text-sm   mt-6 rounded cursor-pointer  text-center"
             onClick={generatePassword}
           >
             Auto Generate Password

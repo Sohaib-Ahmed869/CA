@@ -22,6 +22,8 @@ import CustomersByAgent from "./Agent/Customers/page";
 import ExistingApplicationsbyAgent from "./Agent/Applications/page";
 import AssessorSidebar from "./Assessor/Sidebar/page";
 import ViewApplication from "./Customer/ViewApplication/page";
+import TwoFactorAuth from "./TwoFactorAuth/TwoFactorAuth";
+import ProtectedRoute from "./utils/RouteProtection";
 
 function App() {
   return (
@@ -31,6 +33,7 @@ function App() {
         <Route path="/" element={<CustomerDashboard />} />
         <Route path="/signup" element={<CustomerDashboardSignup />} />
         <Route path="/screening" element={<ScreeningForm />} />
+
         <Route path="/new-application" element={<ScreeningForm2 />} />
         <Route
           path="/existing-applications"
@@ -40,7 +43,6 @@ function App() {
           path="/view-application/:userId/:id"
           element={<ViewApplication />}
         />
-
         <Route
           path="/view-application-docs/:userId/:id"
           element={<ViewApplication />}
@@ -51,27 +53,39 @@ function App() {
         />
         <Route path="/payment" element={<PaymentPage />} />
         <Route path="/upload-documents/:id" element={<UploadDocuments />} />
-        <Route path="/rto" element={<Sidebar />} />
+
         <Route path="/rto/login" element={<RtoLogin />} />
-
-        <Route path="/admin" element={<AdminSidebar />} />
-        <Route path="/admin-dashboard" element={<Dashboard />} />
         <Route path="/admin/login" element={<AdminLogin />} />
-
         <Route path="/agent/login" element={<AgentLogin />} />
         <Route path="/agent/signup" element={<AgentSignup />} />
-        <Route path="/agent" element={<MainAgentScreen />} />
+        {/* //admin only routes  */}
+        <Route element={<ProtectedRoute allowedRoles={["admin"]} />}>
+          <Route path="/admin" element={<AdminSidebar />} />
+          <Route path="/admin-dashboard" element={<Dashboard />} />
+        </Route>
+        {/* //assessor only routes */}
+        <Route element={<ProtectedRoute allowedRoles={["assessor"]} />}>
+          <Route path="/assessor" element={<AssessorSidebar />} />
+        </Route>
+        {/* //rto only routes */}
+        <Route element={<ProtectedRoute allowedRoles={["rto"]} />}>
+          <Route path="/rto" element={<Sidebar />} />
+        </Route>
+        {/* 2 step verification route */}
+        <Route path="/verify-2fa" element={<TwoFactorAuth />} />
         <Route
           path="/agent/register-customer"
           element={<ScreeningFormAgent />}
         />
+        <Route element={<ProtectedRoute allowedRoles={["agent"]} />}>
+          <Route path="/agent" element={<MainAgentScreen />} />
+        </Route>
+
         <Route path="/agent/customers" element={<CustomersByAgent />} />
         <Route
           path="/agent/applications"
           element={<ExistingApplicationsbyAgent />}
         />
-
-        <Route path="/assessor" element={<AssessorSidebar />} />
       </Routes>
     </Router>
   );

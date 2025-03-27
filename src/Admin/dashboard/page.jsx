@@ -3,6 +3,8 @@ import { getAuth } from "firebase/auth";
 import {
   getDashboardStats,
   getApplications,
+  getCustomers,
+  getAgents,
 } from "../../Customer/Services/adminServices";
 import SpinnerLoader from "../../Customer/components/spinnerLoader";
 import dashb from "../../assets/dashb.png";
@@ -37,17 +39,27 @@ import {
   BarChart2,
   PercentIcon,
 } from "lucide-react";
-const AgentApplicationsKPI = ({ applications }) => {
+import { getUserSpecificStats } from "../../utils/stats";
+import AgentTargetsKPI from "./AgentTargetsKpi";
+import { useNavigate } from "react-router-dom";
+const SpecificAgentApplicationsKPI = ({ applications }) => {
   const [assignedApplications, setAssignedApplications] = useState([]);
   const [agentName, setAgentName] = useState("");
 
   useEffect(() => {
     // Get agent name from localStorage
-    const storedAgentName = localStorage.getItem("agentName");
+    const storedAgentName = localStorage.getItem("agent");
+    console.log("Stored Agent Name:", storedAgentName);
     setAgentName(storedAgentName || "");
+    console.log("storedAgentName", storedAgentName);
 
     // Filter applications assigned to this agent
-    if (applications && applications.length > 0 && storedAgentName) {
+    if (
+      applications &&
+      applications.length > 0 &&
+      storedAgentName &&
+      storedAgentName !== undefined
+    ) {
       const filtered = applications.filter(
         (app) => app.assignedAdmin === storedAgentName
       );
@@ -60,7 +72,7 @@ const AgentApplicationsKPI = ({ applications }) => {
       <div className="flex justify-between items-start">
         <div>
           <p className="text-sm font-medium mb-1 text-indigo-800">
-            Your Assigned Applications
+            Applications Assigned to you{" "}
           </p>
           <h3 className="text-2xl font-bold text-indigo-800">
             {assignedApplications.length}
@@ -77,6 +89,77 @@ const AgentApplicationsKPI = ({ applications }) => {
   );
 };
 
+const AgentApplicationsKPI = ({ applications }) => {
+  const [agents, setAgents] = useState(new Map()); // Store agents and their applications
+
+  useEffect(() => {
+    const fetchAgents = async () => {
+      try {
+        const response = await getAgents();
+        if (response) {
+          // Initialize the map with agent names and empty arrays
+          const agentMap = new Map(response.map((agent) => [agent.name, []]));
+          setAgents(agentMap);
+        }
+      } catch (err) {
+        console.error("Error fetching agents:", err);
+      }
+    };
+
+    fetchAgents();
+  }, []); // Fetch agents only once on mount
+
+  useEffect(() => {
+    if (agents.size === 0 || applications.length === 0) return;
+
+    // Create a new Map to store updated applications
+    const updatedAgentMap = new Map();
+
+    // Initialize agent map with empty arrays
+    for (let [key] of agents) {
+      updatedAgentMap.set(key, []);
+    }
+
+    // Assign applications to respective agents
+    applications.forEach((app) => {
+      if (updatedAgentMap.has(app.assignedAdmin)) {
+        updatedAgentMap.get(app.assignedAdmin).push(app);
+      }
+    });
+
+    setAgents(updatedAgentMap);
+  }, [applications, agents]); // Runs when applications or agents change
+
+  return (
+    <div className="flex gap-4  ">
+      {[...agents.entries()].map(([agentName, assignedApplications]) => (
+        <div
+          key={agentName}
+          className="rounded-xl shadow-sm p-6 border w-full border-indigo-100 bg-indigo-50 transition-all hover:shadow-md"
+        >
+          <div className="flex justify-between gap-20  w-full items-start">
+            <div className=" w-1/2 py-2 ">
+              <p className="text-sm font-medium mb-1 text-nowrap text-indigo-800">
+                Applications Assigned by you
+              </p>
+              <h3 className="text-2xl font-bold text-indigo-800">
+                {assignedApplications.length}
+              </h3>
+              {agentName && (
+                <p className="text-xs text-indigo-600 mt-1">
+                  Agent: {agentName}
+                </p>
+              )}
+            </div>
+            <div className="p-3 rounded-lg text-indigo-700 mt-4 bg-white bg-opacity-50">
+              <Briefcase className="h-6 w-6" />
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+};
 const ApplicationFunnel = ({ applications }) => {
   // Runs when `applications` updates
 
@@ -333,18 +416,23 @@ const ColorStatusChart = ({ stats }) => {
 
 // Weekly Applications Chart
 const WeeklyChart = ({ applications }) => {
+  console.log("chart", applications);
   const getWeeklyData = () => {
     const weekDays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
     const completed = new Array(7).fill(0);
     const pending = new Array(7).fill(0);
 
-    applications.forEach((app) => {
-      const date = new Date(app.status[0].time);
-      const dayIndex = (date.getDay() + 6) % 7; // Adjust to start from Monday
-      if (app.paid) {
-        completed[dayIndex]++;
+    applications?.forEach((app) => {
+      if (app.status && app.status.length > 0) {
+        const date = new Date(app.status[0].time);
+        const dayIndex = (date.getDay() + 6) % 7; // Adjust to start from Monday
+        if (app.paid) {
+          completed[dayIndex]++;
+        } else {
+          pending[dayIndex]++;
+        }
       } else {
-        pending[dayIndex]++;
+        console.warn("Skipping app due to missing or empty status:", app);
       }
     });
 
@@ -728,9 +816,9 @@ const ApplicationTrends = ({ applications }) => {
   );
 };
 const Dashboard = () => {
-   useEffect(() => {
-      window.scrollTo(0, 0);
-    }, []);
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
   const [stats, setStats] = useState({
     totalApplications: 0,
     totalPayments: 0,
@@ -747,24 +835,58 @@ const Dashboard = () => {
       others: 0,
     },
   });
+  const [allStats, setAllStats] = useState({
+    totalApplications: 0,
+    totalPayments: 0,
+    paidApplications: 0,
+    certificatesGenerated: 0,
+    rtoApplications: 0,
+    pendingPayments: 0,
+    totalCustomers: 0,
+    totalAgents: 0,
+    colorStatusCount: {
+      hotLead: 0,
+      warmLead: 0,
+      coldLead: 0,
+      others: 0,
+    },
+  });
+
   const hasFinanceAccess = () => {
     const userType = localStorage.getItem("type");
     return userType === "ceo";
   };
 
-  const [agentName, setAgentName] = useState(null);
-  const [isAgentUser, setIsAgentUser] = useState(false);
-
+  const [isAgentManager, setIsAgentManager] = useState(false);
+  const [isanAgentUser, setisAgentUser] = useState(false);
   useEffect(() => {
     const userType = localStorage.getItem("type");
-    if (userType === "agent") {
-      setIsAgentUser(true);
-      setAgentName(localStorage.getItem("agentName"));
+    const agentUser = localStorage.getItem("agent");
+
+    // Validate agentUser value
+    const isValidAgent =
+      agentUser &&
+      agentUser !== "undefined" &&
+      agentUser !== "null" &&
+      agentUser !== "false" &&
+      agentUser !== "admin" &&
+      agentUser !== "manager";
+
+    if (userType === "manager") {
+      setIsAgentManager(true);
+    }
+
+    if (userType !== "ceo" && userType !== "manager" && isValidAgent) {
+      setisAgentUser(true);
     }
   }, []);
 
   const [applications, setApplications] = useState([]);
+  const [selectedAgent, setSelectedAgent] = useState(""); // Store selected user ID
+  const [filteredApplications, setFilteredApplications] = useState([]);
   const [submissionLoading, setSubmissionLoading] = useState(false);
+  const [agents, setAgents] = useState([]);
+
   const [userId, setUserId] = useState(null);
   const auth = getAuth();
 
@@ -778,6 +900,21 @@ const Dashboard = () => {
   }, []);
 
   useEffect(() => {
+    const fetchAgents = async () => {
+      try {
+        const response = await getAgents();
+
+        if (response) {
+          setAgents(response);
+        }
+      } catch (err) {
+        console.log(err);
+      }
+    };
+
+    fetchAgents();
+  }, [userId]);
+  useEffect(() => {
     const fetchStats = async () => {
       if (!userId) return;
 
@@ -789,6 +926,7 @@ const Dashboard = () => {
         ]);
 
         setStats(statsData);
+        setAllStats(statsData);
         setApplications(appsData);
       } catch (err) {
         console.error("Error fetching dashboard data:", err);
@@ -819,14 +957,26 @@ const Dashboard = () => {
       ? ((completedApplications / totalApplications) * 100).toFixed(1)
       : 0;
 
+    setAllStats((prevStats) => ({
+      ...prevStats,
+      conversionRate,
+      completionRate,
+    }));
     setStats((prevStats) => ({
       ...prevStats,
       conversionRate,
       completionRate,
     }));
   }, [applications]);
-  console.log("stats", stats);
+
+  console.log("filtered", filteredApplications);
+
+  localStorage.getItem("type") === "manager";
+  const isManager = {};
+  // console.log("stats", stats);
   const kpiData = [
+    // ...(selectedAgent === "reset" || !selectedAgent
+    //   ? [
     {
       label: "Total Applications",
       value: stats.totalApplications,
@@ -835,10 +985,12 @@ const Dashboard = () => {
       textColor: "text-green-800",
       iconColor: "text-green-700",
     },
+    //   ]
+    // : []),
 
     {
       label: "Completion Rate",
-      value: `${stats.completionRate}%`,
+      value: `${stats.completionRate}%` || "0%",
       subText: "Applications completed",
       Icon: Users,
       bgColor: "bg-red-50",
@@ -847,7 +999,7 @@ const Dashboard = () => {
     },
     {
       label: "Conversion Rate",
-      value: `${stats.conversionRate}%`,
+      value: `${stats.conversionRate}%` || "0%",
       subText: "Applications paid",
       Icon: PercentIcon,
       bgColor: "bg-purple-50",
@@ -908,25 +1060,64 @@ const Dashboard = () => {
       textColor: "text-green-800",
       iconColor: "text-green-700",
     },
-
-    {
-      label: "Total Agents",
-      value: stats.totalAgents,
-      Icon: Users,
-      bgColor: "bg-green-50",
-      textColor: "text-green-800",
-      iconColor: "text-green-700",
-    },
-    {
-      label: "Number of Students",
-      value: stats.totalCustomers,
-      Icon: Users,
-      bgColor: "bg-green-50",
-      textColor: "text-green-800",
-      iconColor: "text-green-700",
-    },
+    ...(selectedAgent === "reset" || !selectedAgent
+      ? [
+          {
+            label: "Total Agents",
+            value: stats.totalAgents,
+            Icon: Users,
+            bgColor: "bg-green-50",
+            textColor: "text-green-800",
+            iconColor: "text-green-700",
+          },
+        ]
+      : []),
+    ...(selectedAgent === "reset" || !selectedAgent
+      ? [
+          {
+            label: "Number of Students",
+            value: stats.totalCustomers,
+            Icon: Users,
+            bgColor: "bg-green-50",
+            textColor: "text-green-800",
+            iconColor: "text-green-700",
+          },
+        ]
+      : []),
   ];
+  const handleUserSelection = (agentName) => {
+    if (agentName === "reset") {
+      setFilteredApplications(applications);
+      setSelectedAgent("reset");
+      setStats(allStats);
+      return;
+    }
+    setSelectedAgent(agentName); // Update selected user ID
 
+    // Filter applications for selected user
+    const filtered = applications.filter(
+      (app) => app.assignedAdmin === agentName
+    );
+    setFilteredApplications(filtered);
+
+    // Compute user-specific stats
+    const {
+      conversionRate,
+      completionRate,
+      certificatesGenerated,
+      totalApplications,
+    } = getUserSpecificStats(filtered, agents);
+    setStats((prevStats) => ({
+      ...prevStats,
+      conversionRate,
+      completionRate,
+      certificatesGenerated,
+      totalApplications,
+    }));
+  };
+
+  // console.log("allstats", allStats);
+  console.log(selectedAgent);
   return (
     <div className="min-h-screen bg-gray-50 p-4 md:p-8 xl:p-10 w-full animate-fade">
       {submissionLoading && <SpinnerLoader />}
@@ -951,16 +1142,37 @@ const Dashboard = () => {
           </div>
         </div>
       </div>
-
+      {console.log("agents ", agents)}
+      {isAgentManager && (
+        <div className="flex flex-col justify-center">
+          <h2 className="mb-2 p-3  bg-gray-100 rounded text-center">
+            Filter Analytics based on Assigned Applications to agents
+          </h2>
+          <select
+            onChange={(e) => handleUserSelection(e.target.value)}
+            name="user"
+            id="user-select"
+            className="w-[300px] m-auto p-2 border mb-4 text-center border-gray-300  bg-gray-50 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="reset">Select agent</option>
+            {agents
+              .filter((agent) => agent.type === "agent") // Only include agents
+              .map((agent) => (
+                <option key={agent.id} value={agent.Name}>
+                  {agent.name}{" "}
+                </option>
+              ))}
+          </select>
+        </div>
+      )}
       {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        {isAgentUser && <AgentApplicationsKPI applications={applications} />}
         {kpiData
           .filter((kpi) => !kpi.ceoOnly || hasFinanceAccess())
           .map((kpi, index) => (
             <div
               key={index}
-              className={`rounded-xl shadow-sm p-6 border border-gray-100 transition-all hover:shadow-md ${kpi.bgColor}`}
+              className={`rounded-xl shadow-sm p-6 py-8 border border-gray-100 transition-all hover:shadow-md ${kpi.bgColor}`}
             >
               <div className="flex justify-between items-start">
                 <div>
@@ -980,15 +1192,42 @@ const Dashboard = () => {
             </div>
           ))}
       </div>
+      {/* Assigned Applications kpi */}
+
+      <div className="p-6 rounded-xl mb-4 border border-gray-100">
+        <h2 className="text-2xl font-semibold mb-4 ml-2 text-emerald-800">
+          {isAgentManager || isanAgentUser ? "Assigned Applications" : ""}
+        </h2>
+        {console.log("agent user", isanAgentUser)}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          {isanAgentUser && !isAgentManager && (
+            <>
+              <SpecificAgentApplicationsKPI applications={applications} />
+              <AgentTargetsKPI applications={applications} />
+            </>
+          )}
+          {isAgentManager && (
+            <AgentApplicationsKPI applications={applications} />
+          )}
+        </div>
+      </div>
 
       {/* Charts Section */}
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mb-6">
-        <WeeklyChart applications={applications} />
-        <StatusChart applications={applications} />
+        <WeeklyChart
+          applications={selectedAgent ? filteredApplications : applications}
+        />
+        <StatusChart
+          applications={selectedAgent ? filteredApplications : applications}
+        />
       </div>
       <div className="grid grid-cols-1 xl:grid-cols-2 my-6  gap-6">
-        <TopQualificationsChart applications={applications} />
-        <ApplicationFunnel applications={applications} />
+        <TopQualificationsChart
+          applications={selectedAgent ? filteredApplications : applications}
+        />
+        <ApplicationFunnel
+          applications={selectedAgent ? filteredApplications : applications}
+        />
       </div>
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
         <ColorStatusChart stats={stats} />

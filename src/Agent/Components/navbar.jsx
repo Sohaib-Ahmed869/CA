@@ -21,7 +21,12 @@ const Navbar = () => {
   // Logout function
   const handleLogout = async () => {
     await signOut(auth);
-    navigate("/login"); // Redirect to login page after logout
+    localStorage.removeItem("authrole");
+    localStorage.removeItem("role");
+    localStorage.removeItem("type");
+    localStorage.removeItem("jwtToken");
+    localStorage.removeItem("firebaseToken");
+    navigate("/login");
   };
 
   return (

@@ -94,7 +94,7 @@ const PaymentPage = ({
         if (data.success) {
           toast.success("Payment successful!");
           await getUserApplications(userId);
-          
+
           setShowCheckoutModal(false);
         } else {
           throw new Error(data.message || "Payment failed");

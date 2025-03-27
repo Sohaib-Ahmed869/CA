@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { getApplications } from "../../Customer/Services/adminServices";
+import { getApplications } from "../../Customer/Services/assesorServices";
 import SpinnerLoader from "../../Customer/components/spinnerLoader";
 import {
   BarChart,
@@ -39,9 +39,9 @@ import {
 } from "lucide-react";
 
 const AdminDashboard = ({ setActive }) => {
-   useEffect(() => {
-      window.scrollTo(0, 0);
-    }, []);
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
   const navigate = useNavigate();
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -289,7 +289,6 @@ const AdminDashboard = ({ setActive }) => {
     trend,
   }) => (
     <div
-      
       className={`bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow ${
         onClick ? "cursor-pointer" : ""
       }`}
@@ -348,7 +347,7 @@ const AdminDashboard = ({ setActive }) => {
 
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <StatCard
+          {/* <StatCard
             title="Total Applications"
             value={metrics.total}
             subtitle="All applications received"
@@ -356,7 +355,7 @@ const AdminDashboard = ({ setActive }) => {
             color="bg-blue-600"
             trend={4.5}
             onClick={() => setActive("Customers")}
-          />
+          /> */}
           <StatCard
             title="RTO Applications"
             value={metrics.rto}
@@ -383,6 +382,14 @@ const AdminDashboard = ({ setActive }) => {
             color="bg-amber-600"
             trend={-2.4}
             onClick={() => setActive("Customers")}
+          />
+          <StatCard
+            title="Completion Rate"
+            value={`${metrics.completionRate}%`}
+            subtitle="Applications completed"
+            icon={Book}
+            color="bg-pink-600"
+            trend={1.2}
           />
         </div>
 
@@ -412,14 +419,6 @@ const AdminDashboard = ({ setActive }) => {
             color="bg-indigo-600"
             trend={0.8}
           /> */}
-          <StatCard
-            title="Completion Rate"
-            value={`${metrics.completionRate}%`}
-            subtitle="Applications completed"
-            icon={Book}
-            color="bg-pink-600"
-            trend={1.2}
-          />
         </div>
 
         {/* Recent Applications and Top Qualifications */}
@@ -500,7 +499,6 @@ const AdminDashboard = ({ setActive }) => {
           </div> */}
 
           {/* Top Qualifications */}
-     
         </div>
 
         {/* Charts Row */}
@@ -552,50 +550,71 @@ const AdminDashboard = ({ setActive }) => {
             </div>
           </div>
           {/* Status Distribution Pie Chart */}
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-            <div className="flex justify-between items-center mb-6">
-              <div>
-                <h2 className="text-lg font-semibold text-gray-800">
-                  Applications by Status
-                </h2>
-                <p className="text-gray-500 text-sm">
-                  Distribution of all applications
-                </p>
+          {
+            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+              <div className="flex justify-between items-center mb-6">
+                <div>
+                  <h2 className="text-lg font-semibold text-gray-800">
+                    Applications by Status
+                  </h2>
+                  <p className="text-gray-500 text-sm">
+                    Distribution of key application milestones
+                  </p>
+                </div>
+                <PieChartIcon size={18} className="text-gray-400" />
               </div>
-              <PieChartIcon size={18} className="text-gray-400" />
-            </div>
-            <div className="h-80 flex items-center justify-center">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={statusDistribution}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    outerRadius={80}
-                    fill="#8884d8"
-                    dataKey="value"
-                    legendType="circle"
+              <div className="h-80 flex items-center justify-center">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={applications.reduce(
+                        (acc, app) => {
+                          const isCertificate =
+                            app.currentStatus === "Certificate Generated";
+                          const isCompleted =
+                            app.studentIntakeFormSubmitted &&
+                            app.documentsUploaded &&
+                            app.full_paid;
+                          const isAssessed = app.assessed;
 
-                    nameKey="name"
-                    label={({ name, percent }) =>
-                      `${name}: ${(percent * 100).toFixed(0)}%`
-                    }
-                  >
-                    {statusDistribution.map((entry, index) => (
-                      <Cell
-                        key={`cell-${index}`}
-                        fill={COLORS[index % COLORS.length]}
-                      />
-                    ))}
-                  </Pie>
-                  <Tooltip
-                    formatter={(value) => [`${value} applications`, "Count"]}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
+                          if (isCertificate) acc[0].value++;
+                          else if (isAssessed) acc[1].value++;
+                          else if (isCompleted) acc[2].value++;
+
+                          return acc;
+                        },
+                        [
+                          { name: "Certificate Generated", value: 0 },
+                          { name: "Assessed Applications", value: 0 },
+                          { name: "Completed Applications", value: 0 },
+                        ]
+                      )}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      outerRadius={80}
+                      fill="#8884d8"
+                      dataKey="value"
+                      nameKey="name"
+                      label={({ name, percent }) =>
+                        `${name}: ${(percent * 100).toFixed(0)}%`
+                      }
+                    >
+                      {[
+                        <Cell key="certificate" fill={COLORS[0]} />,
+                        <Cell key="assessed" fill={COLORS[1]} />,
+                        <Cell key="completed" fill={COLORS[2]} />,
+                      ]}
+                    </Pie>
+                    <Tooltip
+                      formatter={(value) => [`${value} applications`, "Count"]}
+                    />
+                    <Legend />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
             </div>
-          </div>
+          }
         </div>
 
         {/* Quick Actions */}
