@@ -15,6 +15,7 @@ import {
   Users,
   ChevronLeft,
   ChevronRight,
+  Filter,
 } from "lucide-react";
 
 const URL = import.meta.env.VITE_REACT_BACKEND_URL;
@@ -27,51 +28,124 @@ const ExpensesDashboard = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [dateFilter, setDateFilter] = useState({ start: "", end: "" });
   const [totalExpenses, setTotalExpenses] = useState(0);
+  const [showDefaultExpenses, setShowDefaultExpenses] = useState(true);
 
   const itemsPerPage = 10;
 
-  // Fetch all applications with expenses
   const getApplicationsWithExpenses = async () => {
     try {
       setSubmissionLoading(true);
       const response = await fetch(`${URL}/api/admin/applications`);
       if (!response.ok) throw new Error("Failed to fetch applications");
+      const applicationsData = await response.json();
 
-      let applicationsData = await response.json();
+      // let allExpenses = [];
+      // let totalAmount = 0;
 
-      // Filter only applications that have expenses
-      applicationsData = applicationsData.filter(
-        (app) => app.expenses && app.expenses.length > 0
-      );
+      // applicationsData.forEach((app) => {
+      //   if (app.isf?.expense) {
+      //     const isfExpenseAmount = parseFloat(app.isf.expense);
+      //     allExpenses.push({
+      //       amount: app.isf.expense.toString(),
+      //       description: "Default Expense",
+      //       date:
+      //         app.createdAt?.split("T")[0] ||
+      //         new Date().toISOString().split("T")[0],
+      //       id: `isf-expense-${app.applicationId}`,
+      //       createdAt: app.createdAt || new Date().toISOString(),
+      //       applicationId: app.applicationId,
+      //       customerName: `${app.user?.firstName || ""} ${
+      //         app.user?.lastName || ""
+      //       }`.trim(),
+      //       customerEmail: app.user?.email || "",
+      //       qualification: app.isf?.lookingForWhatQualification || "",
+      //       applicationStatus: app.currentStatus,
+      //       isISF: true,
+      //     });
+      //     totalAmount += isfExpenseAmount;
+      //   }
 
-      // Flatten expenses array with application details
+      //   if (app.expenses?.length) {
+      //     app.expenses.forEach((expense) => {
+      //       const expenseAmount = parseFloat(expense.amount) || 0;
+      //       const appDefaultExpense = app.isf?.expense
+      //         ? parseFloat(app.isf.expense) || 0
+      //         : 0;
+      //       allExpenses.push({
+      //         ...expense,
+      //         applicationId: app.applicationId,
+      //         customerName: `${app.user?.firstName || ""} ${
+      //           app.user?.lastName || ""
+      //         }`.trim(),
+      //         customerEmail: app.user?.email || "",
+      //         qualification: app.isf?.lookingForWhatQualification || "",
+      //         applicationStatus: app.currentStatus,
+      //         isISF: false,
+      //       });
+      //       totalAmount = expenseAmount + appDefaultExpense;
+      //     });
+      //   }
+      // });
       let allExpenses = [];
+      let totalAmount = 0;
+
       applicationsData.forEach((app) => {
-        app.expenses.forEach((expense) => {
+        // Calculate default expense if exists
+        const defaultExpense = app.isf?.expense
+          ? parseFloat(app.isf.expense)
+          : 0;
+
+        // Add default expense entry
+        if (defaultExpense > 0) {
           allExpenses.push({
-            ...expense,
+            amount: defaultExpense,
+            description: "Default Expense",
+            date:
+              app.createdAt?.split("T")[0] ||
+              new Date().toISOString().split("T")[0],
+            id: `isf-expense-${app.applicationId}`,
+            createdAt: app.createdAt || new Date().toISOString(),
             applicationId: app.applicationId,
-            customerName: `${app.user.firstName} ${app.user.lastName}`,
-            customerEmail: app.user.email,
-            qualification: app.isf.lookingForWhatQualification,
+            customerName: `${app.user?.firstName || ""} ${
+              app.user?.lastName || ""
+            }`.trim(),
+            customerEmail: app.user?.email || "",
+            qualification: app.isf?.lookingForWhatQualification || "",
             applicationStatus: app.currentStatus,
+            isISF: true,
           });
-        });
+        }
+
+        // Add regular expenses
+        if (app.expenses?.length) {
+          app.expenses.forEach((expense) => {
+            const expenseAmount = parseFloat(expense.amount) || 0;
+            allExpenses.push({
+              ...expense,
+              amount: expenseAmount,
+              applicationId: app.applicationId,
+              customerName: `${app.user?.firstName || ""} ${
+                app.user?.lastName || ""
+              }`.trim(),
+              customerEmail: app.user?.email || "",
+              qualification: app.isf?.lookingForWhatQualification || "",
+              applicationStatus: app.currentStatus,
+              isISF: false,
+            });
+          });
+        }
+
+        // Calculate total for this application
+        const appExpenses = (app.expenses || []).reduce(
+          (sum, exp) => sum + parseFloat(exp.amount || 0),
+          0
+        );
+        totalAmount += appExpenses + defaultExpense;
       });
-
-      // Sort by most recent expenses
       allExpenses.sort((a, b) => new Date(b.date) - new Date(a.date));
-
       setApplications(applicationsData);
       setFilteredExpenses(allExpenses);
-
-      // Calculate total expenses
-      const total = allExpenses.reduce(
-        (sum, expense) => sum + parseFloat(expense.amount),
-        0
-      );
-      setTotalExpenses(total);
-
+      setTotalExpenses(Number(totalAmount.toFixed(2)));
       setSubmissionLoading(false);
     } catch (error) {
       console.error("Failed to fetch expenses:", error);
@@ -79,59 +153,94 @@ const ExpensesDashboard = () => {
       setSubmissionLoading(false);
     }
   };
-
   useEffect(() => {
     getApplicationsWithExpenses();
   }, []);
 
   const searchExpenses = () => {
     let filtered = [];
+    let total = 0;
 
-    if (applications.length > 0) {
-      applications.forEach((app) => {
-        app.expenses.forEach((expense) => {
-          const searchStr = search.toLowerCase();
-          const matchesSearch =
-            app.applicationId?.toLowerCase().includes(searchStr) ||
-            app.user.firstName?.toLowerCase().includes(searchStr) ||
-            app.user.lastName?.toLowerCase().includes(searchStr) ||
-            expense.description?.toLowerCase().includes(searchStr);
+    applications.forEach((app) => {
+      const combinedExpenses = [];
 
-          const matchesDateFilter =
-            (!dateFilter.start ||
-              new Date(expense.date) >= new Date(dateFilter.start)) &&
-            (!dateFilter.end ||
-              new Date(expense.date) <= new Date(dateFilter.end));
-
-          if (matchesSearch && matchesDateFilter) {
-            filtered.push({
-              ...expense,
-              applicationId: app.applicationId,
-              customerName: `${app.user.firstName} ${app.user.lastName}`,
-              customerEmail: app.user.email,
-              qualification: app.isf.lookingForWhatQualification,
-              applicationStatus: app.currentStatus,
-            });
-          }
+      if (app.isf?.expense) {
+        combinedExpenses.push({
+          amount: app.isf.expense.toString(),
+          description: "Default Expense",
+          date:
+            app.createdAt?.split("T")[0] ||
+            new Date().toISOString().split("T")[0],
+          id: `isf-${app.applicationId}`,
+          isISF: true,
+          createdAt: app.createdAt,
+          applicationId: app.applicationId,
+          customerName: `${app.user?.firstName || ""} ${
+            app.user?.lastName || ""
+          }`.trim(),
+          customerEmail: app.user?.email || "",
+          qualification: app.isf?.lookingForWhatQualification || "",
+          applicationStatus: app.currentStatus,
         });
-      });
-    }
+      }
 
+      if (app.expenses?.length) {
+        combinedExpenses.push(
+          ...app.expenses.map((e) => ({
+            ...e,
+            isISF: false,
+            applicationId: app.applicationId,
+            customerName: `${app.user?.firstName || ""} ${
+              app.user?.lastName || ""
+            }`.trim(),
+            customerEmail: app.user?.email || "",
+            qualification: app.isf?.lookingForWhatQualification || "",
+            applicationStatus: app.currentStatus,
+            date: e.date || new Date().toISOString().split("T")[0],
+          }))
+        );
+      }
+      combinedExpenses.forEach((expense) => {
+        const searchStr = search.toLowerCase();
+        const appId = app.applicationId?.toLowerCase() || "";
+        const firstName = app.user?.firstName?.toLowerCase() || "";
+        const lastName = app.user?.lastName?.toLowerCase() || "";
+        const description = expense.description?.toLowerCase() || "";
+
+        const matchesSearch =
+          appId.includes(searchStr) ||
+          firstName.includes(searchStr) ||
+          lastName.includes(searchStr) ||
+          description.includes(searchStr);
+
+        const expenseDate = new Date(expense.date);
+        const startDate = dateFilter.start ? new Date(dateFilter.start) : null;
+        const endDate = dateFilter.end ? new Date(dateFilter.end) : null;
+        const matchesDateFilter =
+          (!startDate || expenseDate >= startDate) &&
+          (!endDate || expenseDate <= endDate);
+        const matchesDefaultFilter = showDefaultExpenses || !expense.isISF;
+
+        if (matchesSearch && matchesDateFilter && matchesDefaultFilter) {
+          const amount = parseFloat(expense.amount) || 0;
+          total += amount;
+          filtered.push(expense);
+        }
+      });
+    });
+
+    // Sort by date descending
     filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+    // Update state
     setFilteredExpenses(filtered);
     setCurrentPage(1);
-
-    // Update total for filtered results
-    const total = filtered.reduce(
-      (sum, expense) => sum + parseFloat(expense.amount),
-      0
-    );
-    setTotalExpenses(total);
+    setTotalExpenses(Number(total.toFixed(2)));
   };
 
   useEffect(() => {
     searchExpenses();
-  }, [search, dateFilter]);
+  }, [search, dateFilter, showDefaultExpenses]);
 
   const ExportButton = () => {
     const [isExporting, setIsExporting] = useState(false);
@@ -294,6 +403,25 @@ const ExpensesDashboard = () => {
                 setDateFilter({ ...dateFilter, end: e.target.value })
               }
             />
+          </div>
+
+          <div className="md:col-span-1">
+            <label className="flex items-center text-sm font-medium text-gray-700 mb-2 gap-2">
+              <Filter size={16} />
+              <span>Filter</span>
+            </label>
+            <div className="flex items-center gap-2 bg-gray-50 p-2 rounded-md border border-gray-300">
+              <input
+                type="checkbox"
+                id="showDefault"
+                checked={showDefaultExpenses}
+                onChange={(e) => setShowDefaultExpenses(e.target.checked)}
+                className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
+              />
+              <label htmlFor="showDefault" className="text-sm text-gray-700">
+                Include Default Expenses
+              </label>
+            </div>
           </div>
 
           <div className="md:col-span-3 flex justify-end">

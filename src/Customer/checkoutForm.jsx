@@ -93,7 +93,7 @@ const PaymentPage = ({
 
         if (data.success) {
           toast.success("Payment successful!");
-          await getUserApplications(userId);
+          await getUserApplications();
 
           setShowCheckoutModal(false);
         } else {

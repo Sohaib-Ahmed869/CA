@@ -1,19 +1,35 @@
 import React, { useState, useEffect } from "react";
 import toast from "react-hot-toast";
 import { Toaster } from "react-hot-toast";
+import { getApplications } from "./Services/adminServices";
 
 const DirectDebitCheckout = ({
   applicationId,
   setShowDirectDebitModal,
   setOpenPaymentModal,
+  getApplicationsData,
+  application,
+  setSelectedApplication,
+  payment1,
+  payment2,
+  payment1Status,
+  fullPayment,
+  PaymentTime,
   userId,
-  paymentAmount,
   paymentDeadline,
   onSuccess,
 }) => {
+  console.log("paymenttime :", PaymentTime);
+  console.log("paymentDeadline :", paymentDeadline);
   const [loading, setLoading] = useState(false);
   const [card, setCard] = useState(null);
-
+  const [paymentAmount, setPaymentAmount] = useState("");
+  const [selectedPayment, setSelectedPayment] = useState("");
+  const payment1Amount = payment1 || application?.payment1 || 0;
+  const payment2Amount = payment2 || application?.payment2 || 0;
+  useEffect(() => {
+    console.log(selectedPayment);
+  }, [paymentAmount]);
   useEffect(() => {
     let script;
     const initializeSquare = async () => {
@@ -66,6 +82,10 @@ const DirectDebitCheckout = ({
 
   const handleDirectDebitSetup = async (event) => {
     event.preventDefault();
+    if (paymentAmount === 0) {
+      toast.error("Please select a valid amount");
+      return;
+    }
     setLoading(true);
 
     try {
@@ -85,6 +105,8 @@ const DirectDebitCheckout = ({
               paymentAmount: Number(paymentAmount),
               paymentDeadline,
               userId,
+              selectedPayment,
+              PaymentTime,
             }),
           }
         );
@@ -96,7 +118,15 @@ const DirectDebitCheckout = ({
         if (data.success) {
           toast.success("Automatic payment setup successful!");
           onSuccess(); // Notify parent component
+          const applications = await getApplications();
+
+          const updatedApplication = applications.filter(
+            (application) => application.id === applicationId
+          );
+          setSelectedApplication(updatedApplication[0]);
+
           setShowDirectDebitModal(false);
+          // await getApplicationsData();
           setOpenPaymentModal(true);
         } else {
           throw new Error(data.message || "Direct debit setup failed");
@@ -149,7 +179,63 @@ const DirectDebitCheckout = ({
               </span>
             </div>
           </div>
+          <div className="w-full mb-4">
+            <label
+              htmlFor="paymentAmount"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
+              Payment Amount
+            </label>
+            <select
+              name="paymentAmount"
+              id="paymentAmount"
+              className="block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 text-base text-gray-700 transition-colors cursor-pointer"
+              onChange={(e) => {
+                const selectedValue = e.target.value;
+                // Split stored value into amount and payment type
+                const [amount, paymentType] = selectedValue.includes("|")
+                  ? selectedValue.split("|")
+                  : ["", ""];
 
+                setPaymentAmount(amount);
+                setSelectedPayment(paymentType); // Now stores "Payment1", "Payment2", or "fullPayment"
+              }}
+              value={paymentAmount} // Controlled component
+            >
+              <option value="" className="text-gray-400">
+                Select Payment Amount
+              </option>
+
+              {payment1Amount > 0 && (
+                <>
+                  {!payment1Status && (
+                    <option
+                      value={`${payment1Amount}|Payment1`} // Store both amount and type
+                      className="text-gray-700 hover:bg-green-50"
+                    >
+                      Payment 1 - ${payment1Amount}
+                    </option>
+                  )}
+                </>
+              )}
+              {payment2Amount > 0 && (
+                <option
+                  value={`${payment2Amount}|Payment2`}
+                  className="text-gray-700 hover:bg-green-50"
+                >
+                  Payment 2 - ${payment2Amount}
+                </option>
+              )}
+              {!payment1Status && (
+                <option
+                  value={`${fullPayment}|fullPayment`}
+                  className="text-gray-700 hover:bg-green-50"
+                >
+                  Full Payment - ${fullPayment}
+                </option>
+              )}
+            </select>
+          </div>
           <form onSubmit={handleDirectDebitSetup}>
             <div className="mb-4 p-4 bg-gray-50 rounded-lg">
               <label className="flex items-center space-x-2">
@@ -195,8 +281,6 @@ const DirectDebitCheckout = ({
 
           <div className="mt-6 text-xs text-gray-500 space-y-2">
             <p>🔒 Payments processed securely by Square</p>
-            <p>⏰ Reminders sent 3 days before payment date</p>
-            <p>🔄 Update/cancel anytime in account settings</p>
           </div>
         </div>
       </div>

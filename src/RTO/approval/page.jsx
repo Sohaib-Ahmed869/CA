@@ -770,7 +770,7 @@ const Approval = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-10">
-      <Toaster position="top-right" />
+      <Toaster position="top-right" className="z-50" />
       {submissionLoading && <SpinnerLoader />}
 
       {!selectedApplication && (
@@ -1313,8 +1313,9 @@ const Approval = () => {
       {/* Upload Certificate Modal */}
       <dialog
         id="uploadCertificateModal"
-        className="modal modal-bottom sm:modal-middle"
+        className="modal modal-bottom sm:modal-middle "
       >
+        <Toaster position="top-right" />
         <div className="modal-box bg-white rounded-lg shadow-xl">
           <button
             className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"

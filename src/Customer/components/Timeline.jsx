@@ -11,6 +11,7 @@ import {
   FaChevronDown,
   FaChevronUp,
 } from "react-icons/fa";
+import { CheckCircle, Clock, Repeat } from "lucide-react";
 
 // Add CSS animation for smoother transitions
 const fadeInAnimation = `
@@ -566,6 +567,38 @@ const ImprovedTimeline = ({
                         <div className="bg-yellow-100 text-yellow-800 text-xs font-semibold px-2 py-0.5 rounded-full">
                           <span>Remaining: ${selectedApp.payment2 || 0}</span>
                         </div>
+                        <div>
+                          {(selectedApp.autoDebit?.status === "MANUALLY_PAID" ||
+                            selectedApp.autoDebit?.status ===
+                              "ALREADY_PAID") && (
+                            <span className="flex items-center  text-xs bg-green-100 text-green-700 font-semibold  px-2 py-0.5 rounded-full">
+                              <CheckCircle className="h-3 w-3 mr-1" />
+                              Direct Debit : Manually Paid
+                            </span>
+                          )}
+
+                          {selectedApp.autoDebit.status === "COMPLETED" && (
+                            <span className="flex items-center  text-xs bg-green-100 text-green-700 font-semibold  px-2 py-0.5 rounded-full">
+                              <CheckCircle className="h-3 w-3 mr-1" />
+                              Direct Debit Completed: $
+                              {selectedApp.autoDebit.amountDue || 0}
+                            </span>
+                          )}
+                          {selectedApp.autoDebit.status === "FAILED" && (
+                            <span className="flex items-center  text-xs bg-red-100 text-red-700 font-semibold  px-2 py-0.5 rounded-full">
+                              <CheckCircle className="h-3 w-3 mr-1" />
+                              Direct Debit FAILED: $
+                              {selectedApp.autoDebit.amountDue || 0}
+                            </span>
+                          )}
+                          {selectedApp.autoDebit.status === "SCHEDULED" && (
+                            <span className="flex items-center   text-xs bg-yellow-100 text-yellow-700 font-semibold  px-2 py-0.5 rounded-full">
+                              <Clock className="h-3 w-3 mr-1 text-yellow-600" />
+                              Direct Debit : Scheduled: $
+                              {selectedApp.autoDebit.amountDue || 0}
+                            </span>
+                          )}
+                        </div>
                       </>
                     ) : selectedApp.full_paid ? (
                       <div className="bg-green-100 text-green-800 text-xs font-semibold px-2 py-0.5 rounded-full">
@@ -576,9 +609,29 @@ const ImprovedTimeline = ({
                         </span>
                       </div>
                     ) : (
-                      <div className="text-xs text-gray-600">
-                        Initial: ${selectedApp.payment1 || 0} / Final: $
-                        {selectedApp.payment2 || 0}
+                      <div className=" flex gap-1 items-center text-xs text-gray-600 ">
+                        <span>Initial: ${selectedApp.payment1 || 0}</span>
+                        <span>/ Final: ${selectedApp.payment2 || 0}</span>
+
+                        {/* Status Indicator */}
+                        {selectedApp.autoDebit.status === "SCHEDULED" && (
+                          <span className="flex items-center text-blue-600">
+                            <Clock className="h-3 w-3 mr-1 text-blue-600" />
+                            Direct Debit : Scheduled: $
+                            {selectedApp.payment1 || 0}
+                          </span>
+                        )}
+
+                        {/* Payment Details */}
+
+                        {/* Direct Debit */}
+                        {/* {selectedApp?.autoDebit?.enabled && (
+                            <div className="flex items-center text-purple-600">
+                              /<Repeat className="h-3 w-3 mr-1 ml-1" />
+                              Direct Debit: $
+                              {selectedApp?.autoDebit?.amountDue || 0}
+                            </div>
+                          )} */}
                       </div>
                     )}
                     {selectedApp.discount > 0 && (

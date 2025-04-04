@@ -166,6 +166,9 @@ const ScreeningForm = () => {
 
   const onClickSubmit = async (e) => {
     e.preventDefault();
+    if (password.length < 6) {
+      return notifyError("Password must be at least 6 characters long");
+    }
 
     //send data to server
     setSubmissionLoading(true);
@@ -222,7 +225,6 @@ const ScreeningForm = () => {
       console.error(err);
     }
   };
-
   const [loading, setLoading] = React.useState(false);
 
   const steps = [
@@ -233,31 +235,87 @@ const ScreeningForm = () => {
     "Final Details",
   ];
 
+  // const onClickDashboard = async (e) => {
+  //   //login user
+  //   e.preventDefault();
+  //   setSubmissionLoading(true);
+  //   try {
+  //     // Sign in with Firebase Auth
+  //     const userCredential = await signInWithEmailAndPassword(
+  //       auth,
+  //       email,
+  //       password
+  //     );
+  //     //check what is user role must be customer
+  //     const user = userCredential.user;
+
+  //     // Fetch the user's role from Firestore
+  //     const userDocRef = doc(db, "users", user.uid); // Assuming you store user roles in Firestore under 'users' collection
+  //     const userDoc = await getDoc(userDocRef);
+  //     const idToken = await user.getIdToken();
+
+  //     if (userDoc.data().role !== "customer") {
+  //       console.log(userDoc.data().role);
+  //       setSubmissionLoading(false);
+  //       alert("Invalid email or password");
+  //       return;
+  //     }
+  //     const response = await fetch(`${URL}/api/auth/login`, {
+  //       method: "POST",
+  //       headers: { "Content-Type": "application/json" },
+  //       body: JSON.stringify({ idToken }),
+  //     });
+
+  //     if (!response.ok) {
+  //       const errorData = await response.json();
+  //       throw new Error(errorData.message || "Login failed");
+  //     }
+  //     const userData = userDoc.data();
+  //     const data = await response.json();
+  //     localStorage.setItem("usertoken", data.token);
+  //     localStorage.setItem("jwtToken", data.token);
+  //     localStorage.removeItem("2faPending");
+  //     localStorage.setItem("role", userData.role);
+
+  //     setSubmissionLoading(false);
+
+  //     // Redirect to dashboard
+  //     navigate("/");
+  //   } catch (err) {
+  //     alert("Invalid email or password");
+  //     console.error("Login error:", err);
+
+  //     setSubmissionLoading(false);
+  //   }
+  // };
   const onClickDashboard = async (e) => {
-    //login user
     e.preventDefault();
+
+    // Validate password length before submission
+
     setSubmissionLoading(true);
+
     try {
-      // Sign in with Firebase Auth
+      // Firebase authentication
       const userCredential = await signInWithEmailAndPassword(
         auth,
         email,
         password
       );
-      //check what is user role must be customer
       const user = userCredential.user;
 
-      // Fetch the user's role from Firestore
-      const userDocRef = doc(db, "users", user.uid); // Assuming you store user roles in Firestore under 'users' collection
+      // Firestore user data retrieval
+      const userDocRef = doc(db, "users", user.uid);
       const userDoc = await getDoc(userDocRef);
-      const idToken = await user.getIdToken();
 
-      if (userDoc.data().role !== "customer") {
-        console.log(userDoc.data().role);
-        setSubmissionLoading(false);
-        alert("Invalid email or password");
-        return;
+      if (!userDoc.exists()) {
+        throw new Error("User account not found");
       }
+
+      const userData = userDoc.data();
+
+      // API authentication
+      const idToken = await user.getIdToken();
       const response = await fetch(`${URL}/api/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -266,27 +324,47 @@ const ScreeningForm = () => {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || "Login failed");
+        throw new Error(errorData.message || "Authentication failed");
       }
-      const userData = userDoc.data();
+
+      // Handle successful login
       const data = await response.json();
       localStorage.setItem("usertoken", data.token);
       localStorage.setItem("jwtToken", data.token);
       localStorage.removeItem("2faPending");
       localStorage.setItem("role", userData.role);
 
-      setSubmissionLoading(false);
-
-      // Redirect to dashboard
+      toast.success("Login successful! Redirecting...");
       navigate("/");
     } catch (err) {
-      alert("Invalid email or password");
-      console.error("Login error:", err);
+      // Handle specific error cases
+      let errorMessage = "Login failed. Please try again.";
 
+      switch (err.code) {
+        case "auth/invalid-email":
+          errorMessage = "Invalid email address";
+          break;
+        case "auth/user-disabled":
+          errorMessage = "Account disabled";
+          break;
+        case "auth/user-not-found":
+        case "auth/wrong-password":
+          errorMessage = "Invalid email or password";
+          break;
+        default:
+          if (err.message.includes("valid email")) {
+            errorMessage = "Please enter a valid email address";
+          } else if (err.message) {
+            errorMessage = err.message;
+          }
+      }
+
+      toast.error(errorMessage);
+      console.error("Login error:", err);
+    } finally {
       setSubmissionLoading(false);
     }
   };
-
   return (
     <div className="min-h-screen">
       {loading && <Loader />}

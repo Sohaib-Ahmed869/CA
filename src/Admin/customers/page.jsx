@@ -635,9 +635,10 @@ const CustomersInfo = () => {
       "Documents Pending": "bg-orange-100 text-orange-800",
       "Student Intake Form": "bg-cyan-100 text-cyan-800",
       "Student Intake Form Pending": "bg-red-100 text-red-800",
-      "Not Started": "bg-gray-100 text-gray-800",
+      Pending: "bg-gray-100 text-gray-800",
       "Sent to RTO": "bg-red-100 text-red-800",
       "Sent to Assessor": "bg-red-100 text-red-800",
+      "Partially Paid": "bg-red-100 text-red-800",
     };
     return statusClasses[status] || "bg-gray-100 text-gray-800";
   };
@@ -652,15 +653,17 @@ const CustomersInfo = () => {
     const hasForm = application.studentIntakeFormSubmitted;
     const hasDocs = application.documentsUploaded;
     const hasPaid = application.full_paid;
+    const partiallyPaid = application.paid && !application.full_paid;
 
     if (hasForm && hasDocs && hasPaid) return "Waiting Assessment";
     if (hasForm && hasDocs) return "Payment Pending";
     if (hasForm && hasPaid) return "Documents Pending";
     if (hasForm) return "Student Intake Form";
     if (hasPaid && !hasForm) return "Student Intake Form Pending";
+    if (partiallyPaid) return "Partially Paid";
     // if (hasDocs || hasPaid) return "Incomplete Submission";
 
-    return "Not Started";
+    return "Pending";
   };
   const getLeadStatusLabel = (color) => {
     switch (color) {

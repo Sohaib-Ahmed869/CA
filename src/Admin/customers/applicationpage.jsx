@@ -11,7 +11,13 @@ import { MdLabel } from "react-icons/md";
 import { FaPhoneAlt } from "react-icons/fa";
 import { BiUser } from "react-icons/bi";
 import { BiUpload } from "react-icons/bi";
-import { Settings } from "lucide-react";
+import {
+  AlertCircle,
+  CheckCircle,
+  Clock,
+  Settings,
+  XCircle,
+} from "lucide-react";
 import { IoCall } from "react-icons/io5";
 import { MdPayment } from "react-icons/md";
 import SpinnerLoader from "../../Customer/components/spinnerLoader";
@@ -93,7 +99,6 @@ const Application = ({
   const [openPaymentModal, setOpenPaymentModal] = useState(false);
   const [discountModalOpen, setDiscountModalOpen] = useState(false);
   const [discount, setDiscount] = useState("");
-  const [isdirectDebitSuccessful, setIsdirectDebitSuccessful] = useState(false);
   // User information states
   const [updatedPhone, setUpdatedPhone] = useState(
     application.user?.phone || ""
@@ -274,7 +279,7 @@ const Application = ({
   const [minute, setMinute] = useState("00");
   const [amPm, setAmPm] = useState("PM");
   const [timeSelected, setTimeSelected] = useState(false);
-  const [autoDeductPayment2, setAutoDeductPayment2] = useState(false);
+  const [directDebitChecked, setDirectDebitChecked] = useState(false);
   const [showDirectDebitModal, setShowDirectDebitModal] = useState(false);
   const handleSetTime = () => {
     setTimeSelected(true);
@@ -717,8 +722,8 @@ const Application = ({
                   )}
                 </h1>
                 <p className="text-emerald-100">
-                  Submitted by {application.user.firstName}{" "}
-                  {application.user.lastName} on{" "}
+                  Submitted by {application.user?.firstName}{" "}
+                  {application.user?.lastName} on{" "}
                   {formatDate(application.status[0]?.time?.split("T")[0])}
                 </p>
               </div>
@@ -924,14 +929,14 @@ const Application = ({
                         <p className="flex justify-between">
                           <span className="text-gray-500">Name:</span>
                           <span className="font-medium">
-                            {application.user.firstName}{" "}
-                            {application.user.lastName}
+                            {application.user?.firstName}{" "}
+                            {application.user?.lastName}
                           </span>
                         </p>
                         <p className="flex justify-between">
                           <span className="text-gray-500">Email:</span>
                           <span className="font-medium flex items-center">
-                            {application.user.email}
+                            {application.user?.email}
                             <button
                               onClick={() => setIsUpdateEmailOpen(true)}
                               className="ml-2 text-emerald-600 hover:text-emerald-700"
@@ -1350,7 +1355,77 @@ const Application = ({
                                 )}
                               </span>
                             </p>
+                            <p className="flex justify-between">
+                              <span className="text-gray-500">
+                                Direct Debit Status:
+                              </span>
+                              <span className="font-medium flex items-center gap-1">
+                                {application?.autoDebit?.enabled ? (
+                                  <>
+                                    {/* Amount Display */}
+                                    <span className="text-green-700 text-sm">
+                                      $
+                                      {application.autoDebit?.amountDue > 0
+                                        ? application.autoDebit.amountDue
+                                        : "0.00"}
+                                    </span>
 
+                                    {/* Status Indicator */}
+                                    {application.autoDebit?.status ===
+                                    "COMPLETED" ? (
+                                      <span className="flex items-center text-sm text-green-600 gap-1">
+                                        <CheckCircle className="h-4 w-4" />
+                                        (Completed)
+                                      </span>
+                                    ) : application.autoDebit?.status ===
+                                      "SCHEDULED" ? (
+                                      <span className="flex items-center text-sm text-blue-600 gap-1">
+                                        <Clock className="h-4 w-4" />
+                                        (Scheduled)
+                                        {/* {application.autoDebit?.dueDate} */}
+                                        {application.autoDebit?.dueDate
+                                          ? new Date(
+                                              application.autoDebit?.dueDate
+                                                ._seconds * 1000
+                                            ).toLocaleString("en-US", {
+                                              timeZone:
+                                                Intl.DateTimeFormat().resolvedOptions()
+                                                  .timeZone,
+                                              month: "short",
+                                              day: "numeric",
+                                              hour: "numeric",
+                                              minute: "numeric",
+                                              hour12: true,
+                                            })
+                                          : "N/A"}
+                                      </span>
+                                    ) : application.autoDebit?.status ===
+                                      "MANUALLY_PAID" ? (
+                                      <span className="flex items-center text-sm text-purple-600 gap-1">
+                                        <CheckCircle className="h-4 w-4" />
+                                        (Manually Paid)
+                                      </span>
+                                    ) : application.autoDebit?.status ===
+                                      "FAILED" ? (
+                                      <span className="flex items-center text-sm text-red-600 gap-1">
+                                        <AlertCircle className="h-4 w-4" />
+                                        (Failed)
+                                      </span>
+                                    ) : (
+                                      <span className="flex items-center text-sm text-yellow-600 gap-1">
+                                        <AlertCircle className="h-4 w-4" />
+                                        (Pending Setup)
+                                      </span>
+                                    )}
+                                  </>
+                                ) : (
+                                  <span className="flex items-center text-sm text-gray-500 gap-1">
+                                    <XCircle className="h-4 w-4" />
+                                    (Not Enabled)
+                                  </span>
+                                )}
+                              </span>
+                            </p>
                             <p className="flex justify-between">
                               <span className="text-gray-500">
                                 Due Date for Payment 2:
@@ -1438,7 +1513,11 @@ const Application = ({
                         </button>
 
                         <button
-                          onClick={() => setOpenPaymentModal(true)}
+                          onClick={() => {
+                            application.full_paid
+                              ? toast.error("Payment already processed")
+                              : setOpenPaymentModal(true);
+                          }}
                           className="w-full px-4 py-2 flex items-center justify-center gap-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700"
                         >
                           <BiPlus />
@@ -2033,13 +2112,18 @@ const Application = ({
                       </button>
                     </div>
                     {!isApplicationCompleted &&
+                      !application.paid &&
+                      !application.full_paid &&
                       !application.certificateGenerated &&
                       !application.assessed && (
                         <div className="border rounded-lg p-4">
                           <h3 className="text-lg font-medium text-gray-700 mb-3">
                             Change Qualification
                           </h3>
-                          <ChangeQualification id={application.id} />
+                          <ChangeQualification
+                            id={application.id}
+                            setSelectedApplication={setSelectedApplication}
+                          />
                         </div>
                       )}
                     {isApplicationCompleted &&
@@ -2289,6 +2373,7 @@ const Application = ({
                     type="number"
                     className="w-full border border-gray-300 rounded-md p-3 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                     value={payment1}
+                    readOnly={application.paid}
                     onChange={(e) => {
                       const enteredPayment =
                         e.target.value.trim() === ""
@@ -2431,15 +2516,15 @@ const Application = ({
             </div>
             {/* Add this section after the deadline time section */}
             <div className="my-4">
-              {!isdirectDebitSuccessful && !application.full_paid ? (
+              {!application.full_paid ? (
                 <>
                   <label className="flex items-center space-x-2">
                     <input
                       type="checkbox"
-                      checked={autoDeductPayment2}
+                      checked={directDebitChecked}
                       onChange={(e) => {
                         const shouldEnable = e.target.checked;
-                        setAutoDeductPayment2(shouldEnable);
+                        setDirectDebitChecked(shouldEnable);
                         if (shouldEnable) {
                           setOpenPaymentModal(false);
                           setShowDirectDebitModal(true);
@@ -2448,8 +2533,7 @@ const Application = ({
                       className="h-4 w-4 text-emerald-600 focus:ring-emerald-500 border-gray-300 rounded"
                     />
                     <span className="text-sm text-red-700">
-                      Automatically deduct second payment using Square Direct
-                      Debit
+                      Automatically deduct payments using Square Direct Debit
                     </span>
                   </label>
                 </>
@@ -2487,23 +2571,28 @@ const Application = ({
       {showDirectDebitModal && (
         <DirectDebitCheckout
           applicationId={application.id}
-          setIsdirectDebitSuccessful={setIsdirectDebitSuccessful}
+          getApplicationsData={getApplicationsData}
           setOpenPaymentModal={setOpenPaymentModal}
+          payment1={payment1}
+          setSelectedApplication={setSelectedApplication}
+          application={application}
+          payment2={payment2}
+          PaymentTime={payment2DeadlineTime}
+          payment1Status={application.paid}
+          fullPayment={application.price}
           setShowDirectDebitModal={(value) => {
             setShowDirectDebitModal(value);
             if (!value) {
               // Reset checkbox if modal is closed without completion
-              setAutoDeductPayment2(false);
+              setDirectDebitChecked(false);
             }
           }}
-          paymentAmount={application.price}
           paymentDeadline={payment2Deadline}
           userId={application.userId}
           onSuccess={() => {
             // Keep checkbox checked if setup succeeds
-            setAutoDeductPayment2(true);
+            setDirectDebitChecked(true);
             setShowDirectDebitModal(false);
-            setIsdirectDebitSuccessful(true);
           }}
         />
       )}

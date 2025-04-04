@@ -543,6 +543,118 @@ const WeeklyChart = ({ applications }) => {
 };
 
 // Status Distribution Chart
+// const StatusChart = ({ applications }) => {
+//   const getStatusData = () => {
+//     const statuses = {
+//       "Student Intake Form": 0,
+//       "Upload Documents": 0,
+//       "Sent to RTO": 0,
+//       "Waiting for Verification": 0,
+//       "Certificate Generated": 0,
+//     };
+
+//     applications.forEach((app) => {
+//       if (statuses.hasOwnProperty(app.currentStatus)) {
+//         statuses[app.currentStatus]++;
+//       }
+//     });
+
+//     return {
+//       series: Object.values(statuses),
+//       labels: Object.keys(statuses),
+//     };
+//   };
+
+//   const data = getStatusData();
+
+//   const chartOptions = {
+//     labels: data.labels,
+//     colors: ["#064e3b", "#065f46", "#047857", "#059669", "#10b981"],
+//     chart: {
+//       type: "pie",
+//       fontFamily: "'Inter', sans-serif",
+//     },
+//     legend: {
+//       position: "bottom",
+//       fontSize: "14px",
+//       fontWeight: 500,
+//       markers: {
+//         width: 10,
+//         height: 10,
+//         strokeWidth: 0,
+//         radius: 4,
+//       },
+//       itemMargin: {
+//         horizontal: 10,
+//         vertical: 5,
+//       },
+//     },
+
+//     plotOptions: {
+//       pie: {
+//         expandOnClick: false,
+//       },
+//     },
+//     title: {
+//       text: "Application Status Distribution",
+//       align: "left",
+//       style: {
+//         fontSize: "16px",
+//         fontWeight: 600,
+//         color: "#1f2937",
+//       },
+//     },
+//     responsive: [
+//       {
+//         breakpoint: 480,
+//         options: {
+//           legend: {
+//             position: "bottom",
+//           },
+//         },
+//       },
+//     ],
+//   };
+
+//   return (
+//     <div className="bg-white rounded-xl shadow-sm p-6 border border-green-50">
+//       <div className="flex items-center mb-4">
+//         <PieChart className="mr-2 text-green-700" size={20} />
+//         <h3 className="text-lg font-semibold text-gray-800">
+//           Application Status Distribution
+//         </h3>
+//       </div>
+//       <ApexCharts
+//         options={chartOptions}
+//         series={data.series}
+//         type="pie"
+//         height={350}
+//       />
+//     </div>
+//   );
+// };
+const getApplicationStatus = (application) => {
+  if (application.currentStatus === "Certificate Generated")
+    return "Certificate Generated";
+  if (application.currentStatus === "Sent to RTO") return "Sent to RTO";
+  // if (application.currentStatus === "Sent to Assessor")
+  // return "Sent to Assessor";
+  if (application.assessed) return "Assessed";
+
+  const hasForm = application.studentIntakeFormSubmitted;
+  const hasDocs = application.documentsUploaded;
+  const hasPaid = application.full_paid;
+
+  if (hasForm && hasDocs && hasPaid) return "Waiting Assessment";
+  if (hasForm && hasDocs) return "Payment Pending";
+  if (hasForm && hasPaid) return "Documents Pending";
+  if (hasForm) return "Student Intake Form";
+  if (hasPaid && !hasForm) return "Student Intake Form Pending";
+  // if (hasDocs || hasPaid) return "Incomplete Submission";
+
+  return "Not Started";
+};
+
 const StatusChart = ({ applications }) => {
   const getStatusData = () => {
     const statuses = {
@@ -551,11 +663,35 @@ const StatusChart = ({ applications }) => {
       "Sent to RTO": 0,
       "Waiting for Verification": 0,
       "Certificate Generated": 0,
+      Assessed: 0,
     };
 
     applications.forEach((app) => {
-      if (statuses.hasOwnProperty(app.currentStatus)) {
-        statuses[app.currentStatus]++;
+      const status = getApplicationStatus(app);
+
+      switch (status) {
+        case "Student Intake Form":
+        case "Student Intake Form Pending":
+          statuses["Student Intake Form"]++;
+          break;
+        case "Documents Pending":
+          statuses["Upload Documents"]++;
+          break;
+        case "Waiting Assessment":
+          statuses["Waiting for Verification"]++;
+          break;
+        case "Assessed":
+          statuses["Assessed"]++;
+          break;
+
+        case "Sent to RTO":
+          statuses["Sent to RTO"]++;
+          break;
+        case "Certificate Generated":
+          statuses["Certificate Generated"]++;
+          break;
+        default:
+          console.warn("Unmapped status:", status);
       }
     });
 
@@ -567,6 +703,7 @@ const StatusChart = ({ applications }) => {
 
   const data = getStatusData();
 
+  // ... rest of the chart options and JSX remain the same
   const chartOptions = {
     labels: data.labels,
     colors: ["#064e3b", "#065f46", "#047857", "#059669", "#10b981"],
@@ -589,7 +726,6 @@ const StatusChart = ({ applications }) => {
         vertical: 5,
       },
     },
-
     plotOptions: {
       pie: {
         expandOnClick: false,

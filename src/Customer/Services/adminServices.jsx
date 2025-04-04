@@ -59,6 +59,23 @@ export const UpdateExpense = async (applicationId, newExpense) => {
     );
   }
 };
+export const AddExpense = async (applicationId, expenseData) => {
+  try {
+    const response = await authAxios.post(
+      `${URL}/api/applications/expense/${applicationId}`,
+      expenseData
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error adding expense:", error);
+    return (
+      error.response?.data || {
+        error: true,
+        message: "Failed to add expense",
+      }
+    );
+  }
+};
 export const getCustomers = async () => {
   try {
     const response = await authAxios.get(`${URL}/api/admin/customers`);

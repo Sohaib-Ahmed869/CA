@@ -42,6 +42,12 @@ const CustomerDashboard = () => {
   const menuRef = useRef(null);
   const navigate = useNavigate();
 
+  useEffect(() => {
+    const role = localStorage.getItem("role");
+    if (role !== "customer") {
+      navigate("/login");
+    }
+  }, []);
   // Payment modal state
   const [showPaymentModal, setShowPaymentModal] = useState(false);
 

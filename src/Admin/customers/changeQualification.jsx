@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { getIndustries } from "../../Customer/Services/adminServices";
+import {
+  getApplications,
+  getIndustries,
+} from "../../Customer/Services/adminServices";
 import { MdLabel } from "react-icons/md";
 import { updateQualification } from "../../Customer/Services/adminServices";
 import toast from "react-hot-toast";
-const ChangeQualification = ({ id }) => {
+const ChangeQualification = ({ id, setSelectedApplication }) => {
   const [industries, setIndustries] = useState([]);
   const [qualificationOptions, setQualificationOptions] = useState([]);
   const [qualification, setQualification] = useState("");
@@ -37,28 +40,21 @@ const ChangeQualification = ({ id }) => {
       setType("");
       setPrice(0);
       setExpense(0);
+      const applications = await getApplications();
+      console.log("Applications:", applications);
+      console.log("id in qualification:", id);
+
+      const updatedApplication = applications.filter(
+        (application) => application.id === id
+      );
+      console.log("Updated Application:", updatedApplication);
+      setSelectedApplication(updatedApplication[0]);
     } catch (err) {
       console.log(err);
       toast.error("Failed to update qualification");
     }
   };
-  useEffect(() => {
-    console.log(
-      "  Selected Industry ID:",
-      selectedIndustryId,
-      "   Qualification:",
-      qualification,
-      "   type",
-      type,
-      "   price ",
-      price,
-      "applicationId",
-      id,
-      "expense",
-      expense,
-      qualificationOptions
-    );
-  }, [industry, qualification, type, price]);
+
   const onChangeCertificate = (e) => {
     setQualification(e.target.value);
 

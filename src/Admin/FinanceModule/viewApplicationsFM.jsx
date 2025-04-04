@@ -21,7 +21,10 @@ import {
   Calendar,
   ArrowLeft,
 } from "lucide-react";
-import { UpdateExpense } from "../../Customer/Services/adminServices";
+import {
+  AddExpense,
+  UpdateExpense,
+} from "../../Customer/Services/adminServices";
 
 const URL = import.meta.env.VITE_REACT_BACKEND_URL;
 
@@ -355,6 +358,7 @@ const FinanceManagement = () => {
   const [otherselectedApplication, setOtherSelectedApplication] =
     useState(null);
   const [addExpenseModal, setAddExpenseModal] = useState(false);
+  const [updateExpenseModal, setUpdateExpenseModal] = useState(false);
   const [newExpense, setNewExpense] = useState(0);
   const [expense, setExpense] = useState({
     amount: "",
@@ -366,11 +370,31 @@ const FinanceManagement = () => {
   const [selectedExpenses, setSelectedExpenses] = useState([]);
 
   // Function to view expenses for an application
+  // const handleViewExpenses = (application) => {
+  //   setSelectedExpenses(application.expenses || []);
+  //   setViewExpensesModal(true);
+  // };
   const handleViewExpenses = (application) => {
-    setSelectedExpenses(application.expenses || []);
+    const isfExpenseEntry = application.isf?.expense
+      ? {
+          amount: application.isf.expense.toString(),
+          description: "Default Expense",
+          date:
+            application.createdAt?.split("T")[0] ||
+            new Date().toISOString().split("T")[0],
+          id: "isf-default",
+          createdAt: application.createdAt || new Date().toISOString(),
+        }
+      : null;
+
+    const combinedExpenses = [
+      ...(isfExpenseEntry ? [isfExpenseEntry] : []),
+      ...(application.expenses || []),
+    ];
+
+    setSelectedExpenses(combinedExpenses);
     setViewExpensesModal(true);
   };
-
   const itemsPerPage = 10;
 
   const getFinancialApplications = async () => {
@@ -425,6 +449,72 @@ const FinanceManagement = () => {
     searchByIDorName();
   }, [search]);
 
+  // Add Expense
+  // const handleAddExpense = async () => {
+  //   if (!expense.amount || !expense.description) {
+  //     toast.error("Please fill all fields");
+  //     return;
+  //   }
+
+  //   try {
+  //     setSubmissionLoading(true);
+  //     const response = await fetch(
+  //       `${URL}/api/applications/expense/${selectedApplication.id}`,
+  //       {
+  //         method: "POST",
+  //         headers: {
+  //           "Content-Type": "application/json",
+  //         },
+  //         body: JSON.stringify(expense),
+  //       }
+  //     );
+
+  //     if (!response.ok) throw new Error("Failed to add expense");
+
+  //     toast.success("Expense added successfully");
+  //     setAddExpenseModal(false);
+  //     setExpense({
+  //       amount: "",
+  //       description: "",
+  //       date: new Date().toISOString().split("T")[0],
+  //     });
+  //     await getFinancialApplications();
+  //   } catch (error) {
+  //     console.error("Failed to add expense:", error);
+  //     toast.error("Failed to add expense");
+  //   } finally {
+  //     setSubmissionLoading(false);
+  //   }
+  // };
+  const handleAddExpense = async () => {
+    if (!expense.amount || !expense.description) {
+      toast.error("Please fill all fields");
+      return;
+    }
+
+    try {
+      setSubmissionLoading(true);
+      const response = await AddExpense(selectedApplication.id, expense);
+
+      if (response.error)
+        throw new Error(response.message || "Failed to add expense");
+
+      toast.success("Expense added successfully");
+      setAddExpenseModal(false);
+      setExpense({
+        amount: "",
+        description: "",
+        date: new Date().toISOString().split("T")[0],
+      });
+      await getFinancialApplications();
+    } catch (error) {
+      console.error("Failed to add expense:", error);
+      toast.error(error.message || "Failed to add expense");
+    } finally {
+      setSubmissionLoading(false);
+    }
+  };
+  // UpdateExpense
   const handleUpdateExpense = async () => {
     if (!newExpense) {
       toast.error("Please fill all fields");
@@ -440,7 +530,7 @@ const FinanceManagement = () => {
         throw new Error(response.message || "Failed to add expense");
 
       toast.success("Expense added successfully");
-      setAddExpenseModal(false);
+      setUpdateExpenseModal(false);
       setNewExpense("");
       await getFinancialApplications();
     } catch (error) {
@@ -605,10 +695,13 @@ const FinanceManagement = () => {
                       Remaining Balance
                     </th>
                     <th className="font-semibold text-green-800 p-4 text-center">
+                      Default Expenses
+                    </th>
+                    <th className="font-semibold text-green-800 p-4 text-center">
                       Total Expenses
                     </th>
                     <th className="font-semibold text-green-800 p-4 text-center">
-                      Actions
+                      Manage Expenses
                     </th>
                   </tr>
                 </thead>
@@ -680,6 +773,16 @@ const FinanceManagement = () => {
                       <td className="p-4 text-center font-medium">
                         ${application.isf.expense}
                       </td>
+                      <td className="p-4 text-center font-medium">
+                        $
+                        {(
+                          parseFloat(application.isf?.expense || 0) +
+                          (application.expenses?.reduce(
+                            (sum, exp) => sum + parseFloat(exp.amount),
+                            0
+                          ) || 0)
+                        ).toFixed(2)}
+                      </td>
                       <td className="p-4">
                         <div className="flex justify-center gap-2">
                           <button
@@ -687,26 +790,36 @@ const FinanceManagement = () => {
                             onClick={() => {
                               setSelectedApplication(application);
                               setNewExpense(application.isf.expense);
+                              setUpdateExpenseModal(true);
+                            }}
+                            title="Update Expense"
+                          >
+                            <PlusCircle size={14} />
+                            <span className="hidden md:inline">Update</span>
+                          </button>
+                          <button
+                            className="bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded flex items-center gap-1 text-sm"
+                            onClick={() => {
+                              setSelectedApplication(application);
                               setAddExpenseModal(true);
                             }}
                             title="Add Expense"
                           >
                             <PlusCircle size={14} />
                             <span className="hidden md:inline">
-                              Update Expense
+                              Add Expense
                             </span>
                           </button>
-                          {/* <button
+                          <button
                             className="bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded flex items-center gap-1 text-sm"
                             onClick={() => handleViewExpenses(application)}
-                            disabled={!application.expenses?.length}
+                            // disabled={!application.expenses?.length  }
+                            // disabled={application.isf.expense <= 0}
                             title="View Expenses"
                           >
                             <Eye size={14} />
-                            <span className="hidden md:inline">
-                              View Expenses
-                            </span>
-                          </button> */}
+                            <span className="hidden md:inline">View</span>
+                          </button>
                         </div>
                       </td>
                     </tr>
@@ -802,6 +915,7 @@ const FinanceManagement = () => {
                           </td>
                         </tr>
                       ))}
+
                       {selectedExpenses.length === 0 && (
                         <tr>
                           <td
@@ -846,9 +960,83 @@ const FinanceManagement = () => {
               </div>
             </div>
           )}
-
           {/* Add Expense Modal */}
           {addExpenseModal && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+              <div className="bg-white rounded-xl shadow-lg max-w-md w-full p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-xl font-semibold text-gray-800 flex items-center">
+                    <PlusCircle size={20} className="mr-2 text-green-700" />
+                    Add Expense
+                  </h2>
+                  <button
+                    onClick={() => {
+                      setAddExpenseModal(false);
+                      setSelectedApplication(null);
+                    }}
+                    className="text-gray-500 hover:text-gray-700 transition-colors"
+                  >
+                    <X size={24} />
+                  </button>
+                </div>
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Amount
+                    </label>
+                    <input
+                      type="number"
+                      className="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                      value={expense.amount}
+                      onChange={(e) =>
+                        setExpense({ ...expense, amount: e.target.value })
+                      }
+                      placeholder="Enter amount"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Description
+                    </label>
+                    <textarea
+                      className="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                      value={expense.description}
+                      onChange={(e) =>
+                        setExpense({ ...expense, description: e.target.value })
+                      }
+                      placeholder="Enter expense description"
+                      rows={4}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Date
+                    </label>
+                    <input
+                      type="date"
+                      className="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                      value={expense.date}
+                      onChange={(e) =>
+                        setExpense({ ...expense, date: e.target.value })
+                      }
+                    />
+                  </div>
+
+                  <button
+                    className="w-full bg-green-700 hover:bg-green-800 text-white font-medium py-2 rounded-md transition-colors mt-4"
+                    onClick={handleAddExpense}
+                  >
+                    Add Expense
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+          {/* Add Expense Modal */}
+          {updateExpenseModal && (
             <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
               <div className="bg-white rounded-xl shadow-lg max-w-md w-full p-6">
                 <div className="flex items-center justify-between mb-6">
@@ -858,7 +1046,7 @@ const FinanceManagement = () => {
                   </h2>
                   <button
                     onClick={() => {
-                      setAddExpenseModal(false);
+                      setUpdateExpenseModal(false);
                       setSelectedApplication(null);
                     }}
                     className="text-gray-500 hover:text-gray-700 transition-colors"

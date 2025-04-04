@@ -3,7 +3,7 @@ import axios from "axios";
 // Create authenticated axios instance
 export const authAxios = axios.create({
   baseURL: import.meta.env.VITE_REACT_BACKEND_URL,
-  timeout: 10000,
+  timeout: 40000,
   headers: {
     "Content-Type": "application/json",
   },

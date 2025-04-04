@@ -22,6 +22,7 @@ import {
   TrendingDown,
   BarChart3,
   Calendar,
+  Filter,
 } from "lucide-react";
 
 const URL = import.meta.env.VITE_REACT_BACKEND_URL;
@@ -33,8 +34,12 @@ const Analytics = () => {
     totalPayment: 0,
     totalProfit: 0,
     totalExpense: 0,
+    additionalExpense: 0,
+    defaultExpense: 0,
     currentMonthProfit: 0,
   });
+
+  const [applicationOption, setApplicationOption] = useState("all");
   const [monthlyData, setMonthlyData] = useState([]);
 
   // Function to calculate metrics for a specific time period
@@ -44,11 +49,24 @@ const Analytics = () => {
 
       // Fetch all applications that have been paid
       const applicationsResponse = await fetch(`${URL}/api/admin/applications`);
+
       let applications = await applicationsResponse.json();
+      // setApplications(applications);
 
       //filter out where paid is true
-      applications = applications.filter((app) => app.paid === true);
-
+      if (applicationOption === "unpaid") {
+        applications = applications.filter(
+          (app) => app.paid === false && app.full_paid === false
+        );
+      }
+      if (applicationOption === "paid") {
+        applications = applications.filter(
+          (app) => app.paid === true || app.full_paid === true
+        );
+      }
+      if (applicationOption === "all") {
+        applications = applications;
+      }
       // Filter data based on selected timeframe
       let filteredApplications = applications;
       if (timeFrame !== "all") {
@@ -66,14 +84,15 @@ const Analytics = () => {
 
       // Calculate total payments
       const totalPayment = filteredApplications.reduce((sum, app) => {
-        let CleanPrice = app.price?.replace(/[^0-9.-]+/g, "") || 0;
-        let price = app.partialScheme ? app.amount_paid : CleanPrice;
-        //convert to int
-        return sum + parseFloat(price || 0);
+        // Use same calculation method everywhere
+        const amount = app.partialScheme
+          ? parseFloat(app.amount_paid || 0)
+          : parseFloat(app.price?.replace(/[^0-9.-]+/g, "") || 0);
+        return sum + amount;
       }, 0);
 
       // Calculate total expenses
-      const totalExpense = filteredApplications.reduce((sum, app) => {
+      const additionalExpense = filteredApplications.reduce((sum, app) => {
         const expenses = app.expenses || [];
         return (
           sum +
@@ -83,7 +102,14 @@ const Analytics = () => {
           )
         );
       }, 0);
-
+      const defaultExpense = filteredApplications.reduce((total, app) => {
+        // Handle potential missing values and parse amount
+        const isfAmount = app.isf?.expense
+          ? parseFloat(app.isf.expense) || 0
+          : 0;
+        return total + isfAmount;
+      }, 0);
+      const totalExpense = additionalExpense + defaultExpense;
       // Calculate total profit (payments - expenses)
       const totalProfit = totalPayment - totalExpense;
 
@@ -102,19 +128,26 @@ const Analytics = () => {
       });
 
       const currentMonthPayment = currentMonthApplications.reduce(
-        (sum, app) => sum + parseFloat(app.amount_paid || 0),
+        (sum, app) => {
+          const amount = app.partialScheme
+            ? parseFloat(app.amount_paid || 0)
+            : parseFloat(String(app.price).replace(/[^0-9.-]+/g, "") || 0);
+          return sum + amount;
+        },
         0
       );
+
       const currentMonthExpenses = currentMonthApplications.reduce(
         (sum, app) => {
           const expenses = app.expenses || [];
-          return (
-            sum +
-            expenses.reduce(
-              (expSum, exp) => expSum + parseFloat(exp.amount || 0),
-              0
-            )
+          const additional = expenses.reduce(
+            (expSum, exp) => expSum + parseFloat(exp.amount || 0),
+            0
           );
+          const defaultExp = app.isf?.expense
+            ? parseFloat(app.isf.expense) || 0
+            : 0;
+          return sum + additional + defaultExp;
         },
         0
       );
@@ -124,13 +157,18 @@ const Analytics = () => {
       setMetrics({
         totalPayment,
         totalProfit,
+        additionalExpense,
         totalExpense,
+        defaultExpense,
         currentMonthProfit,
       });
 
       // Prepare monthly data for graph
       const monthlyStats = new Map();
-      applications.forEach((app) => {
+      const appsForGraph =
+        timeFrame === "all" ? applications : filteredApplications;
+
+      appsForGraph.forEach((app) => {
         const date = new Date(app.paymentCompletedAt || app.status[0].time);
         const monthKey = `${date.getFullYear()}-${String(
           date.getMonth() + 1
@@ -146,12 +184,21 @@ const Analytics = () => {
         }
 
         const stats = monthlyStats.get(monthKey);
-        stats.payments += parseFloat(app.amount_paid || 0);
+        const paymentAmount = app.partialScheme
+          ? parseFloat(app.amount_paid || 0)
+          : parseFloat(app.price?.replace(/[^0-9.-]+/g, "") || 0);
+
+        stats.payments += paymentAmount;
         const appExpenses = (app.expenses || []).reduce(
           (sum, exp) => sum + parseFloat(exp.amount || 0),
           0
         );
-        stats.expenses += appExpenses;
+
+        const appDefaultExpense = app.isf?.expense
+          ? parseFloat(app.isf.expense) || 0
+          : 0;
+
+        stats.expenses += appExpenses + appDefaultExpense;
         stats.profit = stats.payments - stats.expenses;
       });
 
@@ -171,7 +218,7 @@ const Analytics = () => {
 
   useEffect(() => {
     calculateMetrics(selectedMonth);
-  }, [selectedMonth]);
+  }, [selectedMonth, applicationOption]);
 
   const StatCard = ({
     title,
@@ -227,7 +274,7 @@ const Analytics = () => {
       </div>
 
       {/* Time Period Selector */}
-      <div className="bg-white rounded-xl shadow-sm p-6 border border-green-50 mb-6">
+      <div className=" flex justify-between bg-white rounded-xl shadow-sm p-6 border border-green-50 mb-6">
         <div className="flex items-center">
           <Calendar className="mr-2 text-green-700" size={20} />
           <label className="text-sm font-medium text-gray-700 mr-4">
@@ -249,6 +296,18 @@ const Analytics = () => {
             ))}
           </select>
         </div>
+        <div className="flex items-center">
+          <Filter className="mr-2 text-green-700" size={20} />
+          <label className="text-sm font-medium text-gray-700 mr-4"></label>
+          <select
+            className="block w-64 p-2 border border-gray-200 rounded-md shadow-sm focus:ring-2 focus:ring-green-500 focus:border-green-500"
+            onChange={(e) => setApplicationOption(e.target.value)}
+          >
+            <option value="all">All </option>
+            <option value="paid">Completed Applications</option>
+            <option value="unpaid">Pending Applications</option>
+          </select>
+        </div>
       </div>
 
       {/* Stats Cards */}
@@ -268,6 +327,22 @@ const Analytics = () => {
           color="green"
           bgColor="green"
           textColor="green"
+        />
+        <StatCard
+          title="Additional Expenses"
+          value={metrics.additionalExpense}
+          icon={TrendingDown}
+          color="red"
+          bgColor="red"
+          textColor="red"
+        />
+        <StatCard
+          title="Default Expenses"
+          value={metrics.defaultExpense}
+          icon={TrendingDown}
+          color="red"
+          bgColor="red"
+          textColor="red"
         />
         <StatCard
           title="Total Expenses"
