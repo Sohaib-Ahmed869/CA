@@ -52,7 +52,10 @@ import {
   uploadCertificate,
   requestMoreDocuments,
 } from "../../Customer/Services/adminServices";
-import { getApplications } from "../../Customer/Services/assesorServices";
+import {
+  getApplications,
+  getPendingApplications,
+} from "../../Customer/Services/assesorServices";
 import { initiateVerificationCall } from "../../Customer/Services/twilioService";
 import DocumentModal from "../../Customer/components/viewDocsModal";
 import RequestMoreDocuments from "../RequestMoreDocuments/RequestMoreDocuments";
@@ -80,6 +83,9 @@ const AssessorCustomers = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [totalPages, setTotalPages] = useState(0);
+  const [totalItems, setTotalItems] = useState(0);
+  const [sortBy, setSortBy] = useState("date");
+  const [sortOrder, setSortOrder] = useState("desc");
 
   // Filters
   const [selectedIndustryFilter, setSelectedIndustryFilter] = useState("All");
@@ -92,6 +98,15 @@ const AssessorCustomers = () => {
   const [currentDoc, setCurrentDoc] = useState("");
   const [SingleDocModelOpen, setSingleDocModelOpen] = useState(false);
   const [showRequestDocsModal, setShowRequestDocsModal] = useState(false);
+  const [searchInput, setSearchInput] = useState("");
+
+  useEffect(() => {
+    const delayTimer = setTimeout(() => {
+      setSearch(searchInput);
+    }, 1000);
+
+    return () => clearTimeout(delayTimer); // Clear timeout if input changes before 20s
+  }, [searchInput]);
 
   const CloseRequestDocsModal = () => {
     setShowRequestDocsModal(false);
@@ -124,65 +139,23 @@ const AssessorCustomers = () => {
   const getApplicationsData = async () => {
     try {
       setSubmissionLoading(true);
-      const auth = getAuth();
-      let applicationsData = await getApplications();
-      console.log("Applications data:", applicationsData);
-      // Filter applications that are ready for assessor review:
-      // 1. Student form and documents are uploaded
-      // 2. Payment is fully completed
-      // 3. Certificate is not yet uploaded
-      const eligibleApplications = applicationsData.filter((app) => {
-        // Check if student form is filled
-        const hasStudentForm =
-          app.sif &&
-          Object.keys(app.sif).length > 0 &&
-          app.sif.firstName &&
-          app.sif.lastName &&
-          app.sif.dob;
-
-        // Check if documents are uploaded
-        const hasDocuments =
-          app.document &&
-          Object.keys(app.document).length > 0 &&
-          app.document.resume;
-
-        // Check if payment is completed
-        const isPaymentComplete =
-          app.paid === true &&
-          (!app.partialScheme || (app.partialScheme && app.full_paid === true));
-
-        // Check if certificate is not uploaded
-        const certificateNotUploaded =
-          app.currentStatus !== "Certificate Generated" &&
-          app.currentStatus !== "Completed" &&
-          app.currentStatus !== "Dispatched";
-
-        const isAssessed = app.assessed === true;
-
-        return (
-          hasStudentForm &&
-          hasDocuments &&
-          isPaymentComplete &&
-          certificateNotUploaded &&
-          !isAssessed
-        );
+      const response = await getPendingApplications({
+        page: currentPage,
+        limit: itemsPerPage,
+        search,
+        industry: selectedIndustryFilter,
+        dateFilter,
+        sortBy,
+        sortOrder,
       });
+      console.log(response);
+      setApplications(response.applications);
+      setTotalItems(response.total);
+      setTotalPages(response.totalPages);
 
-      // Sort by newest first
-      eligibleApplications.sort(
-        (a, b) => new Date(b.status[0]?.time) - new Date(a.status[0]?.time)
-      );
-
-      setApplications(eligibleApplications);
-      setFilteredApplications(eligibleApplications);
-
-      // Set industry filter options
-      if (eligibleApplications.length > 0) {
-        setIndustryFilterOptions(getUniqueIndustries(eligibleApplications));
+      if (response.applications?.length > 0) {
+        setIndustryFilterOptions(getUniqueIndustries(response.applications));
       }
-
-      // Calculate total pages
-      setTotalPages(Math.ceil(eligibleApplications.length / itemsPerPage));
 
       setSubmissionLoading(false);
     } catch (error) {
@@ -194,12 +167,93 @@ const AssessorCustomers = () => {
 
   useEffect(() => {
     getApplicationsData();
+  }, [
+    currentPage,
+    itemsPerPage,
+    search,
+    selectedIndustryFilter,
+    dateFilter,
+    sortBy,
+    sortOrder,
+  ]); // const getApplicationsData = async () => {
+  //   try {
+  //     setSubmissionLoading(true);
+  //     const auth = getAuth();
+  //     let applicationsData = await getApplications();
+  //     console.log("Applications data:", applicationsData);
+  //     // Filter applications that are ready for assessor review:
+  //     // 1. Student form and documents are uploaded
+  //     // 2. Payment is fully completed
+  //     // 3. Certificate is not yet uploaded
+  //     const eligibleApplications = applicationsData.filter((app) => {
+  //       // Check if student form is filled
+  //       const hasStudentForm =
+  //         app.sif &&
+  //         Object.keys(app.sif).length > 0 &&
+  //         app.sif.firstName &&
+  //         app.sif.lastName &&
+  //         app.sif.dob;
 
-    // Set loading to false after initial data load
-    setTimeout(() => {
-      setLoading(false);
-    }, 500);
-  }, []);
+  //       // Check if documents are uploaded
+  //       const hasDocuments =
+  //         app.document &&
+  //         Object.keys(app.document).length > 0 &&
+  //         app.document.resume;
+
+  //       // Check if payment is completed
+  //       const isPaymentComplete =
+  //         app.paid === true &&
+  //         (!app.partialScheme || (app.partialScheme && app.full_paid === true));
+
+  //       // Check if certificate is not uploaded
+  //       const certificateNotUploaded =
+  //         app.currentStatus !== "Certificate Generated" &&
+  //         app.currentStatus !== "Completed" &&
+  //         app.currentStatus !== "Dispatched";
+
+  //       const isAssessed = app.assessed === true;
+
+  //       return (
+  //         hasStudentForm &&
+  //         hasDocuments &&
+  //         isPaymentComplete &&
+  //         certificateNotUploaded &&
+  //         !isAssessed
+  //       );
+  //     });
+
+  //     // Sort by newest first
+  //     eligibleApplications.sort(
+  //       (a, b) => new Date(b.status[0]?.time) - new Date(a.status[0]?.time)
+  //     );
+
+  //     setApplications(eligibleApplications);
+  //     setFilteredApplications(eligibleApplications);
+
+  //     // Set industry filter options
+  //     if (eligibleApplications.length > 0) {
+  //       setIndustryFilterOptions(getUniqueIndustries(eligibleApplications));
+  //     }
+
+  //     // Calculate total pages
+  //     setTotalPages(Math.ceil(eligibleApplications.length / itemsPerPage));
+
+  //     setSubmissionLoading(false);
+  //   } catch (error) {
+  //     console.error("Failed to fetch applications:", error);
+  //     toast.error("Failed to fetch applications");
+  //     setSubmissionLoading(false);
+  //   }
+  // };
+
+  // useEffect(() => {
+  //   getApplicationsData();
+
+  //   // Set loading to false after initial data load
+  //   setTimeout(() => {
+  //     setLoading(false);
+  //   }, 500);
+  // }, []);
 
   // Extract unique industries from applications
   const getUniqueIndustries = (applications) => {
@@ -208,50 +262,50 @@ const AssessorCustomers = () => {
   };
 
   // Filter applications based on search and industry filter
-  useEffect(() => {
-    let filtered = applications;
+  // useEffect(() => {
+  //   let filtered = applications;
 
-    // Apply search filter
-    if (search !== "") {
-      const searchValue = search.toLowerCase();
-      filtered = applications.filter(
-        (app) =>
-          app.applicationId?.toLowerCase().includes(searchValue) ||
-          app.user?.firstName?.toLowerCase().includes(searchValue) ||
-          app.user?.lastName?.toLowerCase().includes(searchValue) ||
-          app.user?.phone?.toLowerCase().includes(searchValue) ||
-          app.isf?.industry?.toLowerCase().includes(searchValue)
-      );
-    }
+  //   // Apply search filter
+  //   if (search !== "") {
+  //     const searchValue = search.toLowerCase();
+  //     filtered = applications.filter(
+  //       (app) =>
+  //         app.applicationId?.toLowerCase().includes(searchValue) ||
+  //         app.user?.firstName?.toLowerCase().includes(searchValue) ||
+  //         app.user?.lastName?.toLowerCase().includes(searchValue) ||
+  //         app.user?.phone?.toLowerCase().includes(searchValue) ||
+  //         app.isf?.industry?.toLowerCase().includes(searchValue)
+  //     );
+  //   }
 
-    // Apply industry filter
-    if (selectedIndustryFilter !== "All") {
-      filtered = filtered.filter(
-        (app) => app.isf.industry === selectedIndustryFilter
-      );
-    }
+  //   // Apply industry filter
+  //   if (selectedIndustryFilter !== "All") {
+  //     filtered = filtered.filter(
+  //       (app) => app.isf.industry === selectedIndustryFilter
+  //     );
+  //   }
 
-    // Apply date filter
-    if (dateFilter !== "All") {
-      const today = new Date();
-      const pastDate = new Date(today);
-      pastDate.setDate(today.getDate() - parseInt(dateFilter));
+  //   // Apply date filter
+  //   if (dateFilter !== "All") {
+  //     const today = new Date();
+  //     const pastDate = new Date(today);
+  //     pastDate.setDate(today.getDate() - parseInt(dateFilter));
 
-      filtered = filtered.filter((app) => {
-        if (!app.status || !app.status[0] || !app.status[0].time) return false;
-        const appDate = new Date(app.status[0].time);
-        return appDate >= pastDate;
-      });
-    }
+  //     filtered = filtered.filter((app) => {
+  //       if (!app.status || !app.status[0] || !app.status[0].time) return false;
+  //       const appDate = new Date(app.status[0].time);
+  //       return appDate >= pastDate;
+  //     });
+  //   }
 
-    setFilteredApplications(filtered);
+  //   setFilteredApplications(filtered);
 
-    // Reset to first page when filters change
-    setCurrentPage(1);
+  //   // Reset to first page when filters change
+  //   setCurrentPage(1);
 
-    // Update total pages
-    setTotalPages(Math.ceil(filtered.length / itemsPerPage));
-  }, [search, selectedIndustryFilter, dateFilter, applications]);
+  //   // Update total pages
+  //   setTotalPages(Math.ceil(filtered.length / itemsPerPage));
+  // }, [search, selectedIndustryFilter, dateFilter, applications]);
   const onClickViewDocuments = async (application) => {
     console.log("Viewing documents for application:", application);
 
@@ -890,7 +944,7 @@ const AssessorCustomers = () => {
     <div className="min-h-screen bg-gray-50 pb-10">
       <Toaster position="top-right" />
       {submissionLoading && <SpinnerLoader />}
-      {loading && <Loader />}
+      {/* {loading && <Loader />} */}
 
       {!selectedApplication ? (
         <div className="w-full">
@@ -939,8 +993,8 @@ const AssessorCustomers = () => {
                     type="text"
                     className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500"
                     placeholder="Search applications..."
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
+                    value={searchInput}
+                    onChange={(e) => setSearchInput(e.target.value)}
                   />
                 </div>
 
@@ -949,7 +1003,10 @@ const AssessorCustomers = () => {
                     id="industryFilter"
                     className="pl-3 pr-10 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-emerald-500 focus:border-emerald-500"
                     value={selectedIndustryFilter}
-                    onChange={(e) => setSelectedIndustryFilter(e.target.value)}
+                    onChange={(e) => {
+                      setSelectedIndustryFilter(e.target.value);
+                      setCurrentPage(1);
+                    }}
                   >
                     {industryFilterOptions.map((option) => (
                       <option key={option} value={option}>
@@ -984,7 +1041,7 @@ const AssessorCustomers = () => {
 
               <div className="mt-2 flex justify-between">
                 <p className="text-sm text-gray-500">
-                  {filteredApplications.length} applications found
+                  {totalItems} applications found
                 </p>
               </div>
             </div>
@@ -1000,7 +1057,7 @@ const AssessorCustomers = () => {
                 </p>
               </div>
 
-              {filteredApplications.length === 0 ? (
+              {totalItems === 0 ? (
                 <div className="text-center py-10">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -1066,7 +1123,7 @@ const AssessorCustomers = () => {
                       </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
-                      {currentItems.map((application) => {
+                      {applications?.map((application) => {
                         const { bgColor, Icon } = getStatusBadge(
                           application.currentStatus
                         );
@@ -1122,26 +1179,20 @@ const AssessorCustomers = () => {
               )}
 
               {/* Pagination */}
-              {filteredApplications.length > 0 && (
+              {totalItems > 0 && (
                 <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
                   <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
                     <div>
                       <p className="text-sm text-gray-700">
                         Showing{" "}
                         <span className="font-medium">
-                          {indexOfFirstItem + 1}
+                          {(currentPage - 1) * itemsPerPage + 1}
                         </span>{" "}
                         to{" "}
                         <span className="font-medium">
-                          {Math.min(
-                            indexOfLastItem,
-                            filteredApplications.length
-                          )}
+                          {Math.min(currentPage * itemsPerPage, totalItems)}
                         </span>{" "}
-                        of{" "}
-                        <span className="font-medium">
-                          {filteredApplications.length}
-                        </span>{" "}
+                        of <span className="font-medium">{totalItems}</span>{" "}
                         results
                       </p>
                     </div>
@@ -1412,7 +1463,10 @@ const AssessorCustomers = () => {
 
       {/* View Documents Modal */}
       {viewDocuments && (
-        <dialog className="modal modal-open text-lg" id="documentLinksModal">
+        <dialog
+          className="modal modal-open text-lg z-40"
+          id="documentLinksModal"
+        >
           <div className="modal-box bg-white rounded-lg shadow-xl max-w-3xl">
             <button
               onClick={() => setViewDocuments(false)}
@@ -1510,6 +1564,7 @@ const AssessorCustomers = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-4">
                   {documentLinks.map((doc, index) => {
                     const fileUrl = doc.url;
+                    console.log(fileUrl);
 
                     if (!fileUrl) return null; // Skip if no valid URL
 
@@ -1520,7 +1575,7 @@ const AssessorCustomers = () => {
                       >
                         <button
                           onClick={() => {
-                            openModal(fileUrl);
+                            openModal(fileUrl.fileUrl);
                             setSingleDocModelOpen(false);
                           }}
                           className="flex items-center text-indigo-600 hover:text-indigo-800 w-full text-left"
@@ -1534,11 +1589,6 @@ const AssessorCustomers = () => {
                     );
                   })}
                 </div>
-                <DocumentModal
-                  isOpen={DocumentModalOpen}
-                  onClose={closeModal}
-                  docLink={currentDoc}
-                />
               </>
             )}
 
@@ -1553,7 +1603,13 @@ const AssessorCustomers = () => {
           </div>
         </dialog>
       )}
-
+      <div className=" z-50">
+        <DocumentModal
+          isOpen={DocumentModalOpen}
+          onClose={closeModal}
+          docLink={currentDoc}
+        />
+      </div>
       {/* Add/Edit Note Modal */}
       {isAddingNote && (
         <dialog className="modal modal-open">

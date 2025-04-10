@@ -1,11 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { BiCheckCircle } from "react-icons/bi";
+
 import {
   FaTimesCircle,
   FaSearch,
   FaFilter,
   FaSortAmountDown,
   FaSortAmountUp,
+  FaArrowRight,
+  FaArrowLeft,
 } from "react-icons/fa";
 import {
   BsEye,
@@ -60,6 +63,7 @@ import {
 } from "../../Customer/Services/adminServices";
 
 import Loader from "../../Customer/components/loader";
+const URL = import.meta.env.VITE_REACT_BACKEND_URL;
 
 const ExistingApplicationsAdmin = () => {
   const navigate = useNavigate();
@@ -82,9 +86,9 @@ const ExistingApplicationsAdmin = () => {
     "Certificate Issued",
   ];
 
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10; // Increased number of applications per page
+  const [itemsPerPage, setItemsPerPage] = useState(10); // Increased number of applications per page
   const [filteredApplications, setFilteredApplications] = useState([]);
   const [activeStatus, setActiveStatus] = useState("All");
   const [selectedApplication, setSelectedApplication] = useState(null);
@@ -102,6 +106,24 @@ const ExistingApplicationsAdmin = () => {
   const [DocumentModalOpen, setDocumentModalOpen] = useState(false);
   const [currentDoc, setCurrentDoc] = useState("");
 
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalApplications, setTotalApplications] = useState(0);
+  const [stats, setStats] = useState({
+    totalApplications: 0,
+    completedApplications: 0,
+    inProgressApplications: 0,
+    paidApplications: 0,
+    unpaidApplications: 0,
+    studentFormApplications: 0,
+    uploadDocumentsApplications: 0,
+    sentToRtoApplications: 0,
+    certificateGeneratedApplications: 0,
+    completionRate: 0,
+    paymentRate: 0,
+    mostPopularQualification: { name: "N/A", count: 0 },
+  });
+  const [searchInput, setSearchInput] = useState("");
+
   // Function to open modal with selected document
   const openModal = (doc) => {
     setCurrentDoc(doc); // Directly set the file URL
@@ -113,34 +135,102 @@ const ExistingApplicationsAdmin = () => {
     // Revoke the object URL to prevent memory leaks
     setCurrentDoc("");
   };
-
   useEffect(() => {
-    setTimeout(() => {
-      setLoading(false);
-    }, 500);
-  }, []);
+    const delayTimer = setTimeout(() => {
+      setSearchTerm(searchInput);
+    }, 1000);
+
+    return () => clearTimeout(delayTimer); // Clear timeout if input changes before 20s
+  }, [searchInput]);
 
   const onClickDownload = () => {
     window.open(certificate);
     toast.success("Certificate downloaded successfully");
   };
 
+  // const getApplicationsData = async () => {
+  //   try {
+  //     setSubmissionLoading(true);
+  //     const applicationsData = await getApplications();
+  //     //only keep verified applications
+  //     const verifiedApps = applicationsData.filter((app) => app.verified);
+  //     setApplications(verifiedApps);
+  //     setFilteredApplications(verifiedApps);
+  //     setSubmissionLoading(false);
+  //   } catch (error) {
+  //     setSubmissionLoading(false);
+  //     console.error("Failed to fetch applications:", error);
+  //     toast.error("Failed to fetch applications");
+  //   }
+  // };
   const getApplicationsData = async () => {
     try {
       setSubmissionLoading(true);
-      const applicationsData = await getApplications();
-      //only keep verified applications
-      const verifiedApps = applicationsData.filter((app) => app.verified);
-      setApplications(verifiedApps);
-      setFilteredApplications(verifiedApps);
+
+      const params = {
+        page: currentPage,
+        limit: itemsPerPage,
+        search: searchTerm,
+        status: activeStatus,
+        dateFilter,
+        sortField,
+        sortDirection,
+      };
+
+      // Cleanup params
+      Object.keys(params).forEach((key) => {
+        if (params[key] === "All" || params[key] === "") delete params[key];
+      });
+
+      const queryString = new URLSearchParams(params).toString();
+      const response = await fetch(
+        `${URL}/api/admin/paginated-applications/?${queryString}`
+      );
+      const data = await response.json();
+      console.log(data);
+      if (!response.ok)
+        throw new Error(data.message || "Failed to fetch applications");
+
+      setApplications(data.applications);
+      setTotalPages(data.totalPages);
+      setTotalApplications(data.totalApplications);
+      setCurrentPage(data.currentPage);
+      // setStats(data.stats);
       setSubmissionLoading(false);
     } catch (error) {
       setSubmissionLoading(false);
       console.error("Failed to fetch applications:", error);
-      toast.error("Failed to fetch applications");
+      toast.error(error.message || "Failed to fetch applications");
     }
   };
+  const fetchStats = async () => {
+    try {
+      const response = await fetch(`${URL}/api/admin/applications-stats`);
+      const data = await response.json();
+      if (!response.ok)
+        throw new Error(data.message || "Failed to fetch stats");
+      console.log(data);
+      setStats(data);
+    } catch (error) {
+      console.error("Failed to fetch stats:", error);
+      toast.error(error.message || "Failed to fetch stats");
+    }
+  };
+  useEffect(() => {
+    fetchStats();
+  }, []);
 
+  useEffect(() => {
+    getApplicationsData();
+  }, [
+    currentPage,
+    itemsPerPage,
+    searchTerm,
+    activeStatus,
+    dateFilter,
+    sortField,
+    sortDirection,
+  ]);
   const handleDeleteApplication = async (applicationId, e) => {
     e.stopPropagation(); // Prevent row click when delete button is clicked
     if (window.confirm("Are you sure you want to delete this application?")) {
@@ -174,9 +264,9 @@ const ExistingApplicationsAdmin = () => {
     }
   };
 
-  useEffect(() => {
-    getApplicationsData();
-  }, []);
+  // useEffect(() => {
+  //   getApplicationsData();
+  // }, []);
 
   // Format date for display
   const formatDate = (dateString) => {
@@ -193,6 +283,39 @@ const ExistingApplicationsAdmin = () => {
     } catch (error) {
       return "Error";
     }
+  };
+  const getPaginationRange = () => {
+    const delta = 2; // Number of pages to show before and after current page
+    const range = [];
+
+    // Always show first page
+    range.push(1);
+
+    // Calculate start and end of range
+    const rangeStart = Math.max(2, currentPage - delta);
+    const rangeEnd = Math.min(totalPages - 1, currentPage + delta);
+
+    // Add ellipsis after first page if needed
+    if (rangeStart > 2) {
+      range.push("...");
+    }
+
+    // Add pages in range
+    for (let i = rangeStart; i <= rangeEnd; i++) {
+      range.push(i);
+    }
+
+    // Add ellipsis before last page if needed
+    if (rangeEnd < totalPages - 1) {
+      range.push("...");
+    }
+
+    // Always show last page if there is more than one page
+    if (totalPages > 1) {
+      range.push(totalPages);
+    }
+
+    return range;
   };
 
   // Filter applications based on status, search term, and date filter
@@ -300,18 +423,11 @@ const ExistingApplicationsAdmin = () => {
 
     setFilteredApplications(filtered);
     setCurrentPage(1); // Reset to first page when filters change
-  }, [
-    activeStatus,
-    applications,
-    searchTerm,
-    sortField,
-    sortDirection,
-    dateFilter,
-  ]);
+  }, []);
 
   // Calculate pagination
   const totalItems = filteredApplications.length;
-  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  // const totalPages = Math.ceil(totalItems / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const currentItems = filteredApplications.slice(
     startIndex,
@@ -346,83 +462,83 @@ const ExistingApplicationsAdmin = () => {
   };
 
   // Calculate KPI stats
-  const calculateStats = () => {
-    const totalApplications = applications.length;
-    const completedApplications = applications.filter(
-      (app) =>
-        app.currentStatus === "Certificate Generated" ||
-        app.currentStatus === "Dispatched" ||
-        app.currentStatus === "Completed"
-    ).length;
+  // const calculateStats = () => {
+  //   const totalApplications = applications.length;
+  //   const completedApplications = applications.filter(
+  //     (app) =>
+  //       app.currentStatus === "Certificate Generated" ||
+  //       app.currentStatus === "Dispatched" ||
+  //       app.currentStatus === "Completed"
+  //   ).length;
 
-    const inProgressApplications = applications.filter(
-      (app) =>
-        app.currentStatus !== "Certificate Generated" &&
-        app.currentStatus !== "Dispatched" &&
-        app.currentStatus !== "Completed"
-    ).length;
+  //   const inProgressApplications = applications.filter(
+  //     (app) =>
+  //       app.currentStatus !== "Certificate Generated" &&
+  //       app.currentStatus !== "Dispatched" &&
+  //       app.currentStatus !== "Completed"
+  //   ).length;
 
-    const paidApplications = applications.filter((app) => app.paid).length;
-    const unpaidApplications = applications.filter((app) => !app.paid).length;
+  //   const paidApplications = applications.filter((app) => app.paid).length;
+  //   const unpaidApplications = applications.filter((app) => !app.paid).length;
 
-    const studentFormApplications = applications.filter(
-      (app) => app.currentStatus === "Student Intake Form"
-    ).length;
-    const uploadDocumentsApplications = applications.filter(
-      (app) => app.currentStatus === "Upload Documents"
-    ).length;
-    const sentToRtoApplications = applications.filter(
-      (app) => app.currentStatus === "Sent to RTO"
-    ).length;
-    const certificateGeneratedApplications = applications.filter(
-      (app) => app.currentStatus === "Certificate Generated"
-    ).length;
+  //   const studentFormApplications = applications.filter(
+  //     (app) => app.currentStatus === "Student Intake Form"
+  //   ).length;
+  //   const uploadDocumentsApplications = applications.filter(
+  //     (app) => app.currentStatus === "Upload Documents"
+  //   ).length;
+  //   const sentToRtoApplications = applications.filter(
+  //     (app) => app.currentStatus === "Sent to RTO"
+  //   ).length;
+  //   const certificateGeneratedApplications = applications.filter(
+  //     (app) => app.currentStatus === "Certificate Generated"
+  //   ).length;
 
-    // Calculate completion rate
-    const completionRate =
-      totalApplications > 0
-        ? ((completedApplications / totalApplications) * 100).toFixed(1)
-        : 0;
+  //   // Calculate completion rate
+  //   const completionRate =
+  //     totalApplications > 0
+  //       ? ((completedApplications / totalApplications) * 100).toFixed(1)
+  //       : 0;
 
-    // Calculate payment rate
-    const paymentRate =
-      totalApplications > 0
-        ? ((paidApplications / totalApplications) * 100).toFixed(1)
-        : 0;
+  //   // Calculate payment rate
+  //   const paymentRate =
+  //     totalApplications > 0
+  //       ? ((paidApplications / totalApplications) * 100).toFixed(1)
+  //       : 0;
 
-    // Get most popular qualification
-    const qualificationCount = {};
-    applications.forEach((app) => {
-      const qual = app.isf?.lookingForWhatQualification;
-      if (qual) {
-        qualificationCount[qual] = (qualificationCount[qual] || 0) + 1;
-      }
-    });
+  //   // Get most popular qualification
+  //   const qualificationCount = {};
+  //   applications.forEach((app) => {
+  //     const qual = app.isf?.lookingForWhatQualification;
+  //     if (qual) {
+  //       qualificationCount[qual] = (qualificationCount[qual] || 0) + 1;
+  //     }
+  //   });
 
-    let mostPopularQualification = { name: "N/A", count: 0 };
-    Object.entries(qualificationCount).forEach(([name, count]) => {
-      if (count > mostPopularQualification.count) {
-        mostPopularQualification = { name, count };
-      }
-    });
+  //   let mostPopularQualification = { name: "N/A", count: 0 };
+  //   Object.entries(qualificationCount).forEach(([name, count]) => {
+  //     if (count > mostPopularQualification.count) {
+  //       mostPopularQualification = { name, count };
+  //     }
+  //   });
 
-    return {
-      totalApplications,
-      completedApplications,
-      inProgressApplications,
-      paidApplications,
-      unpaidApplications,
-      studentFormApplications,
-      uploadDocumentsApplications,
-      sentToRtoApplications,
-      certificateGeneratedApplications,
-      completionRate,
-      paymentRate,
-      mostPopularQualification,
-    };
-  };
+  //   return {
+  //     totalApplications,
+  //     completedApplications,
+  //     inProgressApplications,
+  //     paidApplications,
+  //     unpaidApplications,
+  //     studentFormApplications,
+  //     uploadDocumentsApplications,
+  //     sentToRtoApplications,
+  //     certificateGeneratedApplications,
+  //     completionRate,
+  //     paymentRate,
+  //     mostPopularQualification,
+  //   };
+  // };
 
-  const stats = calculateStats();
+  // const stats = calculateStats();
 
   // Get status badge
   const getStatusBadge = (status) => {
@@ -648,7 +764,7 @@ const ExistingApplicationsAdmin = () => {
                           Application Stages
                         </p>
                         <h3 className="text-2xl font-bold text-gray-900">
-                          {applications.length}
+                          {stats.totalApplications}
                         </h3>
                       </div>
                     </div>
@@ -657,26 +773,26 @@ const ExistingApplicationsAdmin = () => {
                         <div className="flex items-center">
                           <div className="w-2 h-2 rounded-full bg-blue-700 mr-2"></div>
                           <span className="text-gray-500">
-                            Intake: {stats.studentFormApplications}
+                            Intake: {stats.statusCounts?.studentForm}
                           </span>
                         </div>
                         <div className="flex items-center">
                           <div className="w-2 h-2 rounded-full bg-red-700 mr-2"></div>
                           <span className="text-gray-500">
-                            Documents: {stats.uploadDocumentsApplications}
+                            Documents: {stats.statusCounts?.uploadDocuments}
                           </span>
                         </div>
                         <div className="flex items-center">
                           <div className="w-2 h-2 rounded-full bg-amber-600 mr-2"></div>
                           <span className="text-gray-500">
-                            RTO: {stats.sentToRtoApplications}
+                            RTO: {stats.statusCounts?.sentToRTO}
                           </span>
                         </div>
                         <div className="flex items-center">
                           <div className="w-2 h-2 rounded-full bg-emerald-600 mr-2"></div>
                           <span className="text-gray-500">
                             Certificate:{" "}
-                            {stats.certificateGeneratedApplications}
+                            {stats.statusCounts?.certificateGenerated}
                           </span>
                         </div>
                       </div>
@@ -734,8 +850,8 @@ const ExistingApplicationsAdmin = () => {
                       type="text"
                       className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500"
                       placeholder="Search applications..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
+                      value={searchInput}
+                      onChange={(e) => setSearchInput(e.target.value)}
                     />
                   </div>
 
@@ -785,7 +901,10 @@ const ExistingApplicationsAdmin = () => {
                         <select
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-white"
                           value={dateFilter}
-                          onChange={(e) => setDateFilter(e.target.value)}
+                          onChange={(e) => {
+                            setDateFilter(e.target.value);
+                            setCurrentPage(1);
+                          }}
                         >
                           {dateFilters.map((filter) => (
                             <option key={filter.value} value={filter.value}>
@@ -803,7 +922,10 @@ const ExistingApplicationsAdmin = () => {
                           <select
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-white"
                             value={sortField}
-                            onChange={(e) => setSortField(e.target.value)}
+                            onChange={(e) => {
+                              setSortField(e.target.value);
+                              setCurrentPage(1);
+                            }}
                           >
                             <option value="date">Date</option>
                             <option value="name">Customer Name</option>
@@ -813,11 +935,11 @@ const ExistingApplicationsAdmin = () => {
                           </select>
                           <button
                             className="inline-flex items-center justify-center w-10 h-10 border border-gray-300 rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none transition-all"
-                            onClick={() =>
+                            onClick={() => {
                               setSortDirection(
                                 sortDirection === "asc" ? "desc" : "asc"
-                              )
-                            }
+                              );
+                            }}
                           >
                             {sortDirection === "asc" ? (
                               <FaSortAmountUp />
@@ -837,7 +959,7 @@ const ExistingApplicationsAdmin = () => {
                           value={itemsPerPage}
                           onChange={(e) => {
                             setCurrentPage(1);
-                            setItemsPerPage(Number(e.target.value));
+                            setItemsPerPage(e.target.value);
                           }}
                         >
                           <option value={5}>5</option>
@@ -855,7 +977,10 @@ const ExistingApplicationsAdmin = () => {
                   {statuses.map((status) => (
                     <button
                       key={status}
-                      onClick={() => setActiveStatus(status)}
+                      onClick={() => {
+                        setActiveStatus(status);
+                        setCurrentPage(1);
+                      }}
                       className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                         activeStatus === status
                           ? "bg-emerald-600 text-white shadow-md"
@@ -884,7 +1009,7 @@ const ExistingApplicationsAdmin = () => {
           {/* Applications Table */}
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="bg-white rounded-xl shadow-md overflow-hidden">
-              {filteredApplications.length === 0 ? (
+              {applications.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-16 px-4">
                   <div className="p-6 rounded-full bg-gray-100 mb-6 flex items-center justify-center">
                     <RiFileListLine className="h-16 w-16 text-gray-400" />
@@ -990,7 +1115,7 @@ const ExistingApplicationsAdmin = () => {
                       </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
-                      {currentItems.map((application) => (
+                      {applications.map((application) => (
                         <tr
                           key={application.id}
                           className="hover:bg-gray-50 cursor-pointer"
@@ -1105,17 +1230,17 @@ const ExistingApplicationsAdmin = () => {
                   </table>
 
                   {/* Pagination controls */}
-                  <div className="px-6 py-4 border-t border-gray-200">
+                  {/* <div className="px-6 py-4 border-t border-gray-200">
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-sm text-gray-700">
                           Showing{" "}
-                          <span className="font-medium">{startIndex + 1}</span>{" "}
+                          <span className="font-medium">{itemsPerPage + 1}</span>{" "}
                           to{" "}
                           <span className="font-medium">
-                            {Math.min(startIndex + itemsPerPage, totalItems)}
+                            {Math.min(startIndex + itemsPerPage, totalApplications)}
                           </span>{" "}
-                          of <span className="font-medium">{totalItems}</span>{" "}
+                          of <span className="font-medium">{totalApplications}</span>{" "}
                           results
                         </p>
                       </div>
@@ -1142,6 +1267,98 @@ const ExistingApplicationsAdmin = () => {
                         >
                           Next
                         </button>
+                      </div>
+                    </div>
+                  </div> */}
+                  {/* Pagination controls */}
+                  <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
+                    <div className="flex-1 flex justify-between sm:hidden">
+                      <button
+                        onClick={goToPreviousPage}
+                        disabled={currentPage === 1}
+                        className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        Previous
+                      </button>
+                      <button
+                        onClick={goToNextPage}
+                        disabled={currentPage === totalPages}
+                        className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        Next
+                      </button>
+                    </div>
+                    <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                      <div>
+                        <p className="text-sm text-gray-700">
+                          Showing{" "}
+                          <span className="font-medium">
+                            {(currentPage - 1) * itemsPerPage + 1}
+                          </span>{" "}
+                          to{" "}
+                          <span className="font-medium">
+                            {Math.min(
+                              currentPage * itemsPerPage,
+                              totalApplications
+                            )}
+                          </span>{" "}
+                          of{" "}
+                          <span className="font-medium">
+                            {totalApplications}
+                          </span>{" "}
+                          results
+                        </p>
+                      </div>
+                      <div>
+                        <nav
+                          className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px"
+                          aria-label="Pagination"
+                        >
+                          <button
+                            onClick={goToPreviousPage}
+                            disabled={currentPage === 1}
+                            className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            <span className="sr-only">Previous</span>
+                            <FaArrowLeft
+                              className="h-5 w-5"
+                              aria-hidden="true"
+                            />
+                          </button>
+
+                          {getPaginationRange().map((page, index) => (
+                            <button
+                              key={index}
+                              onClick={() =>
+                                typeof page === "number"
+                                  ? setCurrentPage(page)
+                                  : null
+                              }
+                              disabled={page === "..."}
+                              className={`${
+                                page === currentPage
+                                  ? "z-10 bg-blue-50 border-blue-500 text-blue-600"
+                                  : "bg-white border-gray-300 text-gray-500 hover:bg-gray-50"
+                              } relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
+                                page === "..." ? "cursor-default" : ""
+                              }`}
+                            >
+                              {page}
+                            </button>
+                          ))}
+
+                          <button
+                            onClick={goToNextPage}
+                            disabled={currentPage === totalPages}
+                            className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            <span className="sr-only">Next</span>
+                            <FaArrowRight
+                              className="h-5 w-5"
+                              aria-hidden="true"
+                            />
+                          </button>
+                        </nav>
                       </div>
                     </div>
                   </div>

@@ -51,7 +51,7 @@ import { initiateVerificationCall } from "../../Customer/Services/twilioService"
 import { getRtos } from "../../Customer/Services/customerApplication";
 import { SendApplicationToRto } from "../../Customer/Services/rtoservices";
 import ChangeQualification from "./changeQualification";
-import DirectDebitCheckout from "../../Customer/directDebitCheckout";
+import axios from "axios";
 
 const Application = ({
   application,
@@ -121,6 +121,13 @@ const Application = ({
     application.assignedAdmin || ""
   );
   const [showDeadlineModal, setShowDeadlineModal] = useState(null);
+  const [showUpdateDebitModal, setShowUpdateDebitModal] = useState(null);
+  const [autoDebitUpdate, setAutoDebitUpdate] = useState({
+    deadlineDate: "",
+    deadlineTime: "18:00", // Default to 6:00 PM
+    isScheduled: false,
+  });
+
   const [deadlineDate, setDeadlineDate] = useState("");
   const [assignAdminModal, setAssignAdminModal] = useState(false);
   // Document Modal
@@ -162,6 +169,7 @@ const Application = ({
       return;
     }
 
+    toast.success("Application sent to Rto");
     // Show a loading toast
 
     // const toastId = toast.loading("Sending application to Rto...");
@@ -203,6 +211,56 @@ const Application = ({
     const month = String(date.getMonth() + 1).padStart(2, "0");
     const year = date.getFullYear();
     return `${day}-${month}-${year}`;
+  };
+
+  const handleUpdateDirectDebit = async () => {
+    const { deadlineDate, deadlineTime, isScheduled } = autoDebitUpdate;
+
+    if (!deadlineDate || !deadlineTime) {
+      toast.error("Please select both deadline date and time.");
+      return;
+    }
+
+    try {
+      const response = await axios.put(
+        `/api/admin/auto-debit/${application.id}`,
+        {
+          dueDate: deadlineDate,
+          time: deadlineTime,
+          setScheduled: isScheduled, // this is optional
+        }
+      );
+
+      toast.success("Auto-debit updated successfully");
+      setShowUpdateDebitModal(false);
+      // Optionally refresh application data here
+      const [hoursStr, minutesStr] = deadlineTime.split(":");
+      const hours = parseInt(hoursStr, 10);
+      const minutes = parseInt(minutesStr, 10);
+
+      const updatedDueDate = new Date(deadlineDate);
+      updatedDueDate.setHours(hours);
+      updatedDueDate.setMinutes(minutes);
+
+      const seconds = Math.floor(updatedDueDate.getTime() / 1000); // convert to Firestore-like _seconds
+
+      // Update application state with Firestore-compatible timestamp
+      setSelectedApplication((prev) => ({
+        ...prev,
+        autoDebit: {
+          ...prev.autoDebit,
+          dueDate: { _seconds: seconds }, // match Firestore format
+          paymentTime: deadlineTime,
+          status: isScheduled ? "SCHEDULED" : prev.autoDebit.status,
+          updatedAt: new Date().toISOString(),
+        },
+      }));
+    } catch (error) {
+      console.error("Error updating auto-debit:", error);
+      const errorMessage =
+        error.response?.data?.message || "Something went wrong.";
+      toast.error(`Failed to update: ${errorMessage}`);
+    }
   };
 
   const handleSetDeadline = async () => {
@@ -280,7 +338,6 @@ const Application = ({
   const [amPm, setAmPm] = useState("PM");
   const [timeSelected, setTimeSelected] = useState(false);
   const [directDebitChecked, setDirectDebitChecked] = useState(false);
-  const [showDirectDebitModal, setShowDirectDebitModal] = useState(false);
   const handleSetTime = () => {
     setTimeSelected(true);
     const formattedTime = `${hour}:${minute} ${amPm}`;
@@ -429,7 +486,8 @@ const Application = ({
         payment1,
         payment2,
         payment2Deadline,
-        payment2DeadlineTime
+        payment2DeadlineTime,
+        directDebitChecked
       ); // Add deadline
       if (response === "error") {
         toast.error("Failed to divide payment.");
@@ -1530,6 +1588,16 @@ const Application = ({
                         >
                           Set Deadline
                         </button>
+                        {application.autoDebit?.enabled &&
+                          (application.autoDebit?.status === "SCHEDULED" ||
+                            application.autoDebit?.status === "FAILED") && (
+                            <button
+                              className="w-full px-4 py-2 flex items-center justify-center gap-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700"
+                              onClick={() => setShowUpdateDebitModal(true)}
+                            >
+                              Update Direct Debit
+                            </button>
+                          )}
                       </div>
                     </div>
                   </div>
@@ -2157,12 +2225,8 @@ const Application = ({
                             disabled={loading}
                             className="w-full px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 flex items-center justify-center gap-2"
                           >
-                            {loading ? (
-                              <ClipLoader size={20} color="#ffffff" />
-                            ) : (
-                              <MdLabel />
-                            )}
-                            {loading ? "Sending..." : "Send Application To RTO"}
+                            <MdLabel />
+                            Send Application To RTO
                           </button>
                         </div>
                       )}
@@ -2424,6 +2488,7 @@ const Application = ({
                     type="date"
                     className="w-full border border-gray-300 rounded-md p-3 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                     value={payment2Deadline}
+                    min={new Date().toISOString().split("T")[0]}
                     onChange={(e) => setPayment2Deadline(e.target.value)}
                     required
                   />
@@ -2525,10 +2590,10 @@ const Application = ({
                       onChange={(e) => {
                         const shouldEnable = e.target.checked;
                         setDirectDebitChecked(shouldEnable);
-                        if (shouldEnable) {
-                          setOpenPaymentModal(false);
-                          setShowDirectDebitModal(true);
-                        }
+                        // if (shouldEnable) {
+                        //   setOpenPaymentModal(false);
+                        //   setShowDirectDebitModal(true);
+                        // }
                       }}
                       className="h-4 w-4 text-emerald-600 focus:ring-emerald-500 border-gray-300 rounded"
                     />
@@ -2568,34 +2633,7 @@ const Application = ({
           </div>
         </div>
       )}
-      {showDirectDebitModal && (
-        <DirectDebitCheckout
-          applicationId={application.id}
-          getApplicationsData={getApplicationsData}
-          setOpenPaymentModal={setOpenPaymentModal}
-          payment1={payment1}
-          setSelectedApplication={setSelectedApplication}
-          application={application}
-          payment2={payment2}
-          PaymentTime={payment2DeadlineTime}
-          payment1Status={application.paid}
-          fullPayment={application.price}
-          setShowDirectDebitModal={(value) => {
-            setShowDirectDebitModal(value);
-            if (!value) {
-              // Reset checkbox if modal is closed without completion
-              setDirectDebitChecked(false);
-            }
-          }}
-          paymentDeadline={payment2Deadline}
-          userId={application.userId}
-          onSuccess={() => {
-            // Keep checkbox checked if setup succeeds
-            setDirectDebitChecked(true);
-            setShowDirectDebitModal(false);
-          }}
-        />
-      )}
+
       {/* Call Attempts Modal */}
       {isCallStatusModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
@@ -2768,6 +2806,91 @@ const Application = ({
               <button
                 className="px-4 py-2 bg-emerald-600 rounded-lg text-white"
                 onClick={handleSetDeadline}
+              >
+                Save Deadline
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* update Direct debit modal */}
+
+      {showUpdateDebitModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full">
+            <h3 className="text-lg font-medium mb-4">
+              Update Direct Debit Deadline
+            </h3>
+
+            {/* Date Input */}
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Deadline Date
+              </label>
+              <input
+                type="date"
+                className="w-full border border-gray-300 rounded p-2"
+                value={autoDebitUpdate.deadlineDate}
+                onChange={(e) =>
+                  setAutoDebitUpdate((prev) => ({
+                    ...prev,
+                    deadlineDate: e.target.value,
+                  }))
+                }
+                min={new Date().toISOString().split("T")[0]}
+              />
+            </div>
+
+            {/* Time Input */}
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Deadline Time
+              </label>
+              <input
+                type="time"
+                className="w-full border border-gray-300 rounded p-2"
+                value={autoDebitUpdate.deadlineTime}
+                onChange={(e) =>
+                  setAutoDebitUpdate((prev) => ({
+                    ...prev,
+                    deadlineTime: e.target.value,
+                  }))
+                }
+              />
+            </div>
+
+            {/* Auto Debit Scheduled Checkbox */}
+            <div className="mb-4 flex items-center">
+              <input
+                type="checkbox"
+                id="autoDebitScheduled"
+                className="mr-2"
+                checked={autoDebitUpdate.isScheduled}
+                onChange={(e) =>
+                  setAutoDebitUpdate((prev) => ({
+                    ...prev,
+                    isScheduled: e.target.checked,
+                  }))
+                }
+              />
+              <label
+                htmlFor="autoDebitScheduled"
+                className="text-sm text-gray-700"
+              >
+                Mark Auto Debit as Scheduled
+              </label>
+            </div>
+
+            <div className="flex justify-end gap-2">
+              <button
+                className="px-4 py-2 bg-gray-200 rounded-lg text-gray-700"
+                onClick={() => setShowUpdateDebitModal(false)}
+              >
+                Cancel
+              </button>
+              <button
+                className="px-4 py-2 bg-emerald-600 rounded-lg text-white"
+                onClick={handleUpdateDirectDebit}
               >
                 Save Deadline
               </button>

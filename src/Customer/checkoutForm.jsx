@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { paymentProcessing } from "./Services/customerApplication";
+import {
+  getApplications,
+  paymentProcessing,
+} from "./Services/customerApplication";
 import toast from "react-hot-toast";
 import { Toaster } from "react-hot-toast";
 
@@ -94,6 +97,7 @@ const PaymentPage = ({
         if (data.success) {
           toast.success("Payment successful!");
           await getUserApplications();
+          // await getApplications(userId);
 
           setShowCheckoutModal(false);
         } else {

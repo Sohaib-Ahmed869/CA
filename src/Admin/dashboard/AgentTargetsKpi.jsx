@@ -5,14 +5,16 @@ import { FaBullseye } from "react-icons/fa";
 import {
   getAgents,
   getAgentTargets,
+  getApplications,
 } from "../../Customer/Services/adminServices";
 
-const AgentTargetsKPI = ({ applications }) => {
+const AgentTargetsKPI = () => {
   const [agents, setAgents] = useState([]);
   const [targets, setTargets] = useState([]);
   const [agentStats, setAgentStats] = useState({});
   const [agentName, setAgentName] = useState("");
   const [isLoading, setIsLoading] = useState(true);
+  const [applications, setApplications] = useState([]);
   const [error, setError] = useState(null);
 
   // Fetch all required data
@@ -20,13 +22,15 @@ const AgentTargetsKPI = ({ applications }) => {
     const fetchData = async () => {
       try {
         setIsLoading(true);
-        const [agts, trgts] = await Promise.all([
+        const [agts, trgts, apps] = await Promise.all([
           getAgents(),
           getAgentTargets(),
+          getApplications(),
         ]);
 
         setAgents(agts);
         setTargets(trgts);
+        setApplications(apps);
         setError(null);
       } catch (err) {
         setError("Failed to fetch data. Please try again later.");

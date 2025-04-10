@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import toast, { Toaster } from "react-hot-toast";
-import { getApplications } from "../../Customer/Services/adminServices";
+import {
+  fetchPaginatedPayments,
+  getApplications,
+} from "../../Customer/Services/adminServices";
 import SpinnerLoader from "../../Customer/components/spinnerLoader";
 import {
   FaFileDownload,
@@ -20,11 +23,12 @@ import {
 } from "react-icons/md";
 import { BsCalendarCheck, BsWallet2 } from "react-icons/bs";
 import paymentsimg from "../../assets/payments.png";
+const URL = import.meta.env.VITE_REACT_BACKEND_URL;
 
 const PaymentsPage = () => {
-   useEffect(() => {
-      window.scrollTo(0, 0);
-    }, []);
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
   const navigate = useNavigate();
   const [applications, setApplications] = useState([]);
   const [filteredApplications, setFilteredApplications] = useState([]);
@@ -38,17 +42,38 @@ const PaymentsPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [paymentsPerPage, setPaymentsPerPage] = useState(10);
   const [paginatedApplications, setPaginatedApplications] = useState([]);
-
-  useEffect(() => {
-    const indexOfLastPayment = currentPage * paymentsPerPage;
-    const indexOfFirstPayment = indexOfLastPayment - paymentsPerPage;
-    setPaginatedApplications(
-      filteredApplications.slice(indexOfFirstPayment, indexOfLastPayment)
-    );
-  }, [filteredApplications, currentPage, paymentsPerPage]);
+  const [totalApplications, setTotalApplications] = useState(0);
+  // useEffect(() => {
+  //   const indexOfLastPayment = currentPage * paymentsPerPage;
+  //   const indexOfFirstPayment = indexOfLastPayment - paymentsPerPage;
+  //   setPaginatedApplications(
+  //     filteredApplications.slice(indexOfFirstPayment, indexOfLastPayment)
+  //   );
+  // }, [filteredApplications, currentPage, paymentsPerPage]);
 
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
+  const [stats, setStats] = useState({
+    totalApplications: 0,
+    completedPayments: 0,
+    partialPayments: 0,
+    fullPaidPayments: 0,
+    pendingPayments: 0,
+    totalRevenue: 0,
+  });
+  const [searchInput, setSearchInput] = useState("");
 
+  const handleReferesh = () => {
+    setSearchTerm("");
+    setActiveFilter("All Payments");
+    setCurrentPage(1);
+  };
+  useEffect(() => {
+    const delayTimer = setTimeout(() => {
+      setSearchTerm(searchInput);
+    }, 1000);
+
+    return () => clearTimeout(delayTimer); // Clear timeout if input changes before 20s
+  }, [searchInput]);
   // Payment status options for filtering
   const statuses = [
     "All Payments",
@@ -56,85 +81,132 @@ const PaymentsPage = () => {
     "Waiting for Payment",
     "Partial Payment",
   ];
+  // fetch stats for kpi
+  const fetchStats = async () => {
+    try {
+      const response = await fetch(`${URL}/api/admin/payment-stats`);
+      const data = await response.json();
+      if (!response.ok)
+        throw new Error(data.message || "Failed to fetch stats");
+      console.log(data);
+      setStats(data);
+    } catch (error) {
+      console.error("Failed to fetch stats:", error);
+      toast.error(error.message || "Failed to fetch stats");
+    }
+  };
+  useEffect(() => {
+    fetchStats();
+  }, []);
 
-  // Fetch applications which contain payment information
+  // Fetch payments when filters/pagination changes
   useEffect(() => {
     fetchApplications();
-  }, []);
+  }, [
+    activeFilter,
+    searchTerm,
+    sortBy,
+    sortDirection,
+    currentPage,
+    paymentsPerPage,
+  ]);
 
   const fetchApplications = async () => {
     setSubmissionLoading(true);
     try {
-      const applicationsData = await getApplications();
-      // Sort applications by date in descending order (most recent first)
-      const sortedApplications = applicationsData.sort((a, b) => {
-        return new Date(b.status[0].time) - new Date(a.status[0].time);
-      });
-      setApplications(sortedApplications);
-      setFilteredApplications(sortedApplications);
+      const params = {
+        page: currentPage,
+        limit: paymentsPerPage,
+        search: searchTerm,
+        status: activeFilter,
+        sortBy,
+        sortDirection,
+      };
+
+      const response = await fetchPaginatedPayments(params);
+      setApplications(response.applications);
+      setTotalApplications(response.total);
       setSubmissionLoading(false);
-    } catch (err) {
-      console.error("Error fetching applications:", err);
-      toast.error("Failed to fetch payment data");
+    } catch (error) {
+      toast.error(error.message || "Failed to fetch payments");
+      setSubmissionLoading(false);
+    } finally {
       setSubmissionLoading(false);
     }
   };
+  // const fetchApplications = async () => {
+  //   setSubmissionLoading(true);
+  //   try {
+  //     const applicationsData = await getApplications();
+  //     // Sort applications by date in descending order (most recent first)
+  //     const sortedApplications = applicationsData.sort((a, b) => {
+  //       return new Date(b.status[0].time) - new Date(a.status[0].time);
+  //     });
+  //     setApplications(sortedApplications);
+  //     setFilteredApplications(sortedApplications);
+  //     setSubmissionLoading(false);
+  //   } catch (err) {
+  //     console.error("Error fetching applications:", err);
+  //     toast.error("Failed to fetch payment data");
+  //     setSubmissionLoading(false);
+  //   }
+  // };
 
-  // Apply filters based on status and search term
-  useEffect(() => {
-    let filtered = [...applications];
+  // // Apply filters based on status and search term
+  // useEffect(() => {
+  //   let filtered = [...applications];
 
-    // Apply status filter
-    if (activeFilter === "Payments Completed") {
-      filtered = filtered.filter((application) => application.paid === true);
-    } else if (activeFilter === "Waiting for Payment") {
-      filtered = filtered.filter((application) => application.paid === false);
-    } else if (activeFilter === "Partial Payment") {
-      filtered = filtered.filter(
-        (application) =>
-          application.partialScheme &&
-          application.paid &&
-          !application.full_paid
-      );
-    }
+  //   // Apply status filter
+  //   if (activeFilter === "Payments Completed") {
+  //     filtered = filtered.filter((application) => application.paid === true);
+  //   } else if (activeFilter === "Waiting for Payment") {
+  //     filtered = filtered.filter((application) => application.paid === false);
+  //   } else if (activeFilter === "Partial Payment") {
+  //     filtered = filtered.filter(
+  //       (application) =>
+  //         application.partialScheme &&
+  //         application.paid &&
+  //         !application.full_paid
+  //     );
+  //   }
 
-    // Apply search filter
-    if (searchTerm.trim()) {
-      const searchLower = searchTerm.toLowerCase();
-      filtered = filtered.filter(
-        (application) =>
-          (application.user?.firstName + " " + application.user?.lastName)
-            ?.toLowerCase()
-            .includes(searchLower) ||
-          application.applicationId?.toLowerCase().includes(searchLower) ||
-          (application.isf?.lookingForWhatQualification || "")
-            ?.toLowerCase()
-            .includes(searchLower)
-      );
-    }
+  //   // Apply search filter
+  //   if (searchTerm.trim()) {
+  //     const searchLower = searchTerm.toLowerCase();
+  //     filtered = filtered.filter(
+  //       (application) =>
+  //         (application.user?.firstName + " " + application.user?.lastName)
+  //           ?.toLowerCase()
+  //           .includes(searchLower) ||
+  //         application.applicationId?.toLowerCase().includes(searchLower) ||
+  //         (application.isf?.lookingForWhatQualification || "")
+  //           ?.toLowerCase()
+  //           .includes(searchLower)
+  //     );
+  //   }
 
-    // Sort applications
-    filtered = filtered.sort((a, b) => {
-      if (sortBy === "date") {
-        return sortDirection === "asc"
-          ? new Date(a.status[0].time) - new Date(b.status[0].time)
-          : new Date(b.status[0].time) - new Date(a.status[0].time);
-      } else if (sortBy === "amount") {
-        const aPrice = parseFloat(a.price?.toString().replace(/,/g, "") || 0);
-        const bPrice = parseFloat(b.price?.toString().replace(/,/g, "") || 0);
-        return sortDirection === "asc" ? aPrice - bPrice : bPrice - aPrice;
-      } else if (sortBy === "name") {
-        const aName = a.user?.firstName + " " + a.user?.lastName || "";
-        const bName = b.user?.firstName + " " + b.user?.lastName || "";
-        return sortDirection === "asc"
-          ? aName.localeCompare(bName)
-          : bName.localeCompare(aName);
-      }
-      return 0;
-    });
+  //   // Sort applications
+  //   filtered = filtered.sort((a, b) => {
+  //     if (sortBy === "date") {
+  //       return sortDirection === "asc"
+  //         ? new Date(a.status[0].time) - new Date(b.status[0].time)
+  //         : new Date(b.status[0].time) - new Date(a.status[0].time);
+  //     } else if (sortBy === "amount") {
+  //       const aPrice = parseFloat(a.price?.toString().replace(/,/g, "") || 0);
+  //       const bPrice = parseFloat(b.price?.toString().replace(/,/g, "") || 0);
+  //       return sortDirection === "asc" ? aPrice - bPrice : bPrice - aPrice;
+  //     } else if (sortBy === "name") {
+  //       const aName = a.user?.firstName + " " + a.user?.lastName || "";
+  //       const bName = b.user?.firstName + " " + b.user?.lastName || "";
+  //       return sortDirection === "asc"
+  //         ? aName.localeCompare(bName)
+  //         : bName.localeCompare(aName);
+  //     }
+  //     return 0;
+  //   });
 
-    setFilteredApplications(filtered);
-  }, [activeFilter, applications, searchTerm, sortBy, sortDirection]);
+  //   setFilteredApplications(filtered);
+  // }, [activeFilter, applications, searchTerm, sortBy, sortDirection]);
 
   // Format date in a user-friendly way
   const formatDate = (dateString) => {
@@ -152,65 +224,6 @@ const PaymentsPage = () => {
       return "Error";
     }
   };
-
-  const parseFloatTogetPrice = (price) => {
-    return parseFloat(price.toString().replace(/,/g, ""));
-  };
-  // Calculate payment statistics for KPIs
-  const calculateStats = () => {
-    const totalApplications = applications.length;
-    const completedPayments = applications.filter(
-      (app) => app.paid && !app.partialScheme
-    ).length;
-    const partialPayments = applications.filter(
-      (app) => app.partialScheme && app.paid && !app.full_paid
-    ).length;
-    const fullPaidPayments = applications.filter(
-      (app) => app.partialScheme && app.full_paid
-    ).length;
-    const pendingPayments = applications.filter((app) => !app.paid).length;
-
-    // Calculate total revenue
-    let totalRevenue = 0;
-    applications.forEach((app) => {
-      if (app.paid) {
-        if (app.discount) {
-          // If there's a discount
-          const price = parseFloatTogetPrice(app.price);
-          totalRevenue += price - app.discount;
-        } else if (app.partialScheme) {
-          // If it's a partial payment scheme
-          if (app.full_paid) {
-            // Both payments made
-            totalRevenue +=
-              (parseFloatTogetPrice(app.payment1) || 0) +
-              (parseFloatTogetPrice(app.payment2) || 0);
-          } else {
-            // Only first payment made
-            totalRevenue += parseFloatTogetPrice(app.payment1);
-          }
-        } else {
-          // Regular full payment
-          totalRevenue += parseFloat(
-            app.price?.toString().replace(/,/g, "") || 0
-          );
-        }
-      }
-    });
-
-    console.log("Total Revenue:", totalRevenue);
-
-    return {
-      totalApplications,
-      completedPayments,
-      partialPayments,
-      fullPaidPayments,
-      pendingPayments,
-      totalRevenue: totalRevenue.toFixed(2),
-    };
-  };
-
-  const stats = calculateStats();
 
   // Format currency
   const formatCurrency = (amount) => {
@@ -554,7 +567,10 @@ const PaymentsPage = () => {
                 {statuses.map((status) => (
                   <button
                     key={status}
-                    onClick={() => setActiveFilter(status)}
+                    onClick={() => {
+                      setActiveFilter(status);
+                      setCurrentPage(1);
+                    }}
                     className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                       activeFilter === status
                         ? "bg-emerald-600 text-white shadow-md"
@@ -569,7 +585,7 @@ const PaymentsPage = () => {
               <div className="flex gap-2 w-full md:w-auto">
                 <button
                   className="flex items-center justify-center px-4 py-2 bg-emerald-600 text-white rounded-lg shadow-sm hover:bg-emerald-700 transition-colors text-sm font-medium"
-                  onClick={fetchApplications}
+                  onClick={handleReferesh}
                 >
                   <BiRefresh className="mr-2" />
                   Refresh
@@ -632,8 +648,8 @@ const PaymentsPage = () => {
                         type="text"
                         className="w-full border border-gray-300 rounded-lg pl-10 pr-4 py-2 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-white"
                         placeholder="Search by student name, application ID or qualification..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
+                        value={searchInput}
+                        onChange={(e) => setSearchInput(e.target.value)}
                       />
                     </div>
                   </div>
@@ -643,7 +659,7 @@ const PaymentsPage = () => {
 
             <div className="flex items-center text-sm text-gray-500">
               <FaChartBar className="mr-2 text-gray-400" />
-              Showing {filteredApplications.length} payment transactions
+              Showing {totalApplications} payment transactions
               {searchTerm && (
                 <span className="ml-1">matching "{searchTerm}"</span>
               )}
@@ -656,7 +672,7 @@ const PaymentsPage = () => {
 
         {/* Payments Table */}
         <div className="bg-white rounded-xl shadow-md overflow-hidden mb-8">
-          {filteredApplications.length === 0 ? (
+          {applications.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 px-4">
               <div className="p-6 rounded-full bg-gray-100 mb-6 flex items-center justify-center">
                 <AiOutlineFileSearch className="h-16 w-16 text-gray-400" />
@@ -750,7 +766,7 @@ const PaymentsPage = () => {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {paginatedApplications.map((application) => (
+                  {applications.map((application) => (
                     <tr key={application.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex flex-col">
@@ -839,8 +855,7 @@ const PaymentsPage = () => {
               <div className="px-6 py-4 bg-white border-t border-gray-200">
                 <div className="flex items-center justify-between">
                   <div className="text-sm text-gray-500">
-                    Showing {paginatedApplications.length} of{" "}
-                    {filteredApplications.length} payments
+                    Showing {paymentsPerPage} of {totalApplications} payments
                   </div>
                   <div className="flex items-center space-x-2">
                     <select

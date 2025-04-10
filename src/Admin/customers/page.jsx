@@ -112,11 +112,13 @@ const CustomersInfo = () => {
   const [filteredApplications, setFilteredApplications] = useState([]);
   const [selectedApplication, setSelectedApplication] = useState(null);
   const [search, setSearch] = useState("");
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   // State for pagination
+  const [totalPages, setTotalPages] = useState(1);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [totalApplications, setTotalApplications] = useState(0);
 
   // State for modals
   const [showCheckoutModal, setShowCheckoutModal] = useState(false);
@@ -152,32 +154,98 @@ const CustomersInfo = () => {
 
   // State for filters visibility
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+  const [searchInput, setSearchInput] = useState("");
 
+  useEffect(() => {
+    const delayTimer = setTimeout(() => {
+      setSearch(searchInput);
+    }, 1000);
+
+    return () => clearTimeout(delayTimer); // Clear timeout if input changes before 20s
+  }, [searchInput]);
   // Main function to get applications data
+  // const getApplicationsData = async () => {
+  //   try {
+  //     setSubmissionLoading(true);
+  //     let applicationsData = await getApplications();
+
+  //     // Sort by most recent
+  //     // applicationsData.sort(
+  //     //   (a, b) => new Date(b.status[0]?.time) - new Date(a.status[0]?.time)
+  //     // );
+  //     applicationsData.sort((a, b) => {
+  //       const dateA = a.status?.length
+  //         ? new Date(a.status[0].time)
+  //         : new Date(0);
+  //       const dateB = b.status?.length
+  //         ? new Date(b.status[0].time)
+  //         : new Date(0);
+  //       return dateB - dateA; // Sort in descending order
+  //     });
+
+  //     setApplications(applicationsData);
+  //     setFilteredApplications(applicationsData);
+
+  //     // Extract unique industries for filter
+  //     const industries = applicationsData
+  //       .map((app) => app.isf?.industry)
+  //       .filter(Boolean);
+  //     setIndustryFilterOptions(["All", ...new Set(industries)]);
+
+  //     setSubmissionLoading(false);
+  //   } catch (error) {
+  //     console.error("Failed to fetch applications:", error);
+  //     toast.error("Failed to load applications");
+  //     setSubmissionLoading(false);
+  //   }
+  // };
+
+  // // Initial load
+  // useEffect(() => {
+  //   getApplicationsData();
+
+  //   // Simulate initial loading
+  //   setTimeout(() => {
+  //     setLoading(false);
+  //   }, 500);
+  // }, []);
   const getApplicationsData = async () => {
     try {
       setSubmissionLoading(true);
-      let applicationsData = await getApplications();
 
-      // Sort by most recent
-      // applicationsData.sort(
-      //   (a, b) => new Date(b.status[0]?.time) - new Date(a.status[0]?.time)
-      // );
-      applicationsData.sort((a, b) => {
-        const dateA = a.status?.length
-          ? new Date(a.status[0].time)
-          : new Date(0);
-        const dateB = b.status?.length
-          ? new Date(b.status[0].time)
-          : new Date(0);
-        return dateB - dateA; // Sort in descending order
+      const params = {
+        page: currentPage,
+        limit: itemsPerPage,
+        search,
+        assignedAdmin:
+          selectedFilter === "All"
+            ? undefined
+            : selectedFilter.replace("Assigned to ", ""),
+        colorFilter: selectedColorFilter,
+        industry: selectedIndustryFilter,
+        callAttempts: selectedCallAttemptsFilter,
+        sortField,
+        sortDirection,
+      };
+
+      // Cleanup undefined or 'All' params
+      Object.keys(params).forEach((key) => {
+        if (params[key] === undefined || params[key] === "All") {
+          delete params[key];
+        }
       });
 
-      setApplications(applicationsData);
-      setFilteredApplications(applicationsData);
-
-      // Extract unique industries for filter
-      const industries = applicationsData
+      const queryString = new URLSearchParams(params).toString();
+      const response = await fetch(
+        `${URL}/api/admin/student-applications/?${queryString}`
+      );
+      const data = await response.json();
+      console.log("getStudentApplications ", data);
+      setApplications(data.applications);
+      setTotalPages(data.totalPages);
+      setTotalApplications(data.totalApplications);
+      setCurrentPage(data.currentPage);
+      const industries = data.applications
         .map((app) => app.isf?.industry)
         .filter(Boolean);
       setIndustryFilterOptions(["All", ...new Set(industries)]);
@@ -190,158 +258,163 @@ const CustomersInfo = () => {
     }
   };
 
-  // Initial load
+  // Update useEffect to trigger on relevant changes
   useEffect(() => {
     getApplicationsData();
-
-    // Simulate initial loading
-    setTimeout(() => {
-      setLoading(false);
-    }, 500);
-  }, []);
-
-  // Effect for filtering applications
-  useEffect(() => {
-    let filtered = applications;
-
-    // Filter by search
-    if (search) {
-      const searchLower = search.toLowerCase();
-      filtered = filtered.filter(
-        (app) =>
-          app.applicationId?.toLowerCase().includes(searchLower) ||
-          app.user?.firstName?.toLowerCase().includes(searchLower) ||
-          app.user?.lastName?.toLowerCase().includes(searchLower) ||
-          app.user?.phone?.toString().includes(searchLower) ||
-          app.isf?.industry?.toLowerCase().includes(searchLower) ||
-          app.isf?.lookingForWhatQualification
-            ?.toLowerCase()
-            .includes(searchLower)
-      );
-    }
-
-    // Filter by assignment
-    if (selectedFilter !== "All") {
-      if (selectedFilter === "Assigned to N/A") {
-        filtered = filtered.filter((app) => !app.assignedAdmin);
-      } else {
-        const admin = selectedFilter.replace("Assigned to ", "");
-        filtered = filtered.filter((app) => app.assignedAdmin === admin);
-      }
-    }
-
-    // Filter by color status
-    if (selectedColorFilter !== "All") {
-      const colorMap = {
-        "Hot Lead": "red",
-        "Warm Lead": "orange",
-        "Cold Lead": "gray",
-        "Proceeded With Payment": "yellow",
-        "Impacted Student": "lightblue",
-        Agent: "pink",
-        Completed: "green",
-        Default: "white",
-      };
-
-      if (selectedColorFilter === "Default") {
-        filtered = filtered.filter(
-          (app) => !app.color || app.color === "white"
-        );
-      } else {
-        filtered = filtered.filter(
-          (app) => app.color === colorMap[selectedColorFilter]
-        );
-      }
-    }
-
-    // Filter by industry
-    if (selectedIndustryFilter !== "All") {
-      filtered = filtered.filter(
-        (app) => app.isf?.industry === selectedIndustryFilter
-      );
-    }
-
-    // Filter by call attempts
-    if (selectedCallAttemptsFilter !== "All") {
-      if (selectedCallAttemptsFilter === "None") {
-        filtered = filtered.filter((app) => !app.contactAttempts);
-      } else {
-        filtered = filtered.filter(
-          (app) => app.contactAttempts === parseInt(selectedCallAttemptsFilter)
-        );
-      }
-    }
-
-    // Filter out archived applications
-    filtered = filtered.filter((app) => !app.archive);
-
-    // Sort applications
-    // filtered.sort((a, b) => {
-    //   let comparison = 0;
-
-    //   if (sortField === "dateCreated") {
-    //     comparison = new Date(b.status[0]?.time) - new Date(a.status[0]?.time);
-    //   } else if (sortField === "customerName") {
-    //     comparison = (a.user?.firstName + " " + a.user?.lastName).localeCompare(
-    //       b.user?.firstName + " " + b.user?.lastName
-    //     );
-    //   } else if (sortField === "status") {
-    //     comparison = (a.currentStatus || "").localeCompare(
-    //       b.currentStatus || ""
-    //     );
-    //   } else if (sortField === "payment") {
-    //     // Sort by payment status (full_paid > partial > unpaid)
-    //     if (a.full_paid && !b.full_paid) comparison = -1;
-    //     else if (!a.full_paid && b.full_paid) comparison = 1;
-    //     else if (a.paid && !b.paid) comparison = -1;
-    //     else if (!a.paid && b.paid) comparison = 1;
-    //     else comparison = 0;
-    //   }
-
-    //   return sortDirection === "asc" ? comparison : -comparison;
-    // });
-    filtered.sort((a, b) => {
-      let comparison = 0;
-
-      if (sortField === "dateCreated") {
-        const dateA =
-          a.status?.length > 0 ? new Date(a.status[0].time) : new Date(0);
-        const dateB =
-          b.status?.length > 0 ? new Date(b.status[0].time) : new Date(0);
-        comparison = dateB - dateA; // Sort in descending order
-      } else if (sortField === "customerName") {
-        const nameA =
-          (a.user?.firstName || "") + " " + (a.user?.lastName || "");
-        const nameB =
-          (b.user?.firstName || "") + " " + (b.user?.lastName || "");
-        comparison = nameA.localeCompare(nameB);
-      } else if (sortField === "status") {
-        comparison = (a.currentStatus || "").localeCompare(
-          b.currentStatus || ""
-        );
-      } else if (sortField === "payment") {
-        // Sort by payment status (full_paid > partial > unpaid)
-        if (a.full_paid && !b.full_paid) comparison = -1;
-        else if (!a.full_paid && b.full_paid) comparison = 1;
-        else if (a.paid && !b.paid) comparison = -1;
-        else if (!a.paid && b.paid) comparison = 1;
-        else comparison = 0;
-      }
-
-      return sortDirection === "asc" ? comparison : -comparison;
-    });
-
-    setFilteredApplications(filtered);
   }, [
+    currentPage,
+    itemsPerPage,
     search,
     selectedFilter,
     selectedColorFilter,
     selectedIndustryFilter,
     selectedCallAttemptsFilter,
-    applications,
     sortField,
     sortDirection,
   ]);
+
+  // Effect for filtering applications
+  // useEffect(() => {
+  //   let filtered = applications;
+
+  //   // Filter by search
+  //   if (search) {
+  //     const searchLower = search.toLowerCase();
+  //     filtered = filtered.filter(
+  //       (app) =>
+  //         app.applicationId?.toLowerCase().includes(searchLower) ||
+  //         app.user?.firstName?.toLowerCase().includes(searchLower) ||
+  //         app.user?.lastName?.toLowerCase().includes(searchLower) ||
+  //         app.user?.phone?.toString().includes(searchLower) ||
+  //         app.isf?.industry?.toLowerCase().includes(searchLower) ||
+  //         app.isf?.lookingForWhatQualification
+  //           ?.toLowerCase()
+  //           .includes(searchLower)
+  //     );
+  //   }
+
+  //   // Filter by assignment
+  //   if (selectedFilter !== "All") {
+  //     if (selectedFilter === "Assigned to N/A") {
+  //       filtered = filtered.filter((app) => !app.assignedAdmin);
+  //     } else {
+  //       const admin = selectedFilter.replace("Assigned to ", "");
+  //       filtered = filtered.filter((app) => app.assignedAdmin === admin);
+  //     }
+  //   }
+
+  //   // Filter by color status
+  //   if (selectedColorFilter !== "All") {
+  //     const colorMap = {
+  //       "Hot Lead": "red",
+  //       "Warm Lead": "orange",
+  //       "Cold Lead": "gray",
+  //       "Proceeded With Payment": "yellow",
+  //       "Impacted Student": "lightblue",
+  //       Agent: "pink",
+  //       Completed: "green",
+  //       Default: "white",
+  //     };
+
+  //     if (selectedColorFilter === "Default") {
+  //       filtered = filtered.filter(
+  //         (app) => !app.color || app.color === "white"
+  //       );
+  //     } else {
+  //       filtered = filtered.filter(
+  //         (app) => app.color === colorMap[selectedColorFilter]
+  //       );
+  //     }
+  //   }
+
+  //   // Filter by industry
+  //   if (selectedIndustryFilter !== "All") {
+  //     filtered = filtered.filter(
+  //       (app) => app.isf?.industry === selectedIndustryFilter
+  //     );
+  //   }
+
+  //   // Filter by call attempts
+  //   if (selectedCallAttemptsFilter !== "All") {
+  //     if (selectedCallAttemptsFilter === "None") {
+  //       filtered = filtered.filter((app) => !app.contactAttempts);
+  //     } else {
+  //       filtered = filtered.filter(
+  //         (app) => app.contactAttempts === parseInt(selectedCallAttemptsFilter)
+  //       );
+  //     }
+  //   }
+
+  //   // Filter out archived applications
+  //   filtered = filtered.filter((app) => !app.archive);
+
+  //   // Sort applications
+  //   // filtered.sort((a, b) => {
+  //   //   let comparison = 0;
+
+  //   //   if (sortField === "dateCreated") {
+  //   //     comparison = new Date(b.status[0]?.time) - new Date(a.status[0]?.time);
+  //   //   } else if (sortField === "customerName") {
+  //   //     comparison = (a.user?.firstName + " " + a.user?.lastName).localeCompare(
+  //   //       b.user?.firstName + " " + b.user?.lastName
+  //   //     );
+  //   //   } else if (sortField === "status") {
+  //   //     comparison = (a.currentStatus || "").localeCompare(
+  //   //       b.currentStatus || ""
+  //   //     );
+  //   //   } else if (sortField === "payment") {
+  //   //     // Sort by payment status (full_paid > partial > unpaid)
+  //   //     if (a.full_paid && !b.full_paid) comparison = -1;
+  //   //     else if (!a.full_paid && b.full_paid) comparison = 1;
+  //   //     else if (a.paid && !b.paid) comparison = -1;
+  //   //     else if (!a.paid && b.paid) comparison = 1;
+  //   //     else comparison = 0;
+  //   //   }
+
+  //   //   return sortDirection === "asc" ? comparison : -comparison;
+  //   // });
+  //   filtered.sort((a, b) => {
+  //     let comparison = 0;
+
+  //     if (sortField === "dateCreated") {
+  //       const dateA =
+  //         a.status?.length > 0 ? new Date(a.status[0].time) : new Date(0);
+  //       const dateB =
+  //         b.status?.length > 0 ? new Date(b.status[0].time) : new Date(0);
+  //       comparison = dateB - dateA; // Sort in descending order
+  //     } else if (sortField === "customerName") {
+  //       const nameA =
+  //         (a.user?.firstName || "") + " " + (a.user?.lastName || "");
+  //       const nameB =
+  //         (b.user?.firstName || "") + " " + (b.user?.lastName || "");
+  //       comparison = nameA.localeCompare(nameB);
+  //     } else if (sortField === "status") {
+  //       comparison = (a.currentStatus || "").localeCompare(
+  //         b.currentStatus || ""
+  //       );
+  //     } else if (sortField === "payment") {
+  //       // Sort by payment status (full_paid > partial > unpaid)
+  //       if (a.full_paid && !b.full_paid) comparison = -1;
+  //       else if (!a.full_paid && b.full_paid) comparison = 1;
+  //       else if (a.paid && !b.paid) comparison = -1;
+  //       else if (!a.paid && b.paid) comparison = 1;
+  //       else comparison = 0;
+  //     }
+
+  //     return sortDirection === "asc" ? comparison : -comparison;
+  //   });
+
+  //   setFilteredApplications(filtered);
+  // }, [
+  //   search,
+  //   selectedFilter,
+  //   selectedColorFilter,
+  //   selectedIndustryFilter,
+  //   selectedCallAttemptsFilter,
+  //   applications,
+  //   sortField,
+  //   sortDirection,
+  // ]);
 
   // Helper function to toggle sort
   const handleSort = (field) => {
@@ -709,7 +782,7 @@ const CustomersInfo = () => {
 
   // Pagination
   const totalItems = filteredApplications.length;
-  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  // const totalPages = Math.ceil(totalItems / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const visibleApplications = filteredApplications.slice(
     startIndex,
@@ -830,8 +903,8 @@ const CustomersInfo = () => {
                       type="text"
                       className="w-full border border-gray-300 rounded-lg pl-10 pr-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       placeholder="Search by ID, name, phone or qualification..."
-                      value={search}
-                      onChange={(e) => setSearch(e.target.value)}
+                      value={searchInput}
+                      onChange={(e) => setSearchInput(e.target.value)}
                     />
                   </div>
                 </div>
@@ -885,7 +958,10 @@ const CustomersInfo = () => {
                       id="assignmentFilter"
                       className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       value={selectedFilter}
-                      onChange={(e) => setSelectedFilter(e.target.value)}
+                      onChange={(e) => {
+                        setSelectedFilter(e.target.value);
+                        setCurrentPage(1);
+                      }}
                     >
                       {filterOptions.map((option) => (
                         <option key={option} value={option}>
@@ -906,7 +982,10 @@ const CustomersInfo = () => {
                       id="colorFilter"
                       className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       value={selectedColorFilter}
-                      onChange={(e) => setSelectedColorFilter(e.target.value)}
+                      onChange={(e) => {
+                        setSelectedColorFilter(e.target.value);
+                        setCurrentPage(1);
+                      }}
                     >
                       {colorFilterOptions.map((option) => (
                         <option key={option} value={option}>
@@ -927,9 +1006,10 @@ const CustomersInfo = () => {
                       id="industryFilter"
                       className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       value={selectedIndustryFilter}
-                      onChange={(e) =>
-                        setSelectedIndustryFilter(e.target.value)
-                      }
+                      onChange={(e) => {
+                        setSelectedIndustryFilter(e.target.value);
+                        setCurrentPage(1);
+                      }}
                     >
                       {industryFilterOptions.map((option) => (
                         <option key={option} value={option}>
@@ -950,9 +1030,10 @@ const CustomersInfo = () => {
                       id="callAttemptsFilter"
                       className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       value={selectedCallAttemptsFilter}
-                      onChange={(e) =>
-                        setSelectedCallAttemptsFilter(e.target.value)
-                      }
+                      onChange={(e) => {
+                        setSelectedCallAttemptsFilter(e.target.value);
+                        setCurrentPage(1);
+                      }}
                     >
                       <option value="All">All</option>
                       <option value="None">None</option>
@@ -969,9 +1050,9 @@ const CustomersInfo = () => {
           </div>
           <div className="p-4 flex items-center justify-between bg-gray-50">
             <div className="text-sm text-gray-600">
-              Showing {startIndex + 1}-
-              {Math.min(startIndex + itemsPerPage, totalItems)} of {totalItems}{" "}
-              applications
+              Showing {(currentPage - 1) * itemsPerPage + 1}-
+              {Math.min(currentPage * itemsPerPage, totalApplications)} of{" "}
+              {totalApplications} applications
             </div>
 
             <div className="flex items-center gap-2">
@@ -1095,7 +1176,7 @@ const CustomersInfo = () => {
                 </thead>
 
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {visibleApplications.length === 0 && (
+                  {applications.length === 0 && (
                     <tr>
                       <td
                         colSpan="7"
@@ -1114,7 +1195,7 @@ const CustomersInfo = () => {
                     </tr>
                   )}
 
-                  {visibleApplications.map((application) => (
+                  {applications.map((application) => (
                     <tr
                       key={application.id}
                       className="hover:bg-gray-50 transition-colors"
@@ -1481,11 +1562,18 @@ const CustomersInfo = () => {
                   <div>
                     <p className="text-sm text-gray-700">
                       Showing{" "}
-                      <span className="font-medium">{startIndex + 1}</span> to{" "}
                       <span className="font-medium">
-                        {Math.min(startIndex + itemsPerPage, totalItems)}
+                        {(currentPage - 1) * itemsPerPage + 1}
                       </span>{" "}
-                      of <span className="font-medium">{totalItems}</span>{" "}
+                      to{" "}
+                      <span className="font-medium">
+                        {Math.min(
+                          currentPage * itemsPerPage,
+                          totalApplications
+                        )}
+                      </span>{" "}
+                      of{" "}
+                      <span className="font-medium">{totalApplications}</span>{" "}
                       results
                     </p>
                   </div>

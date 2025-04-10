@@ -4,7 +4,7 @@ import studentAgreementdoc from "../../../../public/1.pdf";
 import studentApplicantAgreement from "../../../../public/2.pdf";
 import TOCdoc from "../../../../public/3.pdf";
 import DocumentModal from "../../components/viewDocsModal";
-
+import { AgreementDocumentModal } from "../../components/viewDocsModal";
 const StudentAgreement = ({ studentAgreement, setStudentAgreement }) => {
   const [DocumentModalOpen, setDocumentModalOpen] = useState(false);
   const [currentDoc, setCurrentDoc] = useState("");
@@ -113,7 +113,7 @@ const StudentAgreement = ({ studentAgreement, setStudentAgreement }) => {
           ) : null}
         </div>
       </div>
-      <DocumentModal
+      <AgreementDocumentModal
         isOpen={DocumentModalOpen}
         onClose={closeModal}
         docLink={currentDoc}

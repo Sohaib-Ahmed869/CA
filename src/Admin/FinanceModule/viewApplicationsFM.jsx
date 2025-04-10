@@ -1019,6 +1019,16 @@ const FinanceManagement = () => {
                       type="date"
                       className="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-green-500 focus:border-green-500"
                       value={expense.date}
+                      // min={new Date().toISOString().split("T")[0]}
+                      min={
+                        new Date(
+                          new Date().getFullYear(),
+                          new Date().getMonth(),
+                          1
+                        )
+                          .toISOString()
+                          .split("T")[0]
+                      }
                       onChange={(e) =>
                         setExpense({ ...expense, date: e.target.value })
                       }

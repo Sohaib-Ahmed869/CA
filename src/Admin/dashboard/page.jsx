@@ -5,6 +5,7 @@ import {
   getApplications,
   getCustomers,
   getAgents,
+  getChartData,
 } from "../../Customer/Services/adminServices";
 import SpinnerLoader from "../../Customer/components/spinnerLoader";
 import dashb from "../../assets/dashb.png";
@@ -42,30 +43,27 @@ import {
 import { getUserSpecificStats } from "../../utils/stats";
 import AgentTargetsKPI from "./AgentTargetsKpi";
 import { useNavigate } from "react-router-dom";
-const SpecificAgentApplicationsKPI = ({ applications }) => {
-  const [assignedApplications, setAssignedApplications] = useState([]);
+import axios from "axios";
+const SpecificAgentApplicationsKPI = ({ agentStats }) => {
+  console.log("agent Statss", agentStats);
+  const [applicationCount, setApplicationCount] = useState(0);
   const [agentName, setAgentName] = useState("");
-
   useEffect(() => {
-    // Get agent name from localStorage
     const storedAgentName = localStorage.getItem("agent");
     console.log("Stored Agent Name:", storedAgentName);
     setAgentName(storedAgentName || "");
-    console.log("storedAgentName", storedAgentName);
 
-    // Filter applications assigned to this agent
-    if (
-      applications &&
-      applications.length > 0 &&
-      storedAgentName &&
-      storedAgentName !== undefined
-    ) {
-      const filtered = applications.filter(
-        (app) => app.assignedAdmin === storedAgentName
+    if (storedAgentName && agentStats?.length > 0) {
+      const agentData = agentStats.find(
+        (agent) => agent.agentName === storedAgentName
       );
-      setAssignedApplications(filtered);
+      if (agentData) {
+        setApplicationCount(agentData.applicationCount);
+      } else {
+        setApplicationCount(0);
+      }
     }
-  }, [applications]);
+  }, [agentStats]);
 
   return (
     <div className="rounded-xl shadow-sm p-6 border border-indigo-100 bg-indigo-50 transition-all hover:shadow-md">
@@ -75,7 +73,7 @@ const SpecificAgentApplicationsKPI = ({ applications }) => {
             Applications Assigned to you{" "}
           </p>
           <h3 className="text-2xl font-bold text-indigo-800">
-            {assignedApplications.length}
+            {applicationCount}
           </h3>
           {agentName && (
             <p className="text-xs text-indigo-600 mt-1">Agent: {agentName}</p>
@@ -89,50 +87,10 @@ const SpecificAgentApplicationsKPI = ({ applications }) => {
   );
 };
 
-const AgentApplicationsKPI = ({ applications }) => {
-  const [agents, setAgents] = useState(new Map()); // Store agents and their applications
-
-  useEffect(() => {
-    const fetchAgents = async () => {
-      try {
-        const response = await getAgents();
-        if (response) {
-          // Initialize the map with agent names and empty arrays
-          const agentMap = new Map(response.map((agent) => [agent.name, []]));
-          setAgents(agentMap);
-        }
-      } catch (err) {
-        console.error("Error fetching agents:", err);
-      }
-    };
-
-    fetchAgents();
-  }, []); // Fetch agents only once on mount
-
-  useEffect(() => {
-    if (agents.size === 0 || applications.length === 0) return;
-
-    // Create a new Map to store updated applications
-    const updatedAgentMap = new Map();
-
-    // Initialize agent map with empty arrays
-    for (let [key] of agents) {
-      updatedAgentMap.set(key, []);
-    }
-
-    // Assign applications to respective agents
-    applications.forEach((app) => {
-      if (updatedAgentMap.has(app.assignedAdmin)) {
-        updatedAgentMap.get(app.assignedAdmin).push(app);
-      }
-    });
-
-    setAgents(updatedAgentMap);
-  }, [applications, agents]); // Runs when applications or agents change
-
+const AgentApplicationsKPI = ({ agentStats }) => {
   return (
     <div className="flex gap-4  ">
-      {[...agents.entries()].map(([agentName, assignedApplications]) => (
+      {agentStats?.map(({ agentName, applicationCount }) => (
         <div
           key={agentName}
           className="rounded-xl shadow-sm p-6 border w-full border-indigo-100 bg-indigo-50 transition-all hover:shadow-md"
@@ -143,7 +101,7 @@ const AgentApplicationsKPI = ({ applications }) => {
                 Applications Assigned by you
               </p>
               <h3 className="text-2xl font-bold text-indigo-800">
-                {assignedApplications.length}
+                {applicationCount}
               </h3>
               {agentName && (
                 <p className="text-xs text-indigo-600 mt-1">
@@ -160,46 +118,12 @@ const AgentApplicationsKPI = ({ applications }) => {
     </div>
   );
 };
-const ApplicationFunnel = ({ applications }) => {
-  // Runs when `applications` updates
-
-  const getFunnelData = () => {
-    const statusOrder = [
-      "Student Intake Form",
-      "Upload Documents",
-      "Sent to RTO",
-      "Waiting for Verification",
-      "Certificate Generated",
-    ];
-
-    // Green color palette
-    const colors = ["#064e3b", "#065f46", "#047857", "#059669", "#10b981"];
-
-    // Count applications for each status
-    const statusCounts = statusOrder.reduce((acc, status) => {
-      acc[status] = 0;
-      return acc;
-    }, {});
-
-    applications.forEach((app) => {
-      if (statusCounts.hasOwnProperty(app.currentStatus)) {
-        statusCounts[app.currentStatus]++;
-      }
-    });
-
-    // Filter out zero-value statuses and return formatted data
-    return statusOrder
-      .map((status, index) => ({
-        name: status,
-        count: statusCounts[status],
-        fill: colors[index],
-      }))
-      .filter((d) => d.count > 0);
-  };
-
-  const data = React.useMemo(() => getFunnelData(), [applications]);
-
-  // Fallback for empty data
+const ApplicationFunnel = ({ chartsData }) => {
+  // Use the data directly from the API
+  const data = React.useMemo(
+    () => chartsData?.charts?.funnelData || [],
+    [chartsData]
+  ); // Fallback for empty data
   if (!data.some((d) => d.count > 0)) {
     return (
       <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
@@ -274,27 +198,16 @@ const ApplicationFunnel = ({ applications }) => {
   );
 };
 
-const ColorStatusChart = ({ stats }) => {
-  const getColorData = () => {
-    const hotLeadCount = stats.colorStatusCount?.hotLead || 0;
-    const warmLeadCount = stats.colorStatusCount?.warmLead || 0;
-    const coldLeadCount = stats.colorStatusCount?.coldLead || 0;
-
-    const totalLeads = hotLeadCount + warmLeadCount + coldLeadCount;
-
-    const hotLeadPercent = totalLeads ? (hotLeadCount / totalLeads) * 100 : 0;
-    const warmLeadPercent = totalLeads ? (warmLeadCount / totalLeads) * 100 : 0;
-    const coldLeadPercent = totalLeads ? (coldLeadCount / totalLeads) * 100 : 0;
-
-    return {
-      labels: ["Hot Lead", "Warm Lead", "Cold Lead"],
-      series: [hotLeadPercent, warmLeadPercent, coldLeadPercent],
-      numbers: [hotLeadCount, warmLeadCount, coldLeadCount],
-    };
-  };
-
-  const data = React.useMemo(() => getColorData(), [stats]);
-
+const ColorStatusChart = ({ chartsData }) => {
+  const data = React.useMemo(
+    () =>
+      chartsData?.charts?.colorStatusData || {
+        labels: ["Hot Lead", "Warm Lead", "Cold Lead"],
+        series: [0, 0, 0],
+        numbers: [0, 0, 0],
+      },
+    [chartsData]
+  );
   const chartOptions = React.useMemo(
     () => ({
       labels: data.labels,
@@ -415,43 +328,15 @@ const ColorStatusChart = ({ stats }) => {
 };
 
 // Weekly Applications Chart
-const WeeklyChart = ({ applications }) => {
-  console.log("chart", applications);
-  const getWeeklyData = () => {
-    const weekDays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-    const completed = new Array(7).fill(0);
-    const pending = new Array(7).fill(0);
-
-    applications?.forEach((app) => {
-      if (app.status && app.status.length > 0) {
-        const date = new Date(app.status[0].time);
-        const dayIndex = (date.getDay() + 6) % 7; // Adjust to start from Monday
-        if (app.paid) {
-          completed[dayIndex]++;
-        } else {
-          pending[dayIndex]++;
-        }
-      } else {
-        console.warn("Skipping app due to missing or empty status:", app);
-      }
-    });
-
-    return {
-      labels: weekDays,
-      series: [
-        {
-          name: "Paid",
-          data: completed,
-        },
-        {
-          name: "Pending",
-          data: pending,
-        },
-      ],
-    };
+const WeeklyChart = ({ chartsData }) => {
+  // Use the data directly from the API
+  const data = chartsData?.charts?.weeklyData || {
+    labels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+    series: [
+      { name: "Paid", data: new Array(7).fill(0) },
+      { name: "Pending", data: new Array(7).fill(0) },
+    ],
   };
-
-  const data = getWeeklyData();
 
   const chartOptions = {
     chart: {
@@ -655,55 +540,19 @@ const getApplicationStatus = (application) => {
   return "Not Started";
 };
 
-const StatusChart = ({ applications }) => {
-  const getStatusData = () => {
-    const statuses = {
-      "Student Intake Form": 0,
-      "Upload Documents": 0,
-      "Sent to RTO": 0,
-      "Waiting for Verification": 0,
-      "Certificate Generated": 0,
-      Assessed: 0,
-    };
-
-    applications.forEach((app) => {
-      const status = getApplicationStatus(app);
-
-      switch (status) {
-        case "Student Intake Form":
-        case "Student Intake Form Pending":
-          statuses["Student Intake Form"]++;
-          break;
-        case "Documents Pending":
-          statuses["Upload Documents"]++;
-          break;
-        case "Waiting Assessment":
-          statuses["Waiting for Verification"]++;
-          break;
-        case "Assessed":
-          statuses["Assessed"]++;
-          break;
-
-        case "Sent to RTO":
-          statuses["Sent to RTO"]++;
-          break;
-        case "Certificate Generated":
-          statuses["Certificate Generated"]++;
-          break;
-        default:
-          console.warn("Unmapped status:", status);
-      }
-    });
-
-    return {
-      series: Object.values(statuses),
-      labels: Object.keys(statuses),
-    };
+const StatusChart = ({ chartsData }) => {
+  // Use the data directly from the API
+  const data = chartsData?.charts?.statusData || {
+    series: new Array(6).fill(0),
+    labels: [
+      "Student Intake Form",
+      "Upload Documents",
+      "Sent to RTO",
+      "Waiting for Verification",
+      "Certificate Generated",
+      "Assessed",
+    ],
   };
-
-  const data = getStatusData();
-
-  // ... rest of the chart options and JSX remain the same
   const chartOptions = {
     labels: data.labels,
     colors: ["#064e3b", "#065f46", "#047857", "#059669", "#10b981"],
@@ -770,34 +619,11 @@ const StatusChart = ({ applications }) => {
   );
 };
 // Top Qualifications Chart
-const TopQualificationsChart = ({ applications }) => {
-  const [topQualifications, setTopQualifications] = useState([]);
-  console.log(applications);
+const TopQualificationsChart = ({ chartsData }) => {
+  const topQualifications = chartsData?.charts?.topQualifications || [];
 
-  // Function to process and update top qualifications
-  const processTopQualifications = (applications) => {
-    if (!applications || applications.length === 0) return;
-
-    const qualificationCounts = applications.reduce((acc, app) => {
-      const qualification = app.isf?.lookingForWhatQualification || "Unknown";
-      acc[qualification] = (acc[qualification] || 0) + 1;
-      return acc;
-    }, {});
-
-    const topQualificationData = Object.entries(qualificationCounts)
-      .map(([name, value]) => ({ name, value }))
-      .sort((a, b) => b.value - a.value)
-      .slice(0, 5);
-
-    setTopQualifications(topQualificationData);
-  };
-
-  useEffect(() => {
-    processTopQualifications(applications);
-  }, [applications]);
-
-  // Unique colors for each bar
   const barColors = ["#14532D", "#16A34A", "#6EE7B7", "#22C55E", "#064E3B"];
+  // Unique colors for each bar
 
   return (
     <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
@@ -885,12 +711,8 @@ const formatCurrency = (value) => {
   return `$${value}`;
 };
 
-const ApplicationTrends = ({ applications }) => {
-  const [monthlyData, setMonthlyData] = useState([]);
-
-  useEffect(() => {
-    setMonthlyData(calculateMonthlyStats(applications));
-  }, [applications]);
+const ApplicationTrends = ({ chartsData }) => {
+  const monthlyData = chartsData?.charts?.monthlyTrends || [];
 
   return (
     <div className="bg-white p-6 rounded-xl shadow border border-gray-100">
@@ -986,6 +808,8 @@ const Dashboard = () => {
       coldLead: 0,
       others: 0,
     },
+    conversionRate: 0,
+    completionRate: 0,
   });
 
   const hasFinanceAccess = () => {
@@ -1022,7 +846,8 @@ const Dashboard = () => {
   const [filteredApplications, setFilteredApplications] = useState([]);
   const [submissionLoading, setSubmissionLoading] = useState(false);
   const [agents, setAgents] = useState([]);
-
+  const [agentStats, setAgentStats] = useState([]);
+  const [chartsData, setChartsData] = useState([]);
   const [userId, setUserId] = useState(null);
   const auth = getAuth();
 
@@ -1033,6 +858,14 @@ const Dashboard = () => {
       }
     });
     return () => unsubscribe();
+  }, []);
+  useEffect(() => {
+    const fetchKPI = async () => {
+      const response = await axios.get("/api/applications/getAgentKpiStats"); // update route as needed
+      console.log("response", response);
+      setAgentStats(response.data.agentKPI);
+    };
+    fetchKPI();
   }, []);
 
   useEffect(() => {
@@ -1056,14 +889,17 @@ const Dashboard = () => {
 
       try {
         setSubmissionLoading(true);
-        const [statsData, appsData] = await Promise.all([
-          getDashboardStats({ id: userId }),
-          getApplications(),
+        const [statsData, chartsData] = await Promise.allSettled([
+          getDashboardStats({ id: userId, agentId: selectedAgent }),
+          getChartData({ id: userId, agentId: selectedAgent }),
+          // getApplications(),
         ]);
 
-        setStats(statsData);
-        setAllStats(statsData);
-        setApplications(appsData);
+        setStats(statsData.value || initialStats);
+        setAllStats(statsData.value || initialStats);
+        // setApplications(appsData.value || []);
+        setChartsData(chartsData.value || []);
+        console.log("chartsData", chartsData.value);
       } catch (err) {
         console.error("Error fetching dashboard data:", err);
       } finally {
@@ -1072,44 +908,14 @@ const Dashboard = () => {
     };
 
     fetchStats();
-  }, [userId]);
+    const interval = setInterval(fetchStats, 300000); // Refresh every 5 minutes
 
-  useEffect(() => {
-    if (applications.length === 0) return;
-
-    const totalApplications = applications.length;
-    const paidApplications = applications.filter(
-      (app) => app.full_paid || parseFloat(app.amount_paid) > 0
-    ).length;
-    const completedApplications = applications.filter(
-      (app) => app.currentStatus === "Certificate Generated"
-    ).length;
-
-    const conversionRate = totalApplications
-      ? ((paidApplications / totalApplications) * 100).toFixed(1)
-      : 0;
-
-    const completionRate = totalApplications
-      ? ((completedApplications / totalApplications) * 100).toFixed(1)
-      : 0;
-
-    setAllStats((prevStats) => ({
-      ...prevStats,
-      conversionRate,
-      completionRate,
-    }));
-    setStats((prevStats) => ({
-      ...prevStats,
-      conversionRate,
-      completionRate,
-    }));
-  }, [applications]);
-
-  console.log("filtered", filteredApplications);
+    return () => clearInterval(interval);
+  }, [userId, selectedAgent]);
+  // console.log("filtered", filteredApplications);
 
   localStorage.getItem("type") === "manager";
   const isManager = {};
-  // console.log("stats", stats);
   const kpiData = [
     // ...(selectedAgent === "reset" || !selectedAgent
     //   ? [
@@ -1223,36 +1029,36 @@ const Dashboard = () => {
   ];
   const handleUserSelection = (agentName) => {
     if (agentName === "reset") {
-      setFilteredApplications(applications);
+      // setFilteredApplications(applications);
       setSelectedAgent("reset");
       setStats(allStats);
       return;
     }
     setSelectedAgent(agentName); // Update selected user ID
-
-    // Filter applications for selected user
-    const filtered = applications.filter(
-      (app) => app.assignedAdmin === agentName
-    );
-    setFilteredApplications(filtered);
-
-    // Compute user-specific stats
-    const {
-      conversionRate,
-      completionRate,
-      certificatesGenerated,
-      totalApplications,
-    } = getUserSpecificStats(filtered, agents);
-    setStats((prevStats) => ({
-      ...prevStats,
-      conversionRate,
-      completionRate,
-      certificatesGenerated,
-      totalApplications,
-    }));
   };
+  //   // Filter applications for selected user
+  //   const filtered = applications.filter(
+  //     (app) => app.assignedAdmin === agentName
+  //   );
+  //   setFilteredApplications(filtered);
 
-  // console.log("allstats", allStats);
+  //   // Compute user-specific stats
+  //   const {
+  //     conversionRate,
+  //     completionRate,
+  //     certificatesGenerated,
+  //     totalApplications,
+  //   } = getUserSpecificStats(filtered, agents);
+  //   setStats((prevStats) => ({
+  //     ...prevStats,
+  //     conversionRate,
+  //     completionRate,
+  //     certificatesGenerated,
+  //     totalApplications,
+  //   }));
+  // };
+
+  // // console.log("allstats", allStats);
   console.log(selectedAgent);
   return (
     <div className="min-h-screen bg-gray-50 p-4 md:p-8 xl:p-10 w-full animate-fade">
@@ -1338,38 +1144,34 @@ const Dashboard = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           {isanAgentUser && !isAgentManager && (
             <>
-              <SpecificAgentApplicationsKPI applications={applications} />
-              <AgentTargetsKPI applications={applications} />
+              <SpecificAgentApplicationsKPI
+                applications={applications}
+                agentStats={agentStats}
+              />
+              <AgentTargetsKPI />
             </>
           )}
           {isAgentManager && (
-            <AgentApplicationsKPI applications={applications} />
+            <AgentApplicationsKPI
+              // applications={applications}
+              agentStats={agentStats}
+            />
           )}
         </div>
       </div>
 
       {/* Charts Section */}
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mb-6">
-        <WeeklyChart
-          applications={selectedAgent ? filteredApplications : applications}
-        />
-        <StatusChart
-          applications={selectedAgent ? filteredApplications : applications}
-        />
+        <WeeklyChart chartsData={chartsData} />
+        <StatusChart chartsData={chartsData} />
       </div>
       <div className="grid grid-cols-1 xl:grid-cols-2 my-6  gap-6">
-        <TopQualificationsChart
-          applications={selectedAgent ? filteredApplications : applications}
-        />
-        <ApplicationFunnel
-          applications={selectedAgent ? filteredApplications : applications}
-        />
+        <TopQualificationsChart chartsData={chartsData} />
+        <ApplicationFunnel chartsData={chartsData} />
       </div>
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-        <ColorStatusChart stats={stats} />
-        {hasFinanceAccess() && (
-          <ApplicationTrends applications={applications} />
-        )}
+        <ColorStatusChart chartsData={chartsData} />
+        {hasFinanceAccess() && <ApplicationTrends chartsData={chartsData} />}
       </div>
     </div>
   );

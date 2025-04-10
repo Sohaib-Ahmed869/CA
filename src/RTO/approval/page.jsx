@@ -19,6 +19,8 @@ import {
   FaEye,
   FaCheckCircle,
   FaTimesCircle,
+  FaArrowLeft,
+  FaArrowRight,
 } from "react-icons/fa";
 const URL = import.meta.env.VITE_REACT_BACKEND_URL;
 import { MdLocationOn, MdWorkOutline, MdSchool } from "react-icons/md";
@@ -39,6 +41,8 @@ import DocumentModal from "../../Customer/components/viewDocsModal";
 import RequestMoreDocuments from "../RequestMoreDocuments/RequestMoreDocuments";
 import { downloadAllDocsAsZip } from "../../utils/downloadAllDocs";
 import { use } from "react";
+import axios from "axios";
+
 const Approval = () => {
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -54,7 +58,7 @@ const Approval = () => {
   const [filterStatus, setFilterStatus] = useState("All");
   const [selectedTab, setSelectedTab] = useState("overview");
 
-  const applicationsPerPage = 10;
+  const [applicationsPerPage, setApplicationsperPage] = useState(10);
   const [selectedApplicationId, setSelectedApplicationId] = useState(null);
   const [certificateFile, setCertificateFile] = useState(null);
   const [selectedApplication, setSelectedApplication] = useState(null);
@@ -70,7 +74,15 @@ const Approval = () => {
     success: false,
     loading: false,
   });
+  const [searchInput, setSearchInput] = useState("");
 
+  useEffect(() => {
+    const delayTimer = setTimeout(() => {
+      setSearchTerm(searchInput);
+    }, 1000);
+
+    return () => clearTimeout(delayTimer); // Clear timeout if input changes before 20s
+  }, [searchInput]);
   const CloseRequestDocsModal = () => {
     setShowRequestDocsModal(false);
   };
@@ -206,55 +218,129 @@ const Approval = () => {
   };
 
   // Function to get all eligible applications for RTO
-  const getRTOApplications = async () => {
-    const rtoType = localStorage.getItem("rtoType");
+  // const getRTOApplications = async () => {
+  //   const rtoType = localStorage.getItem("rtoType");
 
+  //   try {
+  //     setSubmissionLoading(true);
+  //     const applicationsData = await getApplications();
+
+  //     // Filter applications that meet our criteria:
+  //     // 1. Student form and documents are uploaded
+  //     // 2. Payment is fully completed (not partial)
+  //     // 3. Match the RTO type or are 'default' type
+  //     const eligibleApplications = applicationsData.filter((app) => {
+  //       console.log("Checking application:", app);
+  //       // Check if student form is filled
+  //       const hasStudentForm =
+  //         app.sif && Object.keys(app.sif).length > 0 && app.sif.firstName;
+
+  //       // Check if documents are uploaded
+  //       const hasDocuments =
+  //         app.document &&
+  //         Object.keys(app.document).length > 0 &&
+  //         app.document.resume;
+
+  //       // Check if payment is completely done (not partial)
+  //       const isPaymentComplete =
+  //         app.paid === true &&
+  //         (!app.partialScheme || (app.partialScheme && app.full_paid === true));
+
+  //       return hasStudentForm && hasDocuments && isPaymentComplete;
+  //     });
+
+  //     setApplications(eligibleApplications);
+  //     setTotalApplications(eligibleApplications.length);
+
+  //     // Calculate total pages
+  //     setTotalPages(
+  //       Math.ceil(eligibleApplications.length / applicationsPerPage)
+  //     );
+  //   } catch (error) {
+  //     console.error("Error fetching applications:", error);
+  //     toast.error("Failed to fetch applications");
+  //   } finally {
+  //     setSubmissionLoading(false);
+  //   }
+  // };
+  const getRTOApplications = async () => {
     try {
       setSubmissionLoading(true);
-      const applicationsData = await getApplications();
 
-      // Filter applications that meet our criteria:
-      // 1. Student form and documents are uploaded
-      // 2. Payment is fully completed (not partial)
-      // 3. Match the RTO type or are 'default' type
-      const eligibleApplications = applicationsData.filter((app) => {
-        console.log("Checking application:", app);
-        // Check if student form is filled
-        const hasStudentForm =
-          app.sif && Object.keys(app.sif).length > 0 && app.sif.firstName;
+      const params = {
+        page: currentPage,
+        limit: applicationsPerPage,
+        search: searchTerm,
+        status: filterStatus,
+        dateFilter,
+        sortBy,
+        sortOrder,
+      };
 
-        // Check if documents are uploaded
-        const hasDocuments =
-          app.document &&
-          Object.keys(app.document).length > 0 &&
-          app.document.resume;
-
-        // Check if payment is completely done (not partial)
-        const isPaymentComplete =
-          app.paid === true &&
-          (!app.partialScheme || (app.partialScheme && app.full_paid === true));
-
-        return hasStudentForm && hasDocuments && isPaymentComplete;
-      });
-
-      setApplications(eligibleApplications);
-      setTotalApplications(eligibleApplications.length);
-
-      // Calculate total pages
-      setTotalPages(
-        Math.ceil(eligibleApplications.length / applicationsPerPage)
+      const response = await axios.get(
+        `${URL}/api/rto/paginated-rto-applications`,
+        {
+          params,
+        }
       );
+
+      const { applications, totalApplications, totalPages } = response.data;
+
+      setApplications(applications);
+      console.log(response.data);
+      setTotalApplications(totalApplications);
+      setTotalPages(totalPages);
     } catch (error) {
-      console.error("Error fetching applications:", error);
       toast.error("Failed to fetch applications");
+      console.log(error);
     } finally {
       setSubmissionLoading(false);
     }
   };
-
   useEffect(() => {
     getRTOApplications();
-  }, []);
+  }, [
+    currentPage,
+    searchTerm,
+    sortBy,
+    sortOrder,
+    dateFilter,
+    filterStatus,
+    applicationsPerPage,
+  ]);
+  const getPaginationRange = () => {
+    const delta = 2; // Number of pages to show before and after current page
+    const range = [];
+
+    // Always show first page
+    range.push(1);
+
+    // Calculate start and end of range
+    const rangeStart = Math.max(2, currentPage - delta);
+    const rangeEnd = Math.min(totalPages - 1, currentPage + delta);
+
+    // Add ellipsis after first page if needed
+    if (rangeStart > 2) {
+      range.push("...");
+    }
+
+    // Add pages in range
+    for (let i = rangeStart; i <= rangeEnd; i++) {
+      range.push(i);
+    }
+
+    // Add ellipsis before last page if needed
+    if (rangeEnd < totalPages - 1) {
+      range.push("...");
+    }
+
+    // Always show last page if there is more than one page
+    if (totalPages > 1) {
+      range.push(totalPages);
+    }
+
+    return range;
+  };
 
   // Pagination handlers
   const handleNextPage = () =>
@@ -317,68 +403,68 @@ const Approval = () => {
   };
 
   // Apply filters and sorting to applications
-  const filteredApplications = applications
-    .filter((app) => {
-      // Apply status filter
-      if (filterStatus !== "All") {
-        if (app.currentStatus !== filterStatus) return false;
-      }
+  // const filteredApplications = applications
+  //   .filter((app) => {
+  //     // Apply status filter
+  //     if (filterStatus !== "All") {
+  //       if (app.currentStatus !== filterStatus) return false;
+  //     }
 
-      // Apply search filter
-      const searchLower = searchTerm.toLowerCase();
-      const appIdMatch =
-        (app.applicationId || app.id)?.toLowerCase().includes(searchLower) ||
-        false;
-      const nameMatch = `${app.user?.firstName || ""} ${
-        app.user?.lastName || ""
-      }`
-        .toLowerCase()
-        .includes(searchLower);
-      const industryMatch =
-        app.isf?.industry?.toLowerCase().includes(searchLower) || false;
-      const statusMatch =
-        app.currentStatus?.toLowerCase().includes(searchLower) || false;
+  //     // Apply search filter
+  //     const searchLower = searchTerm.toLowerCase();
+  //     const appIdMatch =
+  //       (app.applicationId || app.id)?.toLowerCase().includes(searchLower) ||
+  //       false;
+  //     const nameMatch = `${app.user?.firstName || ""} ${
+  //       app.user?.lastName || ""
+  //     }`
+  //       .toLowerCase()
+  //       .includes(searchLower);
+  //     const industryMatch =
+  //       app.isf?.industry?.toLowerCase().includes(searchLower) || false;
+  //     const statusMatch =
+  //       app.currentStatus?.toLowerCase().includes(searchLower) || false;
 
-      return appIdMatch || nameMatch || industryMatch || statusMatch;
-    })
-    // Apply date filter
-    .filter((app) => {
-      if (dateFilter === "All") return true;
+  //     return appIdMatch || nameMatch || industryMatch || statusMatch;
+  //   })
+  //   // Apply date filter
+  //   .filter((app) => {
+  //     if (dateFilter === "All") return true;
 
-      const filterDays = parseInt(dateFilter);
-      const appDate = new Date(app.status?.[0]?.time || 0);
-      const cutoffDate = new Date();
-      cutoffDate.setDate(cutoffDate.getDate() - filterDays);
+  //     const filterDays = parseInt(dateFilter);
+  //     const appDate = new Date(app.status?.[0]?.time || 0);
+  //     const cutoffDate = new Date();
+  //     cutoffDate.setDate(cutoffDate.getDate() - filterDays);
 
-      return appDate >= cutoffDate;
-    })
-    // Apply sorting
-    .sort((a, b) => {
-      if (sortBy === "date") {
-        const dateA = new Date(a.status?.[0]?.time || 0);
-        const dateB = new Date(b.status?.[0]?.time || 0);
-        return sortOrder === "asc" ? dateA - dateB : dateB - dateA;
-      } else if (sortBy === "name") {
-        const nameA = `${a.user?.firstName || ""} ${a.user?.lastName || ""}`;
-        const nameB = `${b.user?.firstName || ""} ${b.user?.lastName || ""}`;
-        return sortOrder === "asc"
-          ? nameA.localeCompare(nameB)
-          : nameB.localeCompare(nameA);
-      } else if (sortBy === "status") {
-        return sortOrder === "asc"
-          ? (a.currentStatus || "").localeCompare(b.currentStatus || "")
-          : (b.currentStatus || "").localeCompare(a.currentStatus || "");
-      }
-      return 0;
-    });
+  //     return appDate >= cutoffDate;
+  //   })
+  //   // Apply sorting
+  //   .sort((a, b) => {
+  //     if (sortBy === "date") {
+  //       const dateA = new Date(a.status?.[0]?.time || 0);
+  //       const dateB = new Date(b.status?.[0]?.time || 0);
+  //       return sortOrder === "asc" ? dateA - dateB : dateB - dateA;
+  //     } else if (sortBy === "name") {
+  //       const nameA = `${a.user?.firstName || ""} ${a.user?.lastName || ""}`;
+  //       const nameB = `${b.user?.firstName || ""} ${b.user?.lastName || ""}`;
+  //       return sortOrder === "asc"
+  //         ? nameA.localeCompare(nameB)
+  //         : nameB.localeCompare(nameA);
+  //     } else if (sortBy === "status") {
+  //       return sortOrder === "asc"
+  //         ? (a.currentStatus || "").localeCompare(b.currentStatus || "")
+  //         : (b.currentStatus || "").localeCompare(a.currentStatus || "");
+  //     }
+  //     return 0;
+  //   });
 
   // Calculate pagination
   const indexOfLastApp = currentPage * applicationsPerPage;
   const indexOfFirstApp = indexOfLastApp - applicationsPerPage;
-  const paginatedApplications = filteredApplications.slice(
-    indexOfFirstApp,
-    indexOfLastApp
-  );
+  // const paginatedApplications = filteredApplications.slice(
+  //   indexOfFirstApp,
+  //   indexOfLastApp
+  // );
 
   // Format date in a human-readable way
   const formatDate = (dateString) => {
@@ -820,8 +906,8 @@ const Approval = () => {
                     type="text"
                     className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500"
                     placeholder="Search applications..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
+                    value={searchInput}
+                    onChange={(e) => setSearchInput(e.target.value)}
                   />
                 </div>
 
@@ -829,7 +915,10 @@ const Approval = () => {
                   <select
                     className="pl-3 pr-10 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-emerald-500 focus:border-emerald-500"
                     value={filterStatus}
-                    onChange={(e) => setFilterStatus(e.target.value)}
+                    onChange={(e) => {
+                      setFilterStatus(e.target.value);
+                      setCurrentPage(1);
+                    }}
                   >
                     {statusOptions.map((status) => (
                       <option key={status} value={status}>
@@ -841,7 +930,10 @@ const Approval = () => {
                   <select
                     className="pl-3 pr-10 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-emerald-500 focus:border-emerald-500"
                     value={dateFilter}
-                    onChange={(e) => setDateFilter(e.target.value)}
+                    onChange={(e) => {
+                      setDateFilter(e.target.value);
+                      setCurrentPage(1);
+                    }}
                   >
                     <option value="All">All Time</option>
                     <option value="7">Last 7 days</option>
@@ -868,12 +960,31 @@ const Approval = () => {
                     {sortOrder === "asc" ? "↑" : "↓"}
                   </button>
                 </div>
+                <select
+                  value={applicationsPerPage}
+                  onChange={(e) => {
+                    setCurrentPage(1); // Reset to first page when changing page size
+                    setApplicationsperPage(Number(e.target.value));
+                  }}
+                  className="pl-3 pr-10 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-emerald-500 focus:border-emerald-500"
+                >
+                  {[5, 10, 20, 25, 50].map((size) => (
+                    <option key={size} value={size}>
+                      Show {size}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div className="mt-2 flex justify-between">
+                {/* In the search/filter header */}
                 <p className="text-sm text-gray-500">
-                  {filteredApplications.length} of {totalApplications}{" "}
-                  applications
+                  Showing {(currentPage - 1) * applicationsPerPage + 1} to{" "}
+                  {Math.min(
+                    currentPage * applicationsPerPage,
+                    totalApplications
+                  )}{" "}
+                  of {totalApplications} applications
                 </p>
               </div>
             </div>
@@ -886,7 +997,7 @@ const Approval = () => {
                 </h3>
               </div>
 
-              {filteredApplications.length === 0 ? (
+              {totalApplications === 0 ? (
                 <div className="text-center py-10">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -951,7 +1062,7 @@ const Approval = () => {
                       </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
-                      {paginatedApplications.map((application) => {
+                      {applications.map((application) => {
                         return (
                           <tr
                             key={application.id}
@@ -1013,28 +1124,24 @@ const Approval = () => {
               )}
 
               {/* Pagination */}
-              {filteredApplications.length > 0 && (
+              {totalPages >= 1 && (
                 <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
                   <div className="flex-1 flex justify-between sm:hidden">
                     <button
-                      onClick={handlePreviousPage}
+                      onClick={() =>
+                        setCurrentPage(Math.max(1, currentPage - 1))
+                      }
                       disabled={currentPage === 1}
-                      className={`relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white ${
-                        currentPage === 1
-                          ? "opacity-50 cursor-not-allowed"
-                          : "hover:bg-gray-50"
-                      }`}
+                      className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       Previous
                     </button>
                     <button
-                      onClick={handleNextPage}
+                      onClick={() =>
+                        setCurrentPage(Math.min(totalPages, currentPage + 1))
+                      }
                       disabled={currentPage === totalPages}
-                      className={`ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white ${
-                        currentPage === totalPages
-                          ? "opacity-50 cursor-not-allowed"
-                          : "hover:bg-gray-50"
-                      }`}
+                      className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       Next
                     </button>
@@ -1044,19 +1151,17 @@ const Approval = () => {
                       <p className="text-sm text-gray-700">
                         Showing{" "}
                         <span className="font-medium">
-                          {indexOfFirstApp + 1}
+                          {(currentPage - 1) * applicationsPerPage + 1}
                         </span>{" "}
                         to{" "}
                         <span className="font-medium">
                           {Math.min(
-                            indexOfLastApp,
-                            filteredApplications.length
+                            currentPage * applicationsPerPage,
+                            totalApplications
                           )}
                         </span>{" "}
                         of{" "}
-                        <span className="font-medium">
-                          {filteredApplications.length}
-                        </span>{" "}
+                        <span className="font-medium">{totalApplications}</span>{" "}
                         results
                       </p>
                     </div>
@@ -1066,74 +1171,51 @@ const Approval = () => {
                         aria-label="Pagination"
                       >
                         <button
-                          onClick={handlePreviousPage}
+                          onClick={() =>
+                            setCurrentPage(Math.max(1, currentPage - 1))
+                          }
                           disabled={currentPage === 1}
-                          className={`relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 ${
-                            currentPage === 1
-                              ? "opacity-50 cursor-not-allowed"
-                              : "hover:bg-gray-50"
-                          }`}
+                          className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           <span className="sr-only">Previous</span>
-                          <svg
-                            className="h-5 w-5"
-                            xmlns="http://www.w3.org/2000/svg"
-                            viewBox="0 0 20 20"
-                            fill="currentColor"
-                            aria-hidden="true"
-                          >
-                            <path
-                              fillRule="evenodd"
-                              d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z"
-                              clipRule="evenodd"
-                            />
-                          </svg>
+                          <FaArrowLeft className="h-5 w-5" aria-hidden="true" />
                         </button>
 
-                        {/* Page numbers - display up to 5 page numbers */}
-                        {Array.from(
-                          { length: Math.min(5, totalPages) },
-                          (_, i) => {
-                            const pageNum = i + 1;
-                            return (
-                              <button
-                                key={i}
-                                onClick={() => setCurrentPage(pageNum)}
-                                className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
-                                  currentPage === pageNum
-                                    ? "z-10 bg-emerald-50 border-emerald-500 text-emerald-600"
-                                    : "bg-white border-gray-300 text-gray-500 hover:bg-gray-50"
-                                }`}
-                              >
-                                {pageNum}
-                              </button>
-                            );
-                          }
-                        )}
+                        {getPaginationRange().map((page, index) => (
+                          <button
+                            key={index}
+                            onClick={() =>
+                              typeof page === "number"
+                                ? setCurrentPage(page)
+                                : null
+                            }
+                            disabled={page === "..."}
+                            className={`${
+                              page === currentPage
+                                ? "z-10 bg-blue-50 border-blue-500 text-blue-600"
+                                : "bg-white border-gray-300 text-gray-500 hover:bg-gray-50"
+                            } relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
+                              page === "..." ? "cursor-default" : ""
+                            }`}
+                          >
+                            {page}
+                          </button>
+                        ))}
 
                         <button
-                          onClick={handleNextPage}
+                          onClick={() =>
+                            setCurrentPage(
+                              Math.min(totalPages, currentPage + 1)
+                            )
+                          }
                           disabled={currentPage === totalPages}
-                          className={`relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 ${
-                            currentPage === totalPages
-                              ? "opacity-50 cursor-not-allowed"
-                              : "hover:bg-gray-50"
-                          }`}
+                          className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           <span className="sr-only">Next</span>
-                          <svg
+                          <FaArrowRight
                             className="h-5 w-5"
-                            xmlns="http://www.w3.org/2000/svg"
-                            viewBox="0 0 20 20"
-                            fill="currentColor"
                             aria-hidden="true"
-                          >
-                            <path
-                              fillRule="evenodd"
-                              d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
-                              clipRule="evenodd"
-                            />
-                          </svg>
+                          />
                         </button>
                       </nav>
                     </div>

@@ -12,7 +12,10 @@ import {
 import { BiRefresh, BiSearch } from "react-icons/bi";
 import SpinnerLoader from "../../Customer/components/spinnerLoader";
 import toast from "react-hot-toast";
-import { getApplications } from "../../Customer/Services/assesorServices";
+import {
+  getApplications,
+  getAssessedApplications,
+} from "../../Customer/Services/assesorServices";
 import applicationsImg from "../../assets/applications.png";
 
 const ViewApplicationModal = ({ application, onClose }) => {
@@ -469,69 +472,108 @@ const RTOApplications = () => {
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [selectedApplication, setSelectedApplication] = useState(null);
   const [statusFilter, setStatusFilter] = useState("All");
+  const [totalItems, setTotalItems] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+  const [sortBy, setSortBy] = useState("date");
+  const [sortOrder, setSortOrder] = useState("desc");
+  const [searchInput, setSearchInput] = useState("");
 
+  useEffect(() => {
+    const delayTimer = setTimeout(() => {
+      setSearch(searchInput);
+    }, 1000);
+
+    return () => clearTimeout(delayTimer); // Clear timeout if input changes before 20s
+  }, [searchInput]);
   const getApplicationsData = async () => {
     try {
       setLoading(true);
-      const response = await getApplications();
-
-      // Filter for applications that:
-      // 1. Have been assessed (assessed === true)
-      // 2. Are fully paid
-      const assessedApplications = response.filter((app) => {
-        const isAssessed = app.assessed === true;
-        const isFullyPaid = app.partialScheme ? app.full_paid : app.paid;
-
-        return isAssessed && isFullyPaid;
+      const response = await getAssessedApplications({
+        page: currentPage,
+        limit: itemsPerPage,
+        search,
+        statusFilter, // Correct parameter name (was "industry")
+        sortBy,
+        sortOrder,
       });
-
-      // Sort by newest applications first
-      assessedApplications.sort(
-        (a, b) => new Date(b.status?.[0]?.time) - new Date(a.status?.[0]?.time)
-      );
-
-      setApplications(assessedApplications);
-      setFilteredApplications(assessedApplications);
+      console.log(response);
+      // Directly use the paginated results from the backend
+      setApplications(response.applications);
+      setTotalItems(response.total);
+      setTotalPages(response.totalPages);
+      setLoading(false);
     } catch (error) {
       console.error("Failed to fetch applications:", error);
-      toast.error("Failed to load applications");
-    } finally {
+      toast.error("Failed to fetch applications");
       setLoading(false);
     }
   };
 
   useEffect(() => {
     getApplicationsData();
-  }, []);
+  }, [currentPage, itemsPerPage, search, statusFilter, sortBy, sortOrder]);
+  // const getApplicationsData = async () => {
+  //   try {
+  //     setLoading(true);
+  //     const response = await getApplications();
+
+  //     // Filter for applications that:
+  //     // 1. Have been assessed (assessed === true)
+  //     // 2. Are fully paid
+  //     const assessedApplications = response.filter((app) => {
+  //       const isAssessed = app.assessed === true;
+  //       const isFullyPaid = app.partialScheme ? app.full_paid : app.paid;
+
+  //       return isAssessed && isFullyPaid;
+  //     });
+
+  //     // Sort by newest applications first
+  //     assessedApplications.sort(
+  //       (a, b) => new Date(b.status?.[0]?.time) - new Date(a.status?.[0]?.time)
+  //     );
+
+  //     setApplications(assessedApplications);
+  //     setFilteredApplications(assessedApplications);
+  //   } catch (error) {
+  //     console.error("Failed to fetch applications:", error);
+  //     toast.error("Failed to load applications");
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
+  // useEffect(() => {
+  //   getApplicationsData();
+  // }, []);
 
   // Handle search and filter changes
-  useEffect(() => {
-    let filtered = applications;
+  // useEffect(() => {
+  //   let filtered = applications;
 
-    // Apply search filter
-    if (search) {
-      const searchLower = search.toLowerCase();
-      filtered = filtered.filter(
-        (app) =>
-          app.applicationId?.toLowerCase().includes(searchLower) ||
-          app.user?.firstName?.toLowerCase().includes(searchLower) ||
-          app.user?.lastName?.toLowerCase().includes(searchLower) ||
-          app.isf?.lookingForWhatQualification
-            ?.toLowerCase()
-            .includes(searchLower)
-      );
-    }
+  //   // Apply search filter
+  //   if (search) {
+  //     const searchLower = search.toLowerCase();
+  //     filtered = filtered.filter(
+  //       (app) =>
+  //         app.applicationId?.toLowerCase().includes(searchLower) ||
+  //         app.user?.firstName?.toLowerCase().includes(searchLower) ||
+  //         app.user?.lastName?.toLowerCase().includes(searchLower) ||
+  //         app.isf?.lookingForWhatQualification
+  //           ?.toLowerCase()
+  //           .includes(searchLower)
+  //     );
+  //   }
 
-    // Apply status filter
-    if (statusFilter !== "All") {
-      filtered = filtered.filter((app) => app.currentStatus === statusFilter);
-    }
+  //   // Apply status filter
+  //   if (statusFilter !== "All") {
+  //     filtered = filtered.filter((app) => app.currentStatus === statusFilter);
+  //   }
 
-    setFilteredApplications(filtered);
-    setCurrentPage(1); // Reset to first page when filters change
-  }, [search, statusFilter, applications]);
+  //   setFilteredApplications(filtered);
+  //   setCurrentPage(1); // Reset to first page when filters change
+  // }, [search, statusFilter, applications]);
 
-  const totalPages = Math.ceil(filteredApplications.length / itemsPerPage);
+  // const totalPages = Math.ceil(filteredApplications.length / itemsPerPage);
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = filteredApplications.slice(
@@ -604,8 +646,8 @@ const RTOApplications = () => {
                 type="text"
                 className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500"
                 placeholder="Search applications..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
               />
             </div>
 
@@ -613,7 +655,10 @@ const RTOApplications = () => {
               <select
                 className="pl-3 pr-10 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-emerald-500 focus:border-emerald-500"
                 value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
+                onChange={(e) => {
+                  setStatusFilter(e.target.value);
+                  setCurrentPage(1);
+                }}
               >
                 {getStatusOptions().map((status) => (
                   <option key={status} value={status}>
@@ -637,7 +682,7 @@ const RTOApplications = () => {
 
           <div className="mt-2 flex justify-between">
             <p className="text-sm text-gray-500">
-              {filteredApplications.length} applications found
+              {totalItems} applications found
             </p>
           </div>
         </div>
@@ -654,7 +699,7 @@ const RTOApplications = () => {
             </p>
           </div>
 
-          {filteredApplications.length === 0 ? (
+          {totalItems === 0 ? (
             <div className="text-center py-10">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -729,7 +774,7 @@ const RTOApplications = () => {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {currentItems.map((app) => (
+                  {applications.map((app) => (
                     <tr
                       key={app.id}
                       className="hover:bg-gray-50 transition-colors duration-150"
@@ -783,22 +828,20 @@ const RTOApplications = () => {
           )}
 
           {/* Pagination */}
-          {totalPages > 1 && (
+          {totalPages >= 1 && (
             <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
               <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
                 <div>
                   <p className="text-sm text-gray-700">
                     Showing{" "}
-                    <span className="font-medium">{indexOfFirstItem + 1}</span>{" "}
+                    <span className="font-medium">
+                      {(currentPage - 1) * itemsPerPage + 1}
+                    </span>{" "}
                     to{" "}
                     <span className="font-medium">
-                      {Math.min(indexOfLastItem, filteredApplications.length)}
+                      {Math.min(currentPage * itemsPerPage, totalItems)}
                     </span>{" "}
-                    of{" "}
-                    <span className="font-medium">
-                      {filteredApplications.length}
-                    </span>{" "}
-                    results
+                    of <span className="font-medium">{totalItems}</span> results
                   </p>
                 </div>
                 <div>

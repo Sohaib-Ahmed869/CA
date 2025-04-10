@@ -601,13 +601,30 @@ const ImprovedTimeline = ({
                         </div>
                       </>
                     ) : selectedApp.full_paid ? (
-                      <div className="bg-green-100 text-green-800 text-xs font-semibold px-2 py-0.5 rounded-full">
-                        <span>
-                          Fully Paid: $
-                          {parseFloat(selectedApp.payment1 || 0) +
-                            parseFloat(selectedApp.payment2 || 0)}
-                        </span>
-                      </div>
+                      <>
+                        <div className="bg-green-100 text-green-800 text-xs font-semibold px-2 py-0.5 rounded-full">
+                          <span>
+                            Fully Paid: $
+                            {parseFloat(selectedApp.payment1 || 0) +
+                              parseFloat(selectedApp.payment2 || 0)}
+                          </span>
+                        </div>
+                        {(selectedApp.autoDebit?.status === "MANUALLY_PAID" ||
+                          selectedApp.autoDebit?.status === "ALREADY_PAID") && (
+                          <span className="flex items-center  text-xs bg-green-100 text-green-700 font-semibold  px-2 py-0.5 rounded-full">
+                            <CheckCircle className="h-3 w-3 mr-1" />
+                            Direct Debit : Manually Paid
+                          </span>
+                        )}
+
+                        {selectedApp.autoDebit.status === "COMPLETED" && (
+                          <span className="flex items-center  text-xs bg-green-100 text-green-700 font-semibold  px-2 py-0.5 rounded-full">
+                            <CheckCircle className="h-3 w-3 mr-1" />
+                            Direct Debit Completed: $
+                            {selectedApp.autoDebit.amountDue || 0}
+                          </span>
+                        )}
+                      </>
                     ) : (
                       <div className=" flex gap-1 items-center text-xs text-gray-600 ">
                         <span>Initial: ${selectedApp.payment1 || 0}</span>

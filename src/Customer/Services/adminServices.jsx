@@ -4,6 +4,29 @@ const URL = import.meta.env.VITE_REACT_BACKEND_URL;
 import { authAxios } from "../../utils/axiosInstance";
 // adminServices.js
 // Enhanced updateAgentTarget function
+
+export const fetchPaginatedPayments = async (params) => {
+  try {
+    const response = await authAxios.get(
+      `${URL}/api/admin/paginated-payment-applications`,
+      {
+        params: {
+          page: params.page,
+          limit: params.limit,
+          search: params.search,
+          status: params.status,
+          sortBy: params.sortBy,
+          sortDirection: params.sortDirection,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    throw new Error(
+      error.response?.data?.message || "Failed to fetch payments"
+    );
+  }
+};
 export const updateAgentTarget = async (agentId, targetData) => {
   try {
     const response = await authAxios.patch(
@@ -175,18 +198,53 @@ export const requestMoreDocuments = async (applicationId, message) => {
     return error.response.data;
   }
 };
-
-export const getDashboardStats = async ({ id }) => {
+export const getDashboardStats = async ({ id, agentId }) => {
   try {
-    console.log("ID:", id);
-    const response = await authAxios.get(
-      `${URL}/api/admin/dashboardStats/${id}`
-    );
-    return response.data;
+    let url = `${URL}/api/admin/dashboardStats/${id}`;
+
+    if (agentId) {
+      url += `?agentId=${agentId}`;
+    }
+    const response = await authAxios.get(url);
+    const data = response.data;
+
+    // Update cache
+
+    return data;
   } catch (error) {
-    return error.response.data;
+    return error.response?.data || { message: "Network Error" };
   }
 };
+export const getChartData = async ({ id, agentId = null }) => {
+  try {
+    let url = `${URL}/api/admin/chart-data/${id}`;
+
+    // Add agent filter if provided
+    if (agentId) {
+      url += `?agentId=${agentId}`;
+    }
+
+    const response = await authAxios.get(url);
+    const data = response.data;
+
+    // Update cache if needed
+
+    return data;
+  } catch (error) {
+    return error.response?.data || { message: "Network Error" };
+  }
+};
+// export const getDashboardStats = async ({ id }) => {
+//   try {
+//     console.log("ID:", id);
+//     const response = await authAxios.get(
+//       `${URL}/api/admin/dashboardStats/${id}`
+//     );
+//     return response.data;
+//   } catch (error) {
+//     return error.response.data;
+//   }
+// };
 
 export const createIndustry = async ({ name, description }) => {
   try {
@@ -206,13 +264,16 @@ export const addCertificateToIndustry = async ({
   qualification,
   price,
   type,
+  expense,
 }) => {
   try {
     console.log("Industry:", industry);
     console.log("Qualification:", qualification);
     console.log("Price:", price);
     console.log("Type:", type);
+    console.log("Expense:", expense);
     const response = await axios.post(`${URL}/api/industry/certification/`, {
+      expense,
       qualification,
       price,
       type,
@@ -353,12 +414,19 @@ export const dividePayment = async (
   payment1,
   payment2,
   payment2Deadline,
-  payment2DeadlineTime
+  payment2DeadlineTime,
+  directDebitChecked
 ) => {
   try {
     const response = await axios.put(
       `${URL}/api/applications/dividePayment/${applicationId}`,
-      { payment1, payment2, payment2Deadline, payment2DeadlineTime }
+      {
+        payment1,
+        payment2,
+        payment2Deadline,
+        payment2DeadlineTime,
+        directDebitChecked,
+      }
     );
     return response.data;
   } catch {
