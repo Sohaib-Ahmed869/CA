@@ -211,7 +211,7 @@ const PersonalInfo = ({ personalInfo, setPersonalInfo }) => {
               htmlFor="gender"
               className="block text-sm font-medium text-gray-700"
             >
-              Gender
+              Gender <span className="text-red-500">*</span>
             </label>
             <select
               id="gender"

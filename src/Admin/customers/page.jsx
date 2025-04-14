@@ -43,15 +43,15 @@ import { MdPayment, MdOutlineVerified, MdLabel } from "react-icons/md";
 import { AiOutlineFileSearch } from "react-icons/ai";
 
 // Components
+import { Suspense, lazy } from "react";
 import SpinnerLoader from "../../Customer/components/spinnerLoader";
 import FilteredExportButton from "./FilteredExportButton";
 import Loader from "../../Customer/components/loader";
-import PaymentPage from "../../Customer/checkoutForm";
-import Application from "./applicationpage";
+const PaymentPage = lazy(() => import("../../Customer/checkoutForm"));
+const Application = lazy(() => import("./applicationpage")); // Lazy load
 
 // Services
 import {
-  getApplications,
   verifyApplication,
   addNoteToApplication,
   resendEmail,
@@ -928,7 +928,7 @@ const CustomersInfo = () => {
                   </button>
 
                   <FilteredExportButton
-                    applications={filteredApplications}
+                    applications={applications}
                     search={search}
                     selectedFilter={selectedFilter}
                     selectedColorFilter={selectedColorFilter}
@@ -1633,14 +1633,16 @@ const CustomersInfo = () => {
         </div>
       ) : (
         // Render selected application in detail view
-        <Application
-          application={selectedApplication}
-          setSelectedApplication={setSelectedApplication}
-          getApplicationsData={getApplicationsData}
-          onClickInitiateCall={onClickInitiateCall}
-          resendEmailFunc={resendEmailFunc}
-          onClickPayment={onClickPayment}
-        />
+        <Suspense fallback={<div>Loading...</div>}>
+          <Application
+            application={selectedApplication}
+            setSelectedApplication={setSelectedApplication}
+            getApplicationsData={getApplicationsData}
+            onClickInitiateCall={onClickInitiateCall}
+            resendEmailFunc={resendEmailFunc}
+            onClickPayment={onClickPayment}
+          />
+        </Suspense>
       )}
 
       {/* Add/Edit Note Modal */}
@@ -1862,17 +1864,19 @@ const CustomersInfo = () => {
                 </div>
 
                 <div className="mt-4">
-                  <PaymentPage
-                    price={price}
-                    applicationId={applicationId}
-                    partialScheme={partialScheme}
-                    paid={paid}
-                    payment1={payment1}
-                    payment2={payment2}
-                    setShowCheckoutModal={setShowCheckoutModal}
-                    getUserApplications={getApplicationsData}
-                    userId={userId}
-                  />
+                  <Suspense fallback={<div>Loading...</div>}>
+                    <PaymentPage
+                      price={price}
+                      applicationId={applicationId}
+                      partialScheme={partialScheme}
+                      paid={paid}
+                      payment1={payment1}
+                      payment2={payment2}
+                      setShowCheckoutModal={setShowCheckoutModal}
+                      getUserApplications={getApplicationsData}
+                      userId={userId}
+                    />
+                  </Suspense>
                 </div>
               </div>
             </div>

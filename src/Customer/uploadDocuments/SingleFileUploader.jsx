@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { toast, Toaster } from "react-hot-toast";
 import { FaTrash } from "react-icons/fa";
 const URL = import.meta.env.VITE_REACT_BACKEND_URL;
 axios.defaults.baseURL = URL;
@@ -62,10 +63,12 @@ const SingleFileUploader = ({
       setFileUrl(uploadedUrl);
       if (onUploadSuccess) {
         onUploadSuccess(fieldName, uploadedUrl);
+        toast.success("File uploaded successfully");
       }
     } catch (error) {
       console.error("Upload error:", error);
-      alert(error.response?.data?.message || "File upload failed");
+      // alert(error.response?.data?.message || "File upload failed");
+      toast.error("File upload failed try uploading again");
     } finally {
       setUploading(false);
       setAction("");
@@ -92,7 +95,8 @@ const SingleFileUploader = ({
       }
     } catch (error) {
       console.error("Delete error:", error);
-      alert("Error deleting file");
+      // alert("Error deleting file");
+      toast.error("Error deleting file");
     } finally {
       setUploading(false);
       setAction("");
@@ -101,6 +105,7 @@ const SingleFileUploader = ({
 
   return (
     <div className="mb-4">
+      <Toaster position="top-right" />
       <label className="block text-md text-gray-600 mb-1">{label}</label>
 
       {initializing ? (

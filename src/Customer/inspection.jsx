@@ -163,11 +163,18 @@ const ScreeningForm = () => {
   const handleBack = () => {
     setStep((prevStep) => Math.max(prevStep - 1, 0));
   };
+  const passwordRegex = /^(?=.*[A-Z])(?=.*[a-zA-Z0-9])(?!.*\s).+$/;
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
   const onClickSubmit = async (e) => {
     e.preventDefault();
     if (password.length < 6) {
       return notifyError("Password must be at least 6 characters long");
+    }
+    if (!passwordRegex.test(password)) {
+      return notifyError(
+        "Password must include at least one capital letter, one alphanumeric character, and no spaces."
+      );
     }
 
     //send data to server
@@ -175,6 +182,10 @@ const ScreeningForm = () => {
     if (!email || !password) {
       setSubmissionLoading(false);
       return notifyError("Please fill in all fields");
+    }
+    if (!emailRegex.test(email)) {
+      setSubmissionLoading(false);
+      return notifyError("Invalid email address");
     }
 
     if (!email.includes("@" || ".")) {

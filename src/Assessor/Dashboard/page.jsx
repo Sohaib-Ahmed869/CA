@@ -516,12 +516,12 @@ const AdminDashboard = ({ setActive }) => {
               </div>
               <BarChart2 size={18} className="text-gray-400" />
             </div>
-            <div className="h-60">
+            <div className="h-60   ">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart
                   data={topQualifications}
                   layout="vertical"
-                  margin={{ top: 0, right: 0, left: 100, bottom: 0 }}
+                  margin={{ top: 0, right: 20, left: 10, bottom: 0 }}
                 >
                   <CartesianGrid
                     strokeDasharray="3 3"
@@ -563,7 +563,7 @@ const AdminDashboard = ({ setActive }) => {
                 </div>
                 <PieChartIcon size={18} className="text-gray-400" />
               </div>
-              <div className="h-80 flex items-center justify-center">
+              <div className="h-80 flex items-center justify-center text-sm">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie

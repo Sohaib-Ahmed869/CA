@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import toast from "react-hot-toast";
 import { RxCross1 } from "react-icons/rx";
-
+import { auth } from "../../firebase";
 import { updateEmail, updatePhone } from "../Services/adminServices";
 const Modal = ({
   isUpdatePhoneOpen,

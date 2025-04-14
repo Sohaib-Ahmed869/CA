@@ -615,12 +615,12 @@ const ViewApplications = () => {
     return (
       <>
         <div className="bg-white rounded-xl shadow-md overflow-hidden">
-          <div className="p-6">
+          <div className="p-6 ">
             <div className="overflow-x-auto">
               <table className="min-w-full border-collapse">
                 <thead>
                   <tr className="bg-gray-50 border-b border-gray-200">
-                    <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider md:py-1 md:px-2">
                       Document Type
                     </th>
                     <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -640,14 +640,18 @@ const ViewApplications = () => {
                     return (
                       <tr key={index} className="hover:bg-gray-50">
                         <td className="py-3 px-4">{doc.label}</td>
-                        <td className="py-3 px-4">
+                        <td className="py-2 px-2 sm:py-3 sm:px-4">
                           {isUploaded ? (
-                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
-                              <FaCheckCircle className="mr-1" /> Uploaded
+                            <span className="inline-flex items-center rounded-full text-xs font-medium bg-transparent sm:bg-emerald-100 text-emerald-800 sm:px-2.5 sm:py-0.5">
+                              <FaCheckCircle className="sm:mr-1" />
+                              <span className="hidden sm:inline">Uploaded</span>
                             </span>
                           ) : (
-                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                              <FaTimesCircle className="mr-1" /> Not Uploaded
+                            <span className="inline-flex items-center rounded-full text-xs font-medium bg-transparent sm:bg-red-100 text-red-800 sm:px-2.5 sm:py-0.5">
+                              <FaTimesCircle className="sm:mr-1" />
+                              <span className="hidden sm:inline">
+                                Not Uploaded
+                              </span>
                             </span>
                           )}
                         </td>

@@ -104,9 +104,8 @@ const Approval = () => {
   // List of possible application statuses
   const statusOptions = [
     "All",
-    "Student Intake Form",
     "Upload Documents",
-    "Sent to RTO",
+    "Certificate not Issued",
     "Waiting for Verification",
     "Certificate Generated",
   ];

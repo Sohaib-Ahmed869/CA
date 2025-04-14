@@ -143,8 +143,8 @@ const ExistingApplicationsAdmin = () => {
     return () => clearTimeout(delayTimer); // Clear timeout if input changes before 20s
   }, [searchInput]);
 
-  const onClickDownload = () => {
-    window.open(certificate);
+  const onClickDownload = (cert) => {
+    window.open(cert, "_blank");
     toast.success("Certificate downloaded successfully");
   };
 
@@ -1215,7 +1215,7 @@ const ExistingApplicationsAdmin = () => {
                                   className="inline-flex items-center px-2 py-1 border border-transparent text-xs rounded-md text-white bg-emerald-500 hover:bg-emerald-600"
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    onClickDownload();
+                                    onClickDownload(application.certificateId);
                                   }}
                                 >
                                   <BiDownload className="mr-1" />

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { getAuth } from "firebase/auth";
 import {
   getDashboardStats,
@@ -118,12 +118,13 @@ const AgentApplicationsKPI = ({ agentStats }) => {
     </div>
   );
 };
-const ApplicationFunnel = ({ chartsData }) => {
+const ApplicationFunnel = React.memo(({ chartsData }) => {
   // Use the data directly from the API
-  const data = React.useMemo(
+  const data = useMemo(
     () => chartsData?.charts?.funnelData || [],
     [chartsData]
-  ); // Fallback for empty data
+  );
+
   if (!data.some((d) => d.count > 0)) {
     return (
       <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
@@ -196,7 +197,7 @@ const ApplicationFunnel = ({ chartsData }) => {
       </div>
     </div>
   );
-};
+});
 
 const ColorStatusChart = ({ chartsData }) => {
   const data = React.useMemo(
@@ -328,15 +329,19 @@ const ColorStatusChart = ({ chartsData }) => {
 };
 
 // Weekly Applications Chart
-const WeeklyChart = ({ chartsData }) => {
+const WeeklyChart = React.memo(({ chartsData }) => {
   // Use the data directly from the API
-  const data = chartsData?.charts?.weeklyData || {
-    labels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
-    series: [
-      { name: "Paid", data: new Array(7).fill(0) },
-      { name: "Pending", data: new Array(7).fill(0) },
-    ],
-  };
+  const data = useMemo(
+    () =>
+      chartsData?.charts?.weeklyData || {
+        labels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+        series: [
+          { name: "Paid", data: new Array(7).fill(0) },
+          { name: "Pending", data: new Array(7).fill(0) },
+        ],
+      },
+    [chartsData]
+  );
 
   const chartOptions = {
     chart: {
@@ -425,7 +430,7 @@ const WeeklyChart = ({ chartsData }) => {
       />
     </div>
   );
-};
+});
 
 // Status Distribution Chart
 // const StatusChart = ({ applications }) => {
@@ -540,19 +545,24 @@ const getApplicationStatus = (application) => {
   return "Not Started";
 };
 
-const StatusChart = ({ chartsData }) => {
+const StatusChart = React.memo(({ chartsData }) => {
   // Use the data directly from the API
-  const data = chartsData?.charts?.statusData || {
-    series: new Array(6).fill(0),
-    labels: [
-      "Student Intake Form",
-      "Upload Documents",
-      "Sent to RTO",
-      "Waiting for Verification",
-      "Certificate Generated",
-      "Assessed",
-    ],
-  };
+  const data = useMemo(
+    () =>
+      chartsData?.charts?.statusData || {
+        series: new Array(6).fill(0),
+        labels: [
+          "Student Intake Form",
+          "Upload Documents",
+          "Sent to RTO",
+          "Waiting for Verification",
+          "Certificate Generated",
+          "Assessed",
+        ],
+      },
+    [chartsData]
+  );
+
   const chartOptions = {
     labels: data.labels,
     colors: ["#064e3b", "#065f46", "#047857", "#059669", "#10b981"],
@@ -617,11 +627,13 @@ const StatusChart = ({ chartsData }) => {
       />
     </div>
   );
-};
+});
 // Top Qualifications Chart
-const TopQualificationsChart = ({ chartsData }) => {
-  const topQualifications = chartsData?.charts?.topQualifications || [];
-
+const TopQualificationsChart = React.memo(({ chartsData }) => {
+  const topQualifications = useMemo(
+    () => chartsData?.charts?.topQualifications || [],
+    [chartsData]
+  );
   const barColors = ["#14532D", "#16A34A", "#6EE7B7", "#22C55E", "#064E3B"];
   // Unique colors for each bar
 
@@ -668,7 +680,7 @@ const TopQualificationsChart = ({ chartsData }) => {
       </div>
     </div>
   );
-};
+});
 
 // Function to process application data
 const calculateMonthlyStats = (applications) => {
@@ -883,35 +895,72 @@ const Dashboard = () => {
 
     fetchAgents();
   }, [userId]);
-  useEffect(() => {
-    const fetchStats = async () => {
-      if (!userId) return;
+  // useEffect(() => {
+  //   const fetchStats = async () => {
+  //     if (!userId) return;
 
-      try {
-        setSubmissionLoading(true);
-        const [statsData, chartsData] = await Promise.allSettled([
-          getDashboardStats({ id: userId, agentId: selectedAgent }),
-          getChartData({ id: userId, agentId: selectedAgent }),
-          // getApplications(),
-        ]);
+  //     try {
+  //       setSubmissionLoading(true);
+  //       const [statsData, chartsData] = await Promise.allSettled([
+  //         getDashboardStats({ id: userId, agentId: selectedAgent }),
+  //         getChartData({ id: userId, agentId: selectedAgent }),
+  //         // getApplications(),
+  //       ]);
 
-        setStats(statsData.value || initialStats);
-        setAllStats(statsData.value || initialStats);
-        // setApplications(appsData.value || []);
-        setChartsData(chartsData.value || []);
-        console.log("chartsData", chartsData.value);
-      } catch (err) {
-        console.error("Error fetching dashboard data:", err);
-      } finally {
-        setSubmissionLoading(false);
-      }
-    };
+  //       setStats(statsData.value || initialStats);
+  //       setAllStats(statsData.value || initialStats);
+  //       // setApplications(appsData.value || []);
+  //       setChartsData(chartsData.value || []);
+  //       console.log("chartsData", chartsData.value);
+  //     } catch (err) {
+  //       console.error("Error fetching dashboard data:", err);
+  //     } finally {
+  //       setSubmissionLoading(false);
+  //     }
+  //   };
 
-    fetchStats();
-    const interval = setInterval(fetchStats, 300000); // Refresh every 5 minutes
+  //   fetchStats();
+  //   const interval = setInterval(fetchStats, 300000); // Refresh every 5 minutes
 
-    return () => clearInterval(interval);
+  //   return () => clearInterval(interval);
+  // }, [userId, selectedAgent]);
+  const shallowEqual = (objA, objB) => {
+    if (objA === objB) return true;
+    if (!objA || !objB) return false;
+
+    const keysA = Object.keys(objA);
+    const keysB = Object.keys(objB);
+    if (keysA.length !== keysB.length) return false;
+
+    return keysA.every((key) => objA[key] === objB[key]);
+  };
+  const fetchStats = useCallback(async () => {
+    if (!userId) return;
+    try {
+      setSubmissionLoading(true);
+      const [statsData, chartsData] = await Promise.allSettled([
+        getDashboardStats({ id: userId, agentId: selectedAgent }),
+        getChartData({ id: userId, agentId: selectedAgent }),
+      ]);
+
+      // Only update state if data actually changed
+      setStats((prev) =>
+        shallowEqual(prev, statsData.value) ? prev : statsData.value
+      );
+      setChartsData((prev) =>
+        shallowEqual(prev, chartsData.value) ? prev : chartsData.value
+      );
+    } finally {
+      setSubmissionLoading(false);
+    }
   }, [userId, selectedAgent]);
+
+  useEffect(() => {
+    fetchStats();
+    const interval = setInterval(fetchStats, 300000);
+    return () => clearInterval(interval);
+  }, [fetchStats]);
+
   // console.log("filtered", filteredApplications);
 
   localStorage.getItem("type") === "manager";

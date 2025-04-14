@@ -1,16 +1,19 @@
 import React, { useEffect, useState } from "react";
+import { Suspense, lazy } from "react";
 import { useNavigate } from "react-router-dom";
 import certifiedAustralia from "../../assets/certifiedAustralia.png";
 import CustomersInfo from "../customers/page";
 import ExistingApplicationsAdmin from "../applications/page";
 import PaymentApproval from "../payments/page";
-import FinanceManagement from "../FinanceModule/viewApplicationsFM";
-import ExpensesDashboard from "../FinanceModule/ExpenseView";
-import Analytics from "../FinanceModule/Analytics";
+const FinanceManagement = lazy(() =>
+  import("../FinanceModule/viewApplicationsFM")
+);
+const ExpensesDashboard = lazy(() => import("../FinanceModule/ExpenseView"));
 import Dashboard from "../dashboard/page";
-import Industries from "../Industries/page";
-import ArchivedApplications from "../archived/page";
-import PaymentDeadlinesPage from "../payments/pendingpayments";
+const Analytics = lazy(() => import("../FinanceModule/Analytics"));
+const Industries = lazy(() => import("../Industries/page"));
+const ArchivedApplications = lazy(() => import("../archived/page"));
+const PaymentDeadlinesPage = lazy(() => import("../payments/pendingpayments"));
 import {
   MdDashboard,
   MdKeyboardArrowDown,
@@ -30,10 +33,11 @@ import { BiLogOut, BiMenu, BiX } from "react-icons/bi";
 import { getAuth, signOut } from "firebase/auth";
 import { RiMoneyDollarCircleLine, RiLockPasswordLine } from "react-icons/ri";
 import { motion, AnimatePresence } from "framer-motion"; // Add framer-motion for animations
+import SpinnerLoader from "../../Customer/components/spinnerLoader";
 
 import ChangePassword from "../ChangePassword/page";
 import { getDashboardStats } from "../../Customer/Services/adminServices";
-import AssignTargets from "../AssignTargets/AssignTargets";
+const AssignTargets = lazy(() => import("../AssignTargets/AssignTargets"));
 
 const AdminSidebar = () => {
   const navigate = useNavigate();
@@ -538,19 +542,43 @@ const AdminSidebar = () => {
         {active === "Students" && <CustomersInfo />}
         {active === "Applications" && <ExistingApplicationsAdmin />}
         {active === "Payments" && <PaymentApproval />}
-        {active === "Payment Deadlines" && <PaymentDeadlinesPage />}
-        {active === "Industries" && <Industries />}
-        {active === "Archived Applications" && <ArchivedApplications />}
+        {active === "Payment Deadlines" && (
+          <Suspense fallback={<SpinnerLoader />}>
+            {" "}
+            <PaymentDeadlinesPage />{" "}
+          </Suspense>
+        )}
+        {active === "Industries" && (
+          <Suspense fallback={<SpinnerLoader />}>
+            <Industries />
+          </Suspense>
+        )}
+        {active === "Archived Applications" && (
+          <Suspense fallback={<SpinnerLoader />}>
+            {" "}
+            <ArchivedApplications />{" "}
+          </Suspense>
+        )}
         {active === "Change Password" && <ChangePassword />}
-        {active === "AssignTargets" && <AssignTargets />}
+        {active === "AssignTargets" && (
+          <Suspense fallback={<SpinnerLoader />}>
+            <AssignTargets />
+          </Suspense>
+        )}
         {active === "Finances" && activeFinance === "Management" && (
-          <FinanceManagement />
+          <Suspense fallback={<SpinnerLoader />}>
+            <FinanceManagement />
+          </Suspense>
         )}
         {active === "Finances" && activeFinance === "Expenses" && (
-          <ExpensesDashboard />
+          <Suspense fallback={<SpinnerLoader />}>
+            <ExpensesDashboard />
+          </Suspense>
         )}
         {active === "Finances" && activeFinance === "Analytics" && (
-          <Analytics />
+          <Suspense fallback={<SpinnerLoader />}>
+            <Analytics />
+          </Suspense>
         )}
       </div>
     </div>

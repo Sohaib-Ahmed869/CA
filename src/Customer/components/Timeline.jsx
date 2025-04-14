@@ -397,9 +397,9 @@ const ImprovedTimeline = ({
     <div className="bg-white rounded-xl overflow-hidden">
       <div className="bg-gradient-to-r from-emerald-600 to-emerald-700 p-5 relative">
         {/* Header Section */}
-        <div className="flex justify-between items-center mb-3">
+        {/* <div className="flex justify-between items-center mb-3">
           <div>
-            <h2 className="text-white text-xl font-bold">
+            <h2 className="text-white text-xl font-bold ">
               Application Progress
             </h2>
             <p className="text-white/80 text-sm">
@@ -408,14 +408,31 @@ const ImprovedTimeline = ({
                 "Your Certification Journey"}
             </p>
           </div>
-          <div className="bg-white rounded-full px-3 py-1.5 flex items-center space-x-1 text-xs">
+          <div className="bg-white rounded-full px-3 py-1.5 flex items-center space-x-1 text-xs  ">
             <div className="h-2 w-2 rounded-full bg-emerald-500"></div>
-            <span className="font-medium text-emerald-800">
+            <span className="font-medium text-emerald-800 ">
+              {completedSteps}/{timelineData.length} Steps Completed
+            </span>
+          </div>
+        </div> */}
+        <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-3 space-y-2 md:space-y-0">
+          <div className="flex-1 min-w-0">
+            <h2 className="text-white text-lg md:text-xl font-bold leading-tight truncate">
+              Application Progress
+            </h2>
+            <p className="text-white/80 text-xs md:text-sm truncate">
+              {selectedApp?.initialForm?.lookingForWhatQualification ||
+                applicationName ||
+                "Your Certification Journey"}
+            </p>
+          </div>
+          <div className="bg-white rounded-full px-2 py-1 md:px-3 md:py-1.5 flex items-center space-x-1 text-xs max-w-fit">
+            <div className="h-2 w-2 rounded-full bg-emerald-500"></div>
+            <span className="font-medium text-emerald-800 whitespace-nowrap">
               {completedSteps}/{timelineData.length} Steps Completed
             </span>
           </div>
         </div>
-
         {/* Application ID Pills */}
         {applications && applications.length > 1 && (
           <div className="mb-4 hide-scrollbar">

@@ -573,7 +573,7 @@ const ViewApplications = ({
 
     return (
       <>
-        <div className="bg-white rounded-xl shadow-md overflow-hidden">
+        <div className="bg-white rounded-xl shadow-md ">
           <div className="p-6">
             <div className="overflow-x-auto">
               <table className="min-w-full border-collapse">
@@ -630,11 +630,6 @@ const ViewApplications = ({
             </div>
           </div>
         </div>
-        <DocumentModal
-          isOpen={DocumentModalOpen}
-          onClose={closeModal}
-          docLink={currentDoc}
-        />
       </>
     );
   };
@@ -643,7 +638,11 @@ const ViewApplications = ({
     <div className="min-h-screen bg-gray-50">
       {loading && <Loader />}
       {submissionLoading && <SpinnerLoader />}
-
+      <DocumentModal
+        isOpen={DocumentModalOpen}
+        onClose={closeModal}
+        docLink={currentDoc}
+      />
       <div className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8 mt-8">
         {application ? (
           <>

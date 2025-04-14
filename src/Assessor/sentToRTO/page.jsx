@@ -368,7 +368,7 @@ const ViewApplicationModal = ({ application, onClose }) => {
           );
         })}   */}
 
-                {application.document.length <= 0 && (
+                {application?.document?.length <= 0 && (
                   <div>
                     <p className="font-medium text-gray-600">
                       Documents not uploaded yet.
@@ -672,6 +672,7 @@ const RTOApplications = () => {
                 value={itemsPerPage}
                 onChange={(e) => setItemsPerPage(parseInt(e.target.value))}
               >
+                <option value={2}>2 per page</option>
                 <option value={10}>10 per page</option>
                 <option value={20}>20 per page</option>
                 <option value={50}>50 per page</option>
