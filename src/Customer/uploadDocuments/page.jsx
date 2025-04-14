@@ -17,6 +17,7 @@ import toast from "react-hot-toast";
 import axios from "axios";
 import UploadRequestedDocuments from "../uploadRequestedDocuments/uploadRequestedDocuments";
 import { getApplications } from "../Services/adminServices";
+import { useDispatch, useSelector } from "react-redux";
 const URL = import.meta.env.VITE_REACT_BACKEND_URL;
 
 const UploadDocuments = () => {
@@ -41,6 +42,8 @@ const UploadDocuments = () => {
   });
 
   // Other fields
+  const dispatch = useDispatch();
+  const AdminUserId = import.meta.env.VITE_ADMIN_USER_ID;
   const [resume, setResume] = useState("");
   const [previousQualifications, setPreviousQualifications] = useState("");
   const [twoReferences, setTwoReferences] = useState({
@@ -218,6 +221,7 @@ const UploadDocuments = () => {
 
       setSubmissionLoading(false);
       successToast();
+      await dispatch(fetchDashboardData(AdminUserId));
       // Use toast instead of alert for better UX
       setTimeout(() => {
         navigate("/");

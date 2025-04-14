@@ -205,7 +205,7 @@ export const getDashboardStats = async ({ id, agentId }) => {
     if (agentId) {
       url += `?agentId=${agentId}`;
     }
-    const response = await authAxios.get(url);
+    const response = await axios.get(url);
     const data = response.data;
 
     // Update cache
@@ -224,7 +224,7 @@ export const getChartData = async ({ id, agentId = null }) => {
       url += `?agentId=${agentId}`;
     }
 
-    const response = await authAxios.get(url);
+    const response = await axios.get(url);
     const data = response.data;
 
     // Update cache if needed

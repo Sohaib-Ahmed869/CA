@@ -12,6 +12,7 @@ import dashb from "../../assets/dashb.png";
 import ApexCharts from "react-apexcharts";
 import { Briefcase } from "lucide-react";
 import { Cell, Legend, Line, LineChart } from "recharts";
+import { useDispatch, useSelector } from "react-redux";
 
 import {
   FunnelChart,
@@ -44,6 +45,8 @@ import { getUserSpecificStats } from "../../utils/stats";
 import AgentTargetsKPI from "./AgentTargetsKpi";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { fetchDashboardData } from "../../store/Admin/statsActions";
+import { adminDashboardStatsActions } from "../../store/Admin/adminDashboardStatsSlice";
 const SpecificAgentApplicationsKPI = ({ agentStats }) => {
   console.log("agent Statss", agentStats);
   const [applicationCount, setApplicationCount] = useState(0);
@@ -789,40 +792,45 @@ const Dashboard = () => {
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
-  const [stats, setStats] = useState({
-    totalApplications: 0,
-    totalPayments: 0,
-    paidApplications: 0,
-    certificatesGenerated: 0,
-    rtoApplications: 0,
-    pendingPayments: 0,
-    totalCustomers: 0,
-    totalAgents: 0,
-    colorStatusCount: {
-      hotLead: 0,
-      warmLead: 0,
-      coldLead: 0,
-      others: 0,
-    },
-  });
-  const [allStats, setAllStats] = useState({
-    totalApplications: 0,
-    totalPayments: 0,
-    paidApplications: 0,
-    certificatesGenerated: 0,
-    rtoApplications: 0,
-    pendingPayments: 0,
-    totalCustomers: 0,
-    totalAgents: 0,
-    colorStatusCount: {
-      hotLead: 0,
-      warmLead: 0,
-      coldLead: 0,
-      others: 0,
-    },
-    conversionRate: 0,
-    completionRate: 0,
-  });
+  // const [stats, setStats] = useState({
+  //   totalApplications: 0,
+  //   totalPayments: 0,
+  //   paidApplications: 0,
+  //   certificatesGenerated: 0,
+  //   rtoApplications: 0,
+  //   pendingPayments: 0,
+  //   totalCustomers: 0,
+  //   totalAgents: 0,
+  //   colorStatusCount: {
+  //     hotLead: 0,
+  //     warmLead: 0,
+  //     coldLead: 0,
+  //     others: 0,
+  //   },
+  // });
+  // const [allStats, setAllStats] = useState({
+  //   totalApplications: 0,
+  //   totalPayments: 0,
+  //   paidApplications: 0,
+  //   certificatesGenerated: 0,
+  //   rtoApplications: 0,
+  //   pendingPayments: 0,
+  //   totalCustomers: 0,
+  //   totalAgents: 0,
+  //   colorStatusCount: {
+  //     hotLead: 0,
+  //     warmLead: 0,
+  //     coldLead: 0,
+  //     others: 0,
+  //   },
+  //   conversionRate: 0,
+  //   completionRate: 0,
+  // });
+
+  const dispatch = useDispatch();
+  const { stats, chartsData, loading, error } = useSelector(
+    (state) => state.adminDashboardStats
+  );
 
   const hasFinanceAccess = () => {
     const userType = localStorage.getItem("type");
@@ -855,18 +863,28 @@ const Dashboard = () => {
 
   const [applications, setApplications] = useState([]);
   const [selectedAgent, setSelectedAgent] = useState(""); // Store selected user ID
-  const [filteredApplications, setFilteredApplications] = useState([]);
+  // const [filteredApplications, setFilteredApplications] = useState([]);
   const [submissionLoading, setSubmissionLoading] = useState(false);
   const [agents, setAgents] = useState([]);
   const [agentStats, setAgentStats] = useState([]);
-  const [chartsData, setChartsData] = useState([]);
   const [userId, setUserId] = useState(null);
   const auth = getAuth();
+  const AdminUserId = useSelector((state) => state.adminDashboardStats.userId);
 
+  useEffect(() => {
+    if (loading) {
+      setSubmissionLoading(true);
+    }
+    if (!loading) {
+      setSubmissionLoading(false);
+    }
+  }, [stats]);
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((user) => {
       if (user) {
         setUserId(user.uid);
+
+        dispatch(adminDashboardStatsActions.setUserId(user.uid));
       }
     });
     return () => unsubscribe();
@@ -895,73 +913,19 @@ const Dashboard = () => {
 
     fetchAgents();
   }, [userId]);
-  // useEffect(() => {
-  //   const fetchStats = async () => {
-  //     if (!userId) return;
-
-  //     try {
-  //       setSubmissionLoading(true);
-  //       const [statsData, chartsData] = await Promise.allSettled([
-  //         getDashboardStats({ id: userId, agentId: selectedAgent }),
-  //         getChartData({ id: userId, agentId: selectedAgent }),
-  //         // getApplications(),
-  //       ]);
-
-  //       setStats(statsData.value || initialStats);
-  //       setAllStats(statsData.value || initialStats);
-  //       // setApplications(appsData.value || []);
-  //       setChartsData(chartsData.value || []);
-  //       console.log("chartsData", chartsData.value);
-  //     } catch (err) {
-  //       console.error("Error fetching dashboard data:", err);
-  //     } finally {
-  //       setSubmissionLoading(false);
-  //     }
-  //   };
-
-  //   fetchStats();
-  //   const interval = setInterval(fetchStats, 300000); // Refresh every 5 minutes
-
-  //   return () => clearInterval(interval);
-  // }, [userId, selectedAgent]);
-  const shallowEqual = (objA, objB) => {
-    if (objA === objB) return true;
-    if (!objA || !objB) return false;
-
-    const keysA = Object.keys(objA);
-    const keysB = Object.keys(objB);
-    if (keysA.length !== keysB.length) return false;
-
-    return keysA.every((key) => objA[key] === objB[key]);
-  };
-  const fetchStats = useCallback(async () => {
-    if (!userId) return;
-    try {
+  useEffect(() => {
+    if (userId) {
+      dispatch(fetchDashboardData(userId, selectedAgent));
+    }
+  }, [dispatch, userId, selectedAgent]);
+  useEffect(() => {
+    if (loading) {
       setSubmissionLoading(true);
-      const [statsData, chartsData] = await Promise.allSettled([
-        getDashboardStats({ id: userId, agentId: selectedAgent }),
-        getChartData({ id: userId, agentId: selectedAgent }),
-      ]);
-
-      // Only update state if data actually changed
-      setStats((prev) =>
-        shallowEqual(prev, statsData.value) ? prev : statsData.value
-      );
-      setChartsData((prev) =>
-        shallowEqual(prev, chartsData.value) ? prev : chartsData.value
-      );
-    } finally {
+    }
+    if (!loading) {
       setSubmissionLoading(false);
     }
-  }, [userId, selectedAgent]);
-
-  useEffect(() => {
-    fetchStats();
-    const interval = setInterval(fetchStats, 300000);
-    return () => clearInterval(interval);
-  }, [fetchStats]);
-
-  // console.log("filtered", filteredApplications);
+  }, [loading]);
 
   localStorage.getItem("type") === "manager";
   const isManager = {};
@@ -1080,6 +1044,7 @@ const Dashboard = () => {
     if (agentName === "reset") {
       // setFilteredApplications(applications);
       setSelectedAgent("reset");
+      dispatch(adminDashboardStatsActions.setSelectedAgent(agentName));
       setStats(allStats);
       return;
     }

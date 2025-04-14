@@ -19,6 +19,8 @@ import { signInWithEmailAndPassword } from "firebase/auth";
 const URL = import.meta.env.VITE_REACT_BACKEND_URL;
 
 import "./stepper.css";
+import { fetchDashboardData } from "../store/Admin/statsActions";
+import { useDispatch, useSelector } from "react-redux";
 
 const Stepper = ({ steps, currentStep }) => {
   return (
@@ -73,6 +75,9 @@ const ScreeningForm = () => {
   const [price, setPrice] = useState(0);
   const [expense, setexpense] = useState(0);
   const [submissionLoading, setSubmissionLoading] = useState(false);
+  const dispatch = useDispatch();
+  const userId = useSelector(state.adminDashboardStats.userId);
+
   const navigate = useNavigate();
   useEffect(() => {
     //send data to server
@@ -227,6 +232,7 @@ const ScreeningForm = () => {
       );
       console.log(response);
       setSubmissionLoading(false);
+      await dispatch(fetchDashboardData(userId, "reset"));
       if (response) {
         setIsDialogOpen(true);
       }

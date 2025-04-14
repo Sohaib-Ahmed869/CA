@@ -165,6 +165,8 @@
 import React, { useState, useEffect } from "react";
 import { Toaster } from "react-hot-toast";
 import toast from "react-hot-toast";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchDashboardData } from "../store/Admin/statsActions";
 
 const PaymentPage = ({
   price,
@@ -180,8 +182,10 @@ const PaymentPage = ({
   const [loading, setLoading] = useState(false);
   const [card, setCard] = useState(null);
   const [squareLoaded, setSquareLoaded] = useState(false);
-
+  const dispatch = useDispatch();
   // Calculate price to pay based on payment scheme
+  const AdminUserId = import.meta.env.VITE_ADMIN_USER_ID;
+
   const priceToPay = partialScheme ? (paid ? payment2 : payment1) : price;
 
   useEffect(() => {
@@ -269,6 +273,8 @@ const PaymentPage = ({
           toast.success("Payment successful!");
           await getUserApplications();
           setShowCheckoutModal(false);
+          console.log("adminUSERiD", AdminUserId);
+          await dispatch(fetchDashboardData(AdminUserId));
         } else {
           throw new Error(data.message || "Payment failed");
         }

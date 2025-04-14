@@ -28,6 +28,7 @@ import studentApplicantAgreement from "../../../public/2.pdf";
 import TOCdoc from "../../../public/3.pdf";
 import DocumentModal from "./viewDocsModal";
 import { AgreementDocumentModal } from "./viewDocsModal";
+import { useSelector } from "react-redux";
 
 const CustomerDashboard = () => {
   const [userId, setUserId] = useState("");
@@ -42,9 +43,10 @@ const CustomerDashboard = () => {
   const [isUpdateEmailOpen, setIsUpdateEmailOpen] = useState(false);
   const menuRef = useRef(null);
   const navigate = useNavigate();
-
+  const AdminUserId = import.meta.env.VITE_ADMIN_USER_ID;
   useEffect(() => {
     const role = localStorage.getItem("role");
+    console.log("AdminUserId", AdminUserId);
     if (role !== "customer") {
       navigate("/login");
     }
