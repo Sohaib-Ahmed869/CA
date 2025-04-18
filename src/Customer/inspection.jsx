@@ -185,6 +185,12 @@ const ScreeningForm = () => {
       return notifyError("Please fill in all fields");
     }
 
+    //if password is less than 6 characters
+    if (password.length < 6) {
+      setSubmissionLoading(false);
+      return notifyError("Password must be at least 6 characters");
+    }
+
     try {
       console.log("Country value before submission:", country);
       const response = await register(
@@ -208,6 +214,12 @@ const ScreeningForm = () => {
       );
       console.log(response);
       setSubmissionLoading(false);
+      if (response.message === "User already exists") {
+        return notifyError("User already exists");
+      }
+      if (response.message === "Email already exists") {
+        return notifyError("Email already exists");
+      }
       if (response) {
         setIsDialogOpen(true);
       }
