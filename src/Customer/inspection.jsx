@@ -76,7 +76,6 @@ const ScreeningForm = () => {
   const [expense, setexpense] = useState(0);
   const [submissionLoading, setSubmissionLoading] = useState(false);
   const dispatch = useDispatch();
-  const userId = useSelector(state.adminDashboardStats.userId);
 
   const navigate = useNavigate();
   useEffect(() => {
@@ -176,11 +175,6 @@ const ScreeningForm = () => {
     if (password.length < 6) {
       return notifyError("Password must be at least 6 characters long");
     }
-    if (!passwordRegex.test(password)) {
-      return notifyError(
-        "Password must include at least one capital letter, one alphanumeric character, and no spaces."
-      );
-    }
 
     //send data to server
     setSubmissionLoading(true);
@@ -232,7 +226,12 @@ const ScreeningForm = () => {
       );
       console.log(response);
       setSubmissionLoading(false);
-      await dispatch(fetchDashboardData(userId, "reset"));
+      if (response.message === "User already exists") {
+        return notifyError("User already exists");
+      }
+      if (response.message === "Email already exists") {
+        return notifyError("Email already exists");
+      }
       if (response) {
         setIsDialogOpen(true);
       }

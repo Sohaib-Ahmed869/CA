@@ -18,6 +18,7 @@ import toast from "react-hot-toast";
 import { useDispatch, useSelector } from "react-redux";
 import { use } from "react";
 import { fetchDashboardData } from "../store/Admin/statsActions";
+import { triggerStatsRefresh } from "../utils/firestoreTriggers";
 
 const Stepper = ({ steps, currentStep }) => {
   return (
@@ -66,8 +67,6 @@ const ScreeningForm2 = () => {
   const [price, setPrice] = useState(0);
   const [expense, setexpense] = useState(0);
   const [step, setStep] = useState(0);
-  const dispatch = useDispatch();
-  const AdminUserId = import.meta.env.VITE_ADMIN_USER_ID;
 
   useEffect(() => {
     console.log("Step: ", step);
@@ -188,7 +187,7 @@ const ScreeningForm2 = () => {
       const response = await createNewApplication(data, userId);
       console.log("Response: ", response);
       setSubmissionLoading(false);
-      dispatch(fetchDashboardData(AdminUserId));
+      await triggerStatsRefresh(userId);
       navigate("/existing-applications");
     } catch (error) {
       console.log(error);

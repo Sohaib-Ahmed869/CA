@@ -9,7 +9,11 @@ const DocumentModal = ({ isOpen, onClose, docLink }) => {
   const getFileType = (url) => {
     const extension = url.split(".").pop().split(/#|\?/)[0].toLowerCase();
     const imageTypes = ["png", "jpg", "jpeg", "gif", "webp"];
-    return imageTypes.includes(extension) ? "image" : "document";
+    const videoTypes = ["mp4", "webm", "ogg", "mov", "avi"];
+    if (videoTypes.includes(extension)) return "video";
+    if (imageTypes.includes(extension)) return "image";
+
+    return "document";
   };
 
   const fileType = getFileType(docLink);
@@ -36,6 +40,15 @@ const DocumentModal = ({ isOpen, onClose, docLink }) => {
               alt="Preview"
               className="max-w-full max-h-[70vh] object-contain mx-auto"
             />
+          ) : fileType === "video" ? (
+            // Using HTML5 video player for better native controls
+            <video
+              controls
+              src={docLink}
+              className="w-full max-h-[70vh] object-contain mx-auto"
+            >
+              Your browser does not support the video tag.
+            </video>
           ) : (
             <iframe
               src={`https://docs.google.com/gview?url=${encodeURIComponent(

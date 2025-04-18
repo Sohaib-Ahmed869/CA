@@ -18,6 +18,7 @@ import axios from "axios";
 import UploadRequestedDocuments from "../uploadRequestedDocuments/uploadRequestedDocuments";
 import { getApplications } from "../Services/adminServices";
 import { useDispatch, useSelector } from "react-redux";
+import { triggerStatsRefresh } from "../../utils/firestoreTriggers";
 const URL = import.meta.env.VITE_REACT_BACKEND_URL;
 
 const UploadDocuments = () => {
@@ -221,7 +222,7 @@ const UploadDocuments = () => {
 
       setSubmissionLoading(false);
       successToast();
-      await dispatch(fetchDashboardData(AdminUserId));
+      await triggerStatsRefresh(userId);
       // Use toast instead of alert for better UX
       setTimeout(() => {
         navigate("/");

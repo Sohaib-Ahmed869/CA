@@ -41,7 +41,8 @@ import {
   BarChart2,
   PercentIcon,
 } from "lucide-react";
-import { getUserSpecificStats } from "../../utils/stats";
+import _ from "lodash";
+import { useAdminStatsSync } from "../../utils/firestoreTriggers";
 import AgentTargetsKPI from "./AgentTargetsKpi";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -870,6 +871,7 @@ const Dashboard = () => {
   const [userId, setUserId] = useState(null);
   const auth = getAuth();
   const AdminUserId = useSelector((state) => state.adminDashboardStats.userId);
+  const userType = localStorage.getItem("type");
 
   useEffect(() => {
     if (loading) {
@@ -890,34 +892,73 @@ const Dashboard = () => {
     return () => unsubscribe();
   }, []);
   useEffect(() => {
+    if (userType === "ceo" && userType === "manager") return;
     const fetchKPI = async () => {
       const response = await axios.get("/api/applications/getAgentKpiStats"); // update route as needed
       console.log("response", response);
       setAgentStats(response.data.agentKPI);
     };
-    fetchKPI();
+    if (userType !== "ceo") {
+      fetchKPI();
+    }
   }, []);
 
   useEffect(() => {
+    if (userType === "ceo") return;
+
     const fetchAgents = async () => {
       try {
         const response = await getAgents();
-
         if (response) {
           setAgents(response);
         }
       } catch (err) {
-        console.log(err);
+        console.error("Error fetching agents:", err);
       }
     };
 
-    fetchAgents();
-  }, [userId]);
+    if (userId && !isAgentManager) return; // Only fetch if manager
+    const agentFetchInterval = setInterval(fetchAgents, 300000); // 5 min cache
+
+    fetchAgents(); // Initial fetch
+    return () => clearInterval(agentFetchInterval);
+  }, [userId, isAgentManager]);
+  // useEffect(() => {
+  //   if (userId) {
+  //     const fetchData = () =>
+  //       dispatch(fetchDashboardData(userId, selectedAgent));
+
+  //     // Initial fetch
+  //     fetchData();
+
+  //     // Optional: Add periodic refresh as fallback
+  //     const interval = setInterval(fetchData, 300000); // 5 minutes
+
+  //     return () => clearInterval(interval);
+  //   }
+  // }, [dispatch, userId, selectedAgent]);
+  // Replace the existing debouncedFetch implementation with:
+  const refetchDashboardData = useCallback(() => {
+    console.log("🚀 Refetching data...");
+    dispatch(fetchDashboardData(userId, selectedAgent)).catch((error) => {
+      console.error("Refetch error:", error);
+    });
+  }, [userId, selectedAgent, dispatch]);
+
+  useAdminStatsSync(refetchDashboardData);
   useEffect(() => {
     if (userId) {
+      // Initial fetch
       dispatch(fetchDashboardData(userId, selectedAgent));
+      console.log("statsRefetched");
+      // Fallback interval
+      const interval = setInterval(() => {
+        dispatch(fetchDashboardData(userId, selectedAgent));
+      }, 300000); // 5 minutes
+
+      return () => clearInterval(interval);
     }
-  }, [dispatch, userId, selectedAgent]);
+  }, [userId, selectedAgent]);
   useEffect(() => {
     if (loading) {
       setSubmissionLoading(true);

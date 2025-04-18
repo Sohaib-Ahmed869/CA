@@ -301,61 +301,125 @@ const PaymentsPage = () => {
   };
 
   // Export payments to CSV
+  // const exportPayments = () => {
+  //   // Create CSV content
+  //   const headers = [
+  //     "Application ID",
+  //     "Date",
+  //     "Student",
+  //     "Qualification",
+  //     "Original Price",
+  //     "Final Price",
+  //     "Paid Amount",
+  //     "Status",
+  //   ];
+
+  //   const csvContent = [
+  //     headers.join(","),
+  //     applications.map((app) =>
+  //       [
+  //         app.applicationId || app.id || "",
+  //         app.status?.[0]?.time ? formatDate(app.status[0].time) : "",
+  //         app.user?.firstName + " " + app.user?.lastName || "",
+  //         app.isf?.lookingForWhatQualification || "",
+  //         app.price || 0,
+  //         app.discount ? parseFloat(app.price) - app.discount : app.price,
+  //         app.paid
+  //           ? app.partialScheme
+  //             ? app.full_paid
+  //               ? app.payment1 + app.payment2
+  //               : app.payment1
+  //             : app.discount
+  //             ? parseFloat(app.price) - app.discount
+  //             : app.price
+  //           : 0,
+  //         getPaymentStatus(app),
+  //       ]
+  //         .map((value) => `"${value}"`)
+  //         .join(",")
+  //     ),
+  //   ].join("\n");
+
+  //   // Create and download blob
+  //   const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+  //   const url = URL.createObjectURL(blob);
+  //   const link = document.createElement("a");
+  //   link.setAttribute("href", url);
+  //   link.setAttribute(
+  //     "download",
+  //     `payments-export-${new Date().toISOString().split("T")[0]}.csv`
+  //   );
+  //   document.body.appendChild(link);
+  //   link.click();
+  //   document.body.removeChild(link);
+
+  //   toast.success("Payment data exported successfully");
+  // };
   const exportPayments = () => {
-    // Create CSV content
-    const headers = [
-      "Application ID",
-      "Date",
-      "Student",
-      "Qualification",
-      "Original Price",
-      "Final Price",
-      "Paid Amount",
-      "Status",
-    ];
+    // Only run in browser environments
+    if (typeof window === "undefined") {
+      console.error("This function can only run in a browser environment");
+      return;
+    }
 
-    const csvContent = [
-      headers.join(","),
-      ...filteredApplications.map((app) =>
-        [
-          app.applicationId || app.id || "",
-          app.status?.[0]?.time ? formatDate(app.status[0].time) : "",
-          app.user?.firstName + " " + app.user?.lastName || "",
-          app.isf?.lookingForWhatQualification || "",
-          app.price || 0,
-          app.discount ? parseFloat(app.price) - app.discount : app.price,
-          app.paid
-            ? app.partialScheme
-              ? app.full_paid
-                ? app.payment1 + app.payment2
-                : app.payment1
-              : app.discount
-              ? parseFloat(app.price) - app.discount
-              : app.price
-            : 0,
-          getPaymentStatus(app),
-        ]
-          .map((value) => `"${value}"`)
-          .join(",")
-      ),
-    ].join("\n");
+    try {
+      // Create CSV content
+      const headers = [
+        "Application ID",
+        "Date",
+        "Student",
+        "Qualification",
+        "Original Price",
+        "Final Price",
+        "Paid Amount",
+        "Status",
+      ];
 
-    // Create and download blob
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.setAttribute("href", url);
-    link.setAttribute(
-      "download",
-      `payments-export-${new Date().toISOString().split("T")[0]}.csv`
-    );
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+      const csvContent = [
+        headers.join(","),
+        ...(applications?.map((app) =>
+          [
+            app.applicationId || app.id || "",
+            app.status?.[0]?.time ? formatDate(app.status[0].time) : "",
+            `${app.user?.firstName || ""} ${app.user?.lastName || ""}`.trim(),
+            app.isf?.lookingForWhatQualification || "",
+            app.price || 0,
+            app.discount ? parseFloat(app.price) - app.discount : app.price,
+            app.paid ? calculatePaidAmount(app) : 0,
+            getPaymentStatus(app),
+          ]
+            .map((value) => `"${String(value).replace(/"/g, '""')}"`)
+            .join(",")
+        ) || []),
+      ].join("\n");
 
-    toast.success("Payment data exported successfully");
+      // Create and download blob
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `payments-export-${
+        new Date().toISOString().split("T")[0]
+      }.csv`;
+      document.body.appendChild(link);
+      link.click();
+      setTimeout(() => window.URL.revokeObjectURL(url), 100);
+      document.body.removeChild(link);
+
+      toast.success("Payment data exported successfully");
+    } catch (error) {
+      console.error("Export failed:", error);
+      toast.error("Failed to export payment data");
+    }
   };
 
+  // Helper function for payment calculation
+  const calculatePaidAmount = (app) => {
+    if (app.partialScheme) {
+      return app.full_paid ? app.payment1 + app.payment2 : app.payment1;
+    }
+    return app.discount ? parseFloat(app.price) - app.discount : app.price;
+  };
   // Toggle sort direction when clicking on the same column
   const handleSort = (field) => {
     if (sortBy === field) {

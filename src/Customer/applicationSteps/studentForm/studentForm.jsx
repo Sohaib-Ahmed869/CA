@@ -13,11 +13,11 @@ import SpinnerLoader from "../../components/spinnerLoader";
 import { BsBack } from "react-icons/bs";
 import { fetchDashboardData } from "../../../store/Admin/statsActions";
 import { useDispatch, useSelector } from "react-redux";
+import sessionStorage from "redux-persist/es/storage/session";
 
 const StudentIntakeForm = () => {
   const [submissionLoading, setSubmissionLoading] = useState(false);
-  const dispatch = useDispatch();
-  const AdminUserId = import.meta.env.VITE_ADMIN_USER_ID;
+  const userId = sessionStorage.getItem("userId");
   const navigate = useNavigate();
   const onSuccess = () => toast.success("Form submitted successfully");
   const onError = (message) =>
@@ -226,7 +226,7 @@ const StudentIntakeForm = () => {
       onSuccess();
       setFormSubmitted(true);
       setSubmissionLoading(false);
-      await dispatch(fetchDashboardData(AdminUserId));
+      await triggerStatsRefresh(userId);
       //do timeout of 3 seconds to show success message
       setTimeout(() => {
         navigate("/");

@@ -306,6 +306,15 @@ const Application = ({
 
   // Handle archive/delete application
   const handleDeleteClick = () => {
+    const isComplete =
+      application.full_paid &&
+      application.paid &&
+      application.studentIntakeFormSubmitted &&
+      application.documentsUploaded;
+    if (isComplete) {
+      toast.error("Application is already complete and cannot be Archived.");
+      return;
+    }
     setApplicationToDelete(application.id);
     setShowDeleteModal(true);
     setShowActionMenu(false);
@@ -1563,7 +1572,12 @@ const Application = ({
                         )}
 
                         <button
-                          onClick={() => setDiscountModalOpen(true)}
+                          onClick={() => {
+                            if (application.full_paid) {
+                              return toast.error("Payment already processed");
+                            }
+                            setDiscountModalOpen(true);
+                          }}
                           className="w-full px-4 py-2 flex items-center justify-center gap-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700"
                         >
                           <MdPayment />
@@ -1584,10 +1598,16 @@ const Application = ({
 
                         <button
                           className="w-full px-4 py-2 flex items-center justify-center gap-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700"
-                          onClick={() => setShowDeadlineModal(application.id)}
+                          onClick={() => {
+                            if (application.full_paid) {
+                              return toast.error("Payment already processed!");
+                            }
+                            setShowDeadlineModal(application.id);
+                          }}
                         >
                           Set Deadline
                         </button>
+
                         {application.autoDebit?.enabled &&
                           (application.autoDebit?.status === "SCHEDULED" ||
                             application.autoDebit?.status === "FAILED") && (

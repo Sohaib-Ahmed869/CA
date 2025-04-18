@@ -550,71 +550,72 @@ const AdminDashboard = ({ setActive }) => {
             </div>
           </div>
           {/* Status Distribution Pie Chart */}
-          {
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-              <div className="flex justify-between items-center mb-6">
-                <div>
-                  <h2 className="text-lg font-semibold text-gray-800">
-                    Applications by Status
-                  </h2>
-                  <p className="text-gray-500 text-sm">
-                    Distribution of key application milestones
-                  </p>
-                </div>
-                <PieChartIcon size={18} className="text-gray-400" />
-              </div>
-              <div className="h-80 flex items-center justify-center text-sm">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={applications.reduce(
-                        (acc, app) => {
-                          const isCertificate =
-                            app.currentStatus === "Certificate Generated";
-                          const isCompleted =
-                            app.studentIntakeFormSubmitted &&
-                            app.documentsUploaded &&
-                            app.full_paid;
-                          const isAssessed = app.assessed;
 
-                          if (isCertificate) acc[0].value++;
-                          else if (isAssessed) acc[1].value++;
-                          else if (isCompleted) acc[2].value++;
-
-                          return acc;
-                        },
-                        [
-                          { name: "Certificate Generated", value: 0 },
-                          { name: "Assessed Applications", value: 0 },
-                          { name: "Completed Applications", value: 0 },
-                        ]
-                      )}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={false}
-                      outerRadius={80}
-                      fill="#8884d8"
-                      dataKey="value"
-                      nameKey="name"
-                      label={({ name, percent }) =>
-                        `${name}: ${(percent * 100).toFixed(0)}%`
-                      }
-                    >
-                      {[
-                        <Cell key="certificate" fill={COLORS[0]} />,
-                        <Cell key="assessed" fill={COLORS[1]} />,
-                        <Cell key="completed" fill={COLORS[2]} />,
-                      ]}
-                    </Pie>
-                    <Tooltip
-                      formatter={(value) => [`${value} applications`, "Count"]}
-                    />
-                    <Legend />
-                  </PieChart>
-                </ResponsiveContainer>
+          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+            <div className="flex justify-between items-center mb-6">
+              <div>
+                <h2 className="text-lg font-semibold text-gray-800">
+                  Applications by Status
+                </h2>
+                <p className="text-gray-500 text-sm">
+                  Distribution of key application milestones
+                </p>
               </div>
+              <PieChartIcon size={18} className="text-gray-400" />
             </div>
-          }
+
+            <div className="h-80 flex items-center justify-center text-sm">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  {console.log("piechart", applications.length)}
+                  <Pie
+                    data={applications.reduce(
+                      (acc, app) => {
+                        const isCertificate =
+                          app.currentStatus === "Certificate Generated";
+                        const isCompleted =
+                          app.studentIntakeFormSubmitted &&
+                          app.documentsUploaded &&
+                          app.full_paid;
+                        const isAssessed = app.assessed;
+
+                        if (isCertificate) acc[0].value++;
+                        else if (isAssessed) acc[1].value++;
+                        else if (isCompleted) acc[2].value++;
+
+                        return acc;
+                      },
+                      [
+                        { name: "Certificate", value: 0 },
+                        { name: "Assessed", value: 0 },
+                        { name: "Completed", value: 0 },
+                      ]
+                    )}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    outerRadius={80}
+                    fill="#8884d8"
+                    dataKey="value"
+                    nameKey="name"
+                    label={({ name, percent }) =>
+                      `${name}: ${(percent * 100).toFixed(0)}%`
+                    }
+                  >
+                    {[
+                      <Cell key="certificate" fill={COLORS[0]} />,
+                      <Cell key="assessed" fill={COLORS[1]} />,
+                      <Cell key="completed" fill={COLORS[2]} />,
+                    ]}
+                  </Pie>
+                  <Tooltip
+                    formatter={(value) => [`${value} applications`, "Count"]}
+                  />
+                  <Legend />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
         </div>
 
         {/* Quick Actions */}

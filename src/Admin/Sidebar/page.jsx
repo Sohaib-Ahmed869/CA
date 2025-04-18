@@ -37,6 +37,7 @@ import SpinnerLoader from "../../Customer/components/spinnerLoader";
 
 import ChangePassword from "../ChangePassword/page";
 import { getDashboardStats } from "../../Customer/Services/adminServices";
+import TaskManagement from "../TaskManager/TaskManagement";
 const AssignTargets = lazy(() => import("../AssignTargets/AssignTargets"));
 
 const AdminSidebar = () => {
@@ -469,6 +470,12 @@ const AdminSidebar = () => {
                   onClick={() => setActive("AssignTargets")}
                 />
               )}
+              <MenuItem
+                icon={<FaFileArchive className="text-xl" />}
+                label="Task Management"
+                isActive={active === "TaskManagement"}
+                onClick={() => setActive("TaskManagement")}
+              />
             </ul>
           </div>
 
@@ -548,6 +555,7 @@ const AdminSidebar = () => {
             <PaymentDeadlinesPage />{" "}
           </Suspense>
         )}
+        {active === "TaskManagement" && <TaskManagement />}
         {active === "Industries" && (
           <Suspense fallback={<SpinnerLoader />}>
             <Industries />
