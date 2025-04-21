@@ -5,12 +5,15 @@ import { BsPeople } from "react-icons/bs";
 import { HiOutlineBadgeCheck } from "react-icons/hi";
 import { MdPayment } from "react-icons/md";
 import { getAgents } from "../../Customer/Services/adminServices";
+import SpinnerLoader from "../../Customer/components/spinnerLoader";
 
 const TaskManagement = () => {
   const [agents, setAgents] = useState([]);
   const [isManager, setIsManager] = useState(false);
   const [currentUser, setCurrentUser] = useState("");
+  const [loading, setLoading] = useState(false);
   useEffect(() => {
+    setLoading(true);
     const userType = localStorage.getItem("type");
     if (userType === "manager") {
       setIsManager(true);
@@ -21,13 +24,14 @@ const TaskManagement = () => {
     const fetchData = async () => {
       const agents = await getAgents();
       console.log(agents);
-
+      setLoading(false);
       setAgents(agents);
     };
     fetchData();
   }, []);
   return (
     <div>
+      {loading && <SpinnerLoader />}
       <div className="animate-fadeIn z-40">
         {/* Header Section */}
         <div className="bg-gradient-to-r from-emerald-600 to-emerald-800 shadow-lg mb-6 pt-8 pb-10 relative overflow-hidden">
@@ -90,23 +94,9 @@ const TaskManagement = () => {
                 Task Management
               </h1>
               <p className="text-emerald-100 max-w-3xl text-lg">
-                Welcome to the Task Management Page, where you can manage and
-                track your tasks efficiently.
+                Welcome to your Task Management Dashboard easily create, update,
+                and track your tasks for better productivity and organization.
               </p>
-              <div className="mt-4 flex flex-wrap gap-3 justify-center md:justify-start">
-                <div className="bg-white/20 backdrop-blur-sm rounded-full px-3 py-1 flex items-center">
-                  <BsPeople className="mr-2" />
-                  {/* <span>{applications.length} Total Applications</span> */}
-                </div>
-                <div className="bg-white/20 backdrop-blur-sm rounded-full px-3 py-1 flex items-center">
-                  <HiOutlineBadgeCheck className="mr-2" />
-                  {/* <span>{stats.completedApplications} Completed</span> */}
-                </div>
-                <div className="bg-white/20 backdrop-blur-sm rounded-full px-3 py-1 flex items-center">
-                  <MdPayment className="mr-2" />
-                  {/* <span>{stats.paidApplications} Paid</span> */}
-                </div>
-              </div>
             </div>
           </div>
         </div>
@@ -116,6 +106,8 @@ const TaskManagement = () => {
           isManager={isManager}
           agents={agents}
           currentUser={currentUser}
+          setLoading={setLoading}
+          loading={loading}
         />
       </div>
     </div>

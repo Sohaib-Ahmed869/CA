@@ -37,7 +37,8 @@ import SpinnerLoader from "../../Customer/components/spinnerLoader";
 
 import ChangePassword from "../ChangePassword/page";
 import { getDashboardStats } from "../../Customer/Services/adminServices";
-import TaskManagement from "../TaskManager/TaskManagement";
+const TaskManagement = lazy(() => import("../TaskManager/TaskManagement"));
+import Reporting from "../Reporting/page";
 const AssignTargets = lazy(() => import("../AssignTargets/AssignTargets"));
 
 const AdminSidebar = () => {
@@ -470,12 +471,22 @@ const AdminSidebar = () => {
                   onClick={() => setActive("AssignTargets")}
                 />
               )}
-              <MenuItem
-                icon={<FaFileArchive className="text-xl" />}
-                label="Task Management"
-                isActive={active === "TaskManagement"}
-                onClick={() => setActive("TaskManagement")}
-              />
+              {hasFinanceAccess() && (
+                <MenuItem
+                  icon={<FaFileArchive className="text-xl" />}
+                  label="Reporting Dashboard"
+                  isActive={active === "reporting"}
+                  onClick={() => setActive("reporting")}
+                />
+              )}
+              {!hasFinanceAccess() && (
+                <MenuItem
+                  icon={<FaFileArchive className="text-xl" />}
+                  label="Task Management"
+                  isActive={active === "TaskManagement"}
+                  onClick={() => setActive("TaskManagement")}
+                />
+              )}
             </ul>
           </div>
 
@@ -555,7 +566,12 @@ const AdminSidebar = () => {
             <PaymentDeadlinesPage />{" "}
           </Suspense>
         )}
-        {active === "TaskManagement" && <TaskManagement />}
+        {active === "TaskManagement" && (
+          <Suspense fallback={<SpinnerLoader />}>
+            {" "}
+            <TaskManagement />{" "}
+          </Suspense>
+        )}
         {active === "Industries" && (
           <Suspense fallback={<SpinnerLoader />}>
             <Industries />
@@ -586,6 +602,11 @@ const AdminSidebar = () => {
         {active === "Finances" && activeFinance === "Analytics" && (
           <Suspense fallback={<SpinnerLoader />}>
             <Analytics />
+          </Suspense>
+        )}
+        {active === "reporting" && (
+          <Suspense fallback={<SpinnerLoader />}>
+            <Reporting />
           </Suspense>
         )}
       </div>

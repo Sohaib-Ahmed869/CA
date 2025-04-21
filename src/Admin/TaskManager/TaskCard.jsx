@@ -8,8 +8,80 @@ const priorityColors = {
   low: "green",
 };
 
-const TaskCard = ({ task, index, isManager, allAgents, onSave }) => {
+const TaskCard = ({
+  task,
+  index,
+  isManager,
+  allAgents,
+  onSave,
+  currentUser,
+}) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const getTagInfo = (task, currentUser, role) => {
+    if (role === "manager" && task?.assignedTo.length > 0) {
+      return {
+        label: task.assignedTo,
+        bg: "bg-green-100",
+        text: "text-green-800",
+      };
+    }
+
+    if (
+      role === "agent" &&
+      task?.assignedTo.length > 0 &&
+      task?.assignedTo === currentUser
+    ) {
+      return {
+        label: "Assigned",
+        bg: "bg-green-100",
+        text: "text-green-800",
+      };
+    }
+
+    if (role === "agent" && task?.createdBy === currentUser) {
+      return {
+        label: "Personal",
+        bg: "bg-yellow-100",
+        text: "text-yellow-800",
+      };
+    }
+    if (
+      role === "manager" &&
+      task?.createdBy === currentUser &&
+      task?.assignedTo.length === 0
+    ) {
+      return {
+        label: "unassigned",
+        bg: "bg-blue-100",
+        text: "text-blue-800",
+      };
+    }
+    if (
+      role === "manager" &&
+      task?.createdBy === "manager" &&
+      task?.assignedTo.length === 0
+    ) {
+      return {
+        label: "Unassigned",
+        bg: "bg-red-100",
+        text: "text-red-800",
+      };
+    }
+    if (role === "manager" && task?.createdBy) {
+      return {
+        label: `Self: ${task.createdBy}`,
+        bg: "bg-purple-100",
+        text: "text-purple-800",
+      };
+    }
+
+    return {
+      label: "Unassigned",
+      bg: "bg-gray-100",
+      text: "text-gray-800",
+    };
+  };
+  const tag = getTagInfo(task, currentUser, isManager ? "manager" : "agent");
 
   return (
     <>
@@ -30,15 +102,11 @@ const TaskCard = ({ task, index, isManager, allAgents, onSave }) => {
           >
             <div className="flex justify-between items-start">
               <h3 className="font-medium text-gray-800">{task.title}</h3>
-              {isManager ? (
-                <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
-                  {task?.assignedTo || "Unassigned"}
-                </span>
-              ) : (
-                <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
-                  Assigned
-                </span>
-              )}
+              <span
+                className={`text-xs px-2 py-1 rounded-full min-w-[80px] text-center ${tag.bg} ${tag.text}`}
+              >
+                {tag.label}
+              </span>
             </div>
             {task.dueDate && (
               <p className="mt-2 text-xs text-gray-500">
@@ -56,6 +124,7 @@ const TaskCard = ({ task, index, isManager, allAgents, onSave }) => {
           onClose={() => setIsModalOpen(false)}
           isManager={isManager}
           allAgents={allAgents}
+          currentUser={currentUser}
         />
       )}
     </>

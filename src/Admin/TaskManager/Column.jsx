@@ -9,6 +9,7 @@ const Column = ({
   tasks,
   status,
   onAddTask,
+  currentUser,
   isManager,
   agents,
   onSave,
@@ -20,15 +21,8 @@ const Column = ({
     if (!newTaskTitle.trim()) return;
 
     try {
-      // Create basic task structure
       const newTask = {
         title: newTaskTitle.trim(),
-        status: "todo",
-        priority: "medium",
-        assignedTo: "", // This should be set properly based on your logic
-        checklist: [],
-        comments: [],
-        dueDate: "",
       };
 
       // Call parent handler
@@ -43,20 +37,22 @@ const Column = ({
   };
 
   return (
-    <div className="flex-1 bg-gray-50 p-4 rounded-lg shadow-sm">
-      <div className="flex justify-center  items-center mb-4 relative">
-        <h3 className="font-semibold text-gray-700 text-lg ">{title}</h3>
-        <span className="text-sm text-gray-500 absolute right-0">
+    <div className="flex-1 bg-gray-50  border-2  p-4 rounded-lg shadow-sm flex flex-col h-[calc(100vh-180px)]">
+      {/* Header */}
+      <div className="flex justify-center items-center mb-4 relative">
+        <h3 className="font-semibold text-gray-700 text-lg">{title}</h3>
+        <span className="text-xs text-white font-mono leading-5 absolute right-0 w-5 h-5 flex items-center justify-center bg-emerald-500 rounded-full">
           {tasks.length}
         </span>
       </div>
 
+      {/* Scrollable Task List */}
       <Droppable droppableId={status}>
         {(provided) => (
           <div
             ref={provided.innerRef}
             {...provided.droppableProps}
-            className="space-y-2 min-h-[200px]"
+            className="flex-1 overflow-y-auto space-y-2 pr-2" // Added scroll styling
           >
             {tasks.map((task, index) => (
               <TaskCard
@@ -66,6 +62,7 @@ const Column = ({
                 index={index}
                 isManager={isManager}
                 allAgents={agents}
+                currentUser={currentUser}
               />
             ))}
             {provided.placeholder}
@@ -97,7 +94,7 @@ const Column = ({
               <div className="flex items-center gap-2">
                 <button
                   onClick={handleAddTask}
-                  className="px-3 py-1.5 text-sm bg-emerald-500 text-white rounded hover:bg-blue-600"
+                  className="px-3 py-1.5 text-sm bg-emerald-500 text-white rounded hover:bg-emerald-600"
                 >
                   Add
                 </button>
