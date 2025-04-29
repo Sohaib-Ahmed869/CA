@@ -21,9 +21,9 @@ import paymentsimg from "../../assets/payments.png";
 import { resendEmail } from "../../Customer/Services/adminServices";
 
 const PaymentDeadlinesPage = () => {
-   useEffect(() => {
-      window.scrollTo(0, 0);
-    }, []);
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
   const navigate = useNavigate();
   const [applications, setApplications] = useState([]);
   const [allUpcomingPayments, setAllUpcomingPayments] = useState([]); // Original data
@@ -1061,9 +1061,7 @@ const PaymentDeadlinesPage = () => {
                                 <button
                                   className="inline-flex items-center px-3 py-1.5 border border-gray-300 text-xs rounded-md text-gray-700 bg-white hover:bg-gray-50"
                                   onClick={() =>
-                                    navigate(
-                                      `/application-details/${payment.id}`
-                                    )
+                                    setSelectedApplication(payment)
                                   }
                                 >
                                   View Details

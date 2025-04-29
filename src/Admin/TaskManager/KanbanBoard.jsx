@@ -85,8 +85,16 @@ const KanbanBoard = ({
         role: isManager ? "manager" : "agent",
       });
       // Refresh tasks after status update
-      const refreshedTasks = await fetchAllTasks();
+      const filters = {};
+      if (selectedDateRange === "custom") {
+        filters.startDate = customStartDate;
+        filters.endDate = customEndDate;
+      } else {
+        filters.range = selectedDateRange;
+      }
+      const refreshedTasks = await fetchAllTasks(filters);
       setTasks(refreshedTasks);
+      console.log("refreshed tasks", refreshedTasks);
     } catch (error) {
       // Rollback on error
       setTasks((prev) =>

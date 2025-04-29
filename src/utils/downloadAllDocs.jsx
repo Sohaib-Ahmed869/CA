@@ -1,5 +1,6 @@
 import JSZip from "jszip";
 import { saveAs } from "file-saver";
+import toast from "react-hot-toast";
 const URL = import.meta.env.VITE_REACT_BACKEND_URL;
 
 export async function downloadAllDocsAsZip(
@@ -154,3 +155,76 @@ export async function downloadAllDocsAsZip(
     stateHandlers.success(false);
   }
 }
+
+export const downloadCertificate = async (
+  url,
+  filename = "certificate.pdf"
+) => {
+  // Show loading indicator or message
+  const loadingToast = toast.loading("Downloading certificate...");
+
+  try {
+    // Use the proxy endpoint to fetch the file - replace URL with your actual proxy endpoint
+    const proxyUrl = `${URL}/proxy-file?url=${encodeURIComponent(url)}`;
+
+    console.log(`Fetching certificate: ${filename}`);
+
+    const response = await fetch(proxyUrl, {
+      method: "GET",
+      cache: "no-store", // Force fresh request
+      headers: {
+        Accept: "*/*",
+      },
+      // Set a reasonable timeout
+      signal: AbortSignal.timeout(30000), // 30 second timeout
+    });
+
+    // Check if the fetch was successful
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Server responded with ${response.status}: ${errorText}`);
+    }
+
+    // Get the blob from the response
+    const blob = await response.blob();
+
+    // Skip empty files
+    if (blob.size === 0) {
+      throw new Error("Downloaded file is empty");
+    }
+
+    console.log(
+      `Certificate downloaded: Size - ${(blob.size / 1024).toFixed(
+        1
+      )}KB, Type - ${blob.type}`
+    );
+
+    // Create a blob URL for the file
+    const blobUrl = window.URL.createObjectURL(blob);
+
+    // Create a temporary anchor element
+    const downloadLink = document.createElement("a");
+
+    // Set properties to trigger download
+    downloadLink.href = blobUrl;
+    downloadLink.download = filename;
+
+    // Append to body, click, and remove
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+    document.body.removeChild(downloadLink);
+
+    // Clean up the blob URL
+    window.URL.revokeObjectURL(blobUrl);
+
+    // Show success message
+    toast.success("Certificate downloaded successfully");
+  } catch (error) {
+    console.error("Error downloading certificate:", error);
+    // User-friendly error handling
+    toast.error(`Failed to download certificate: ${error.message}`);
+  } finally {
+    // Hide loading indicator
+    toast.dismiss(loadingToast);
+  }
+};

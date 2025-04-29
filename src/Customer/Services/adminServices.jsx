@@ -4,7 +4,21 @@ const URL = import.meta.env.VITE_REACT_BACKEND_URL;
 import { authAxios } from "../../utils/axiosInstance";
 // adminServices.js
 // Enhanced updateAgentTarget function
+// In your AgentTimerLogs component
+export const fetchTimerLogs = async () => {
+  try {
+    const params = new URLSearchParams({
+      agentId: selectedAgent,
+      date: selectedDate?.toISOString().split("T")[0],
+    });
 
+    const response = await fetch(`${URL}/api/timer/logs?${params}`);
+    const data = await response.json();
+    setLogs(data.logs);
+  } catch (err) {
+    setError("Failed to fetch logs");
+  }
+};
 export const fetchPaginatedPayments = async (params) => {
   try {
     const response = await authAxios.get(

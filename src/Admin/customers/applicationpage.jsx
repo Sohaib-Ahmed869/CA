@@ -1054,7 +1054,8 @@ const Application = ({
                         <p className="flex justify-between">
                           <span className="text-gray-500">Qualification:</span>
                           <span className="font-medium">
-                            {application.isf.qualification || "N/A"}
+                            {application.isf.lookingForWhatQualification ||
+                              "N/A"}
                           </span>
                         </p>
                         <p className="flex justify-between">

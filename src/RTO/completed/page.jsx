@@ -14,9 +14,15 @@ import completed from "../../assets/completed.png";
 import { getApplications } from "../../Customer/Services/rtoservices";
 import SpinnerLoader from "../../Customer/components/spinnerLoader";
 import JSZip from "jszip";
-
+import { downloadCertificate } from "../../utils/downloadAllDocs";
 // PDF Viewer component
 const PDFViewer = ({ url, onClose }) => {
+  const handleDownload = async (certificateUrl) => {
+    const filename = "certificate";
+
+    await downloadCertificate(certificateUrl, filename);
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-75">
       <div className="relative bg-white rounded-lg shadow-xl w-full h-full max-w-6xl max-h-[90vh] flex flex-col">
@@ -40,14 +46,12 @@ const PDFViewer = ({ url, onClose }) => {
           />
         </div>
         <div className="p-4 border-t border-gray-200 flex justify-end">
-          <a
-            href={url}
-            target="_blank"
-            rel="noopener noreferrer"
+          <button
+            onClick={() => handleDownload(url)}
             className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none"
           >
             <BsDownload className="mr-2" /> Download Certificate
-          </a>
+          </button>
         </div>
       </div>
     </div>
@@ -69,7 +73,20 @@ const Completed = () => {
   const [totalApplications, setTotalApplications] = useState(0);
 
   const applicationsPerPage = 10;
-
+  const [isDownloading, setIsDownloading] = useState(false);
+  const [disabled, setDisabled] = useState(false);
+  const handleDownload = async (certificateUrl) => {
+    setDisabled(true);
+    if (isDownloading || disabled) return;
+    const filename = "certificate";
+    setIsDownloading(true);
+    try {
+      await downloadCertificate(certificateUrl, filename);
+    } finally {
+      setDisabled(false);
+      setIsDownloading(false);
+    }
+  };
   const closeModal = () => {
     document.getElementById("uploadCertificateModal").close();
   };
@@ -137,7 +154,7 @@ const Completed = () => {
         .toLowerCase()
         .includes(searchLower);
       const industryMatch =
-        app.initialForm?.industry?.toLowerCase().includes(searchLower) || false;
+        app.isf?.industry?.toLowerCase().includes(searchLower) || false;
 
       return appIdMatch || nameMatch || industryMatch;
     })
@@ -366,7 +383,7 @@ const Completed = () => {
                       <div className="mb-3">
                         <div className="text-sm text-gray-500">Industry</div>
                         <div className="font-medium">
-                          {application.initialForm?.industry || "N/A"}
+                          {application.isf?.industry || "N/A"}
                         </div>
                       </div>
 
@@ -393,16 +410,28 @@ const Completed = () => {
                           <BsEye className="mr-2" />
                           View Certificate
                         </button>
-
-                        <a
+                        <button
+                          onClick={() => {
+                            handleDownload(application.certificateId);
+                          }}
+                          disabled={disabled || isDownloading}
+                          className={`inline-flex items-center justify-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md ${
+                            disabled || isDownloading
+                              ? "text-gray-400 bg-gray-100 cursor-not-allowed"
+                              : "text-gray-700 bg-white hover:bg-gray-50 focus:outline-none"
+                          }`}
+                        >
+                          <BsDownload className="mr-2" />
+                          Download Certificate
+                        </button>
+                        {/* <a
                           href={application.certificateId}
-                          target="_blank"
-                          rel="noopener noreferrer"
+                          download="certificate"
                           className="inline-flex items-center justify-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none"
                         >
                           <BsDownload className="mr-2" />
                           Download Certificate
-                        </a>
+                        </a> */}
                       </div>
                     </div>
                   </div>

@@ -14,7 +14,7 @@ import { BsBack } from "react-icons/bs";
 import { fetchDashboardData } from "../../../store/Admin/statsActions";
 import { useDispatch, useSelector } from "react-redux";
 import sessionStorage from "redux-persist/es/storage/session";
-
+import { triggerStatsRefresh } from "../../../utils/firestoreTriggers";
 const StudentIntakeForm = () => {
   const [submissionLoading, setSubmissionLoading] = useState(false);
   const userId = sessionStorage.getItem("userId");
@@ -225,8 +225,8 @@ const StudentIntakeForm = () => {
       console.log(response);
       onSuccess();
       setFormSubmitted(true);
-      setSubmissionLoading(false);
       await triggerStatsRefresh(userId);
+      setSubmissionLoading(false);
       //do timeout of 3 seconds to show success message
       setTimeout(() => {
         navigate("/");

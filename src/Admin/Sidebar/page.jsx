@@ -27,6 +27,7 @@ import {
   FaMoneyBillWave,
   FaUserFriends,
   FaChartPie,
+  FaClock,
 } from "react-icons/fa";
 import { BsClock, BsClockHistory, BsFileEarmarkText } from "react-icons/bs";
 import { BiLogOut, BiMenu, BiX } from "react-icons/bi";
@@ -39,6 +40,8 @@ import ChangePassword from "../ChangePassword/page";
 import { getDashboardStats } from "../../Customer/Services/adminServices";
 const TaskManagement = lazy(() => import("../TaskManager/TaskManagement"));
 import Reporting from "../Reporting/page";
+import AgentTimer from "../Timer/Timer";
+import TimerLogsTable from "../Timer/AgentTimeLogs";
 const AssignTargets = lazy(() => import("../AssignTargets/AssignTargets"));
 
 const AdminSidebar = () => {
@@ -49,16 +52,26 @@ const AdminSidebar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isFinanceOpen, setIsFinanceOpen] = useState(false);
   const [isAgentManager, setIsAgentManager] = useState(false);
+  const [logoutTrigger, setLogoutTrigger] = useState(0);
+
   const auth = getAuth();
 
   const onClickLogout = async () => {
+    // FIRST: Trigger timer pause
+    setLogoutTrigger((prev) => prev + 1);
+
+    // Add a small delay to ensure the timer pauses
+    await new Promise((resolve) => setTimeout(resolve, 300));
+
+    // SECOND: Sign out from Firebase
     await signOut(auth);
+
+    // THIRD: Clean local storage and navigate
     localStorage.removeItem("authrole");
     localStorage.removeItem("role");
     localStorage.removeItem("type");
     localStorage.removeItem("jwtToken");
     localStorage.removeItem("firebaseToken");
-
     navigate("/login");
   };
 
@@ -435,6 +448,16 @@ const AdminSidebar = () => {
           </div>
 
           <div className="px-4 mb-8">
+            <ul className="mb-6">
+              {localStorage.getItem("type") === "agent" && (
+                <li className=" rounded-xl my-1">
+                  <AgentTimer
+                    userId={currentUserId}
+                    logoutTrigger={logoutTrigger}
+                  />
+                </li>
+              )}
+            </ul>
             <h2 className="text-emerald-100 text-xs uppercase tracking-wider mb-3 ml-2">
               Management
             </h2>
@@ -487,6 +510,18 @@ const AdminSidebar = () => {
                   onClick={() => setActive("TaskManagement")}
                 />
               )}
+              {localStorage.getItem("type") !== "agent" ? (
+                <MenuItem
+                  icon={<FaClock className="text-xl" />}
+                  label="Agent Time Logs"
+                  isActive={active === "AgentTimeLogs"}
+                  onClick={() => {
+                    setActive("AgentTimeLogs");
+                    setIsOpen(false);
+                  }}
+                  hasBorder={false}
+                />
+              ) : null}
             </ul>
           </div>
 
@@ -609,6 +644,7 @@ const AdminSidebar = () => {
             <Reporting />
           </Suspense>
         )}
+        {active === "AgentTimeLogs" && <TimerLogsTable />}
       </div>
     </div>
   );

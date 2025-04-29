@@ -24,6 +24,22 @@ import AssessorSidebar from "./Assessor/Sidebar/page";
 import ViewApplication from "./Customer/ViewApplication/page";
 import TwoFactorAuth from "./TwoFactorAuth/TwoFactorAuth";
 import ProtectedRoute from "./utils/RouteProtection";
+import EnrollmentForm from "./Customer/AdditionalForms/cibtEnrollmentForm/EnrollmentForm";
+import EntryInterviewForm from "./Customer/AdditionalForms/cibtEntryInterviewForm/EntryInterviewForm";
+import LLNAssessment from "./Customer/AdditionalForms/LLNAssessment/LLNAssessment";
+import RPLAssessment from "./Customer/AdditionalForms/RPLIntakeCPC-31320- Certificate-IIIinWallandFloorTiling/RPL-intake-cpc31320";
+import RPLIntakeCPC31320WallFloorTiling from "./Customer/AdditionalForms/RPLIntakeCPC-31320- Certificate-IIIinWallandFloorTiling/RPL-intake-cpc31320";
+import RPLIntakeCPC30220Carpentry from "./Customer/AdditionalForms/Carpentry/RPLIntakeCPC-30220-Certificate-III-Carpentry/RPL-intake-cpc30220-carpentry";
+import RPLApplicationFormCPC30220 from "./Customer/AdditionalForms/Carpentry/RPLApplicationForm-cpc30220/RPL-application-form-CPC-30220";
+import RPLAssessmentCPC30220 from "./Customer/AdditionalForms/Carpentry/RPLSelf-Assessment-Information-Kit/cpc-30220-self-assessment-kit";
+import FrontierRPLEnrollmentForm from "./Customer/AdditionalForms/Frontier/frontier-rpl-enrollment-form";
+import RPLIntakeCPC30320Concreting from "./Customer/AdditionalForms/Concreting/rpl-intake-cpc30320";
+import RPLIntakeCPC31420WaterProofing from "./Customer/AdditionalForms/ConstructionWaterProofing/rpl-intake-cpc31420";
+import RPLApplicationFormCPC32420Plumbing from "./Customer/AdditionalForms/Plumbing/rpl-application-form-cpc-32420";
+import RPLSelfAssessmentCPC32420 from "./Customer/AdditionalForms/Plumbing/self-Assessment-plumbing-cpc-32420";
+import RPLSelfAssessmentViewer from "./Customer/AdditionalForms/Plumbing/self-Assessment-plumbing-cpc-32420";
+import RPLSelfAssessmentApp from "./Customer/AdditionalForms/Plumbing/self-Assessment-plumbing-cpc-32420";
+import RPLIntakeCPC32620RoofPlumbing from "./Customer/AdditionalForms/RoofPlumbing/rpl-Intake-CPC32620-CertificateIII-inRoofPlumbing";
 
 function App() {
   return (
@@ -51,6 +67,66 @@ function App() {
           path="/student-intake-form/:id"
           element={<StudentIntakeForm />}
         />
+
+        {/* Additional form routes */}
+        <Route path="/cibt-enrollment-form" element={<EnrollmentForm />} />
+        <Route
+          path="/cibt-entry-interview-form"
+          element={<EntryInterviewForm />}
+        />
+        <Route path="/lln-assessment" element={<LLNAssessment />} />
+        <Route
+          path="/rpl-enrollment-form"
+          element={<RPLIntakeCPC31320WallFloorTiling />}
+        />
+        <Route
+          path="/rpl-intake-cpc-31320-certificate-3-wall-and-floor-tiling"
+          element={<RPLAssessment />}
+        />
+        {/* Carpentry Alpha RTO*/}
+        <Route
+          path="/rpl-intake-cpc-30220-certificate-3-carpentry"
+          element={<RPLIntakeCPC30220Carpentry />}
+        />
+
+        <Route
+          path="/rpl-applicationform-cpc-30220-certificate-3-carpentry"
+          element={<RPLApplicationFormCPC30220 />}
+        />
+        <Route
+          path="/rpl-assessment-cpc-30220-certificate-3-carpentry"
+          element={<RPLAssessmentCPC30220 />}
+        />
+        {/* Construction Concreting */}
+        <Route
+          path="/rpl-intake-cpc-30320-certificate-3-concreting"
+          element={<RPLIntakeCPC30320Concreting />}
+        />
+        {/* Construction WaterProofing */}
+        <Route
+          path="/rpl-intake-cpc-31420-certificate-3-waterProofing"
+          element={<RPLIntakeCPC31420WaterProofing />}
+        />
+        {/* Plumbing */}
+        <Route
+          path="/rpl-application-form-cpc-32420-certificate-3-plumbing"
+          element={<RPLApplicationFormCPC32420Plumbing />}
+        />
+        <Route
+          path="/rpl-self-assessment-form-cpc-32420-certificate-3-plumbing"
+          element={<RPLSelfAssessmentApp />}
+        />
+        {/* ROOF Plumbing */}
+        <Route
+          path="/rpl-intake-cpc-32620-certificate-3-roofPlumbing"
+          element={<RPLIntakeCPC32620RoofPlumbing />}
+        />
+        {/* Frontier RTO */}
+        <Route
+          path="/frontier-rpl-enrollment-form"
+          element={<FrontierRPLEnrollmentForm />}
+        />
+        {/* end */}
         <Route path="/payment" element={<PaymentPage />} />
         <Route path="/upload-documents/:id" element={<UploadDocuments />} />
 

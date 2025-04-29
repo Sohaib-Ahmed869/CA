@@ -73,7 +73,11 @@ const AdminDashboard = ({ setActive }) => {
 
       // Calculate metrics
       const rtoApps = response.filter(
-        (app) => app.currentStatus === "Sent to RTO"
+        (app) =>
+          app.studentIntakeFormSubmitted &&
+          app.full_paid &&
+          app.documentsUploaded &&
+          app.assessed
       ).length;
       const certApps = response.filter(
         (app) => app.currentStatus === "Certificate Generated"

@@ -186,8 +186,8 @@ const ScreeningForm2 = () => {
       console.log("Data: ", data);
       const response = await createNewApplication(data, userId);
       console.log("Response: ", response);
-      setSubmissionLoading(false);
       await triggerStatsRefresh(userId);
+      setSubmissionLoading(false);
       navigate("/existing-applications");
     } catch (error) {
       console.log(error);

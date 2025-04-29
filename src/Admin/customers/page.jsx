@@ -1633,7 +1633,7 @@ const CustomersInfo = () => {
         </div>
       ) : (
         // Render selected application in detail view
-        <Suspense fallback={<div>Loading...</div>}>
+        <Suspense fallback={<SpinnerLoader />}>
           <Application
             application={selectedApplication}
             setSelectedApplication={setSelectedApplication}

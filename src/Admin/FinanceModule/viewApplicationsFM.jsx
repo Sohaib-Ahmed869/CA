@@ -25,6 +25,7 @@ import {
   AddExpense,
   UpdateExpense,
 } from "../../Customer/Services/adminServices";
+import DocumentModal from "../../Customer/components/viewDocsModal";
 
 const URL = import.meta.env.VITE_REACT_BACKEND_URL;
 
@@ -42,6 +43,8 @@ const Application = ({
   const [viewIntakeForm, setViewIntakeForm] = useState(false);
   const [viewDocuments, setViewDocuments] = useState(false);
   const [documentLinks, setDocumentLinks] = useState([]);
+  const [isOpen, setIsOpen] = useState(false);
+  const [docLink, setDocLink] = useState("");
 
   const onClickViewDocuments = async () => {
     const documentKeys = [
@@ -235,12 +238,14 @@ const Application = ({
               )}
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {console.log("doclinks", documentLinks)}
                 {documentLinks.map((doc, index) => (
                   <a
                     key={index}
-                    href={doc.url}
-                    target="_blank"
-                    rel="noreferrer"
+                    onClick={() => {
+                      setDocLink(doc.url.fileUrl);
+                      setIsOpen(true);
+                    }}
                     className="flex items-center p-3 border border-green-100 rounded-md hover:bg-green-50 transition-colors"
                   >
                     <FileText size={18} className="mr-2 text-green-700" />
@@ -249,6 +254,11 @@ const Application = ({
                     </span>
                   </a>
                 ))}
+                <DocumentModal
+                  isOpen={isOpen}
+                  onClose={() => setIsOpen(false)}
+                  docLink={docLink}
+                />
               </div>
             </div>
 

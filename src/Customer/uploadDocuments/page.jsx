@@ -220,13 +220,11 @@ const UploadDocuments = () => {
     try {
       await axios.post(`/api/users/${applicationId}/submitDocument`, {});
 
-      setSubmissionLoading(false);
-      successToast();
       await triggerStatsRefresh(userId);
+      successToast();
+      setSubmissionLoading(false);
       // Use toast instead of alert for better UX
-      setTimeout(() => {
-        navigate("/");
-      }, 2000);
+      navigate("/");
     } catch (err) {
       setSubmissionLoading(false);
       errorToast("Error submitting documents");

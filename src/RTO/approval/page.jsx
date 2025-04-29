@@ -1357,12 +1357,16 @@ const Approval = () => {
                   >
                     <BsEye className="mr-2" /> View All Documents
                   </button>
-                  <button
-                    onClick={() => handleOpenModal(selectedApplication.id)}
-                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none"
-                  >
-                    <BiCertification className="mr-2" /> Issue Certificate
-                  </button>
+
+                  {selectedApplication.currentStatus !==
+                    "Certificate Generated" && (
+                    <button
+                      onClick={() => handleOpenModal(selectedApplication.id)}
+                      className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none"
+                    >
+                      <BiCertification className="mr-2" /> Issue Certificate
+                    </button>
+                  )}
                   {/* <button
                     onClick={() => {
                       handleReject(selectedApplication.id);
@@ -1372,12 +1376,15 @@ const Approval = () => {
                   >
                     <FaTimes className="mr-2" /> Reject Application
                   </button> */}
-                  <button
-                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-amber-500 hover:bg-amber-600 focus:outline-none"
-                    onClick={OpenRequestDocsModal}
-                  >
-                    Request More Documents
-                  </button>
+                  {selectedApplication.currentStatus !==
+                    "Certificate Generated" && (
+                    <button
+                      className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-amber-500 hover:bg-amber-600 focus:outline-none"
+                      onClick={OpenRequestDocsModal}
+                    >
+                      Request More Documents
+                    </button>
+                  )}
                 </div>
               </div>
             </div>

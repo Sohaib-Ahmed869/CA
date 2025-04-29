@@ -140,7 +140,7 @@ const TaskModal = ({
           )}
 
           <div>
-            <label className="block text-sm font-medium mb-2 text-gray-700 flex items-center gap-1">
+            <label className="text-sm font-medium mb-2 text-gray-700 flex items-center gap-1">
               <CiTextAlignRight size={18} className="text-gray-900" />{" "}
               Description
             </label>
@@ -401,7 +401,7 @@ const TaskModal = ({
           <div>
             {isManager || task.createdBy === currentUser ? (
               <>
-                <label className="block text-sm font-medium mb-2 text-gray-700 flex items-center gap-2">
+                <label className=" text-sm font-medium mb-2 text-gray-700 flex items-center gap-2">
                   Priority
                   {getPriorityIcon(editedTask.priority)}
                 </label>
