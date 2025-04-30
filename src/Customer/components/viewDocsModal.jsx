@@ -1,7 +1,15 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 
 const DocumentModal = ({ isOpen, onClose, docLink }) => {
   console.log("document link ", docLink);
+  const [loading, setLoading] = useState(true);
+
+  // Reset loading state when modal opens or document changes
+  useEffect(() => {
+    if (isOpen) {
+      setLoading(true);
+    }
+  }, [isOpen, docLink]);
 
   if (!isOpen) return null;
 
@@ -17,6 +25,13 @@ const DocumentModal = ({ isOpen, onClose, docLink }) => {
   };
 
   const fileType = getFileType(docLink);
+
+  // Loader component
+  const Loader = () => (
+    <div className="flex items-center justify-center h-[70vh]">
+      <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-emerald-600"></div>
+    </div>
+  );
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[999]">
@@ -35,32 +50,70 @@ const DocumentModal = ({ isOpen, onClose, docLink }) => {
 
         <div className="min-h-[60vh]">
           {fileType === "image" ? (
-            <img
-              src={docLink}
-              alt="Preview"
-              className="max-w-full max-h-[70vh] object-contain mx-auto"
-            />
+            <>
+              {loading && <Loader />}
+              <img
+                src={docLink}
+                alt="Preview"
+                className={`max-w-full max-h-[70vh] object-contain mx-auto ${
+                  loading ? "hidden" : "block"
+                }`}
+                onLoad={() => setLoading(false)}
+              />
+            </>
           ) : fileType === "video" ? (
-            // Using HTML5 video player for better native controls
-            <video
-              controls
-              src={docLink}
-              className="w-full max-h-[70vh] object-contain mx-auto"
-            >
-              Your browser does not support the video tag.
-            </video>
+            <>
+              {loading && <Loader />}
+              <video
+                controls
+                src={docLink}
+                className={`w-full max-h-[70vh] object-contain mx-auto ${
+                  loading ? "hidden" : "block"
+                }`}
+                onLoadedData={() => setLoading(false)}
+              >
+                Your browser does not support the video tag.
+              </video>
+            </>
           ) : (
-            <iframe
-              src={`https://docs.google.com/gview?url=${encodeURIComponent(
-                docLink
-              )}&embedded=true`}
-              className="w-full h-[70vh] border rounded-md"
-            />
+            <>
+              {loading && <Loader />}
+              <iframe
+                src={`https://docs.google.com/gview?url=${encodeURIComponent(
+                  docLink
+                )}&embedded=true`}
+                className={`w-full h-[70vh] border rounded-md ${
+                  loading ? "hidden" : "block"
+                }`}
+                onLoad={() => setLoading(false)}
+              />
+            </>
           )}
         </div>
 
-        {/* Secondary close button at bottom */}
-        <div className="mt-4 flex justify-end">
+        <div className="mt-4 flex justify-between items-center">
+          <a
+            href={docLink}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-sm text-emerald-600 hover:text-emerald-700 flex items-center"
+          >
+            <svg
+              className="w-4 h-4 mr-1"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+              ></path>
+            </svg>
+            Open in new tab
+          </a>
           <button
             className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700"
             onClick={onClose}
@@ -72,6 +125,8 @@ const DocumentModal = ({ isOpen, onClose, docLink }) => {
     </div>
   );
 };
+
+// export default DocumentModal;
 // const DocumentModal = ({ isOpen, onClose, docLink }) => {
 //   console.log("document link ", docLink);
 
