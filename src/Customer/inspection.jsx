@@ -17,6 +17,7 @@ import { auth } from "../firebase";
 import SpinnerLoader from "./components/spinnerLoader";
 import { signInWithEmailAndPassword } from "firebase/auth";
 const URL = import.meta.env.VITE_REACT_BACKEND_URL;
+import { Loader2 } from "lucide-react";
 
 import "./stepper.css";
 import { fetchDashboardData } from "../store/Admin/statsActions";
@@ -76,6 +77,7 @@ const ScreeningForm = () => {
   const [expense, setexpense] = useState(0);
   const [submissionLoading, setSubmissionLoading] = useState(false);
   const dispatch = useDispatch();
+  const [isLoading, setIsLoading] = useState(false);
 
   const navigate = useNavigate();
   useEffect(() => {
@@ -306,6 +308,7 @@ const ScreeningForm = () => {
   // };
   const onClickDashboard = async (e) => {
     e.preventDefault();
+    setIsLoading(true);
 
     // Validate password length before submission
 
@@ -379,6 +382,7 @@ const ScreeningForm = () => {
       console.error("Login error:", err);
     } finally {
       setSubmissionLoading(false);
+      setIsLoading(false);
     }
   };
   return (
@@ -498,11 +502,25 @@ const ScreeningForm = () => {
               Please visit the dashboard to view your application.
             </p>
             <div className="modal-action">
-              <button
+              {/* <button
                 className="btn btn-primary text-white"
                 onClick={onClickDashboard}
               >
                 Go to Dashboard
+              </button> */}
+              <button
+                className="btn btn-primary text-white"
+                onClick={onClickDashboard}
+                // disabled={isLoading}
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Loading...
+                  </>
+                ) : (
+                  "Go to Dashboard"
+                )}
               </button>
             </div>
           </div>

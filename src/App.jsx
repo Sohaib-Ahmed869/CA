@@ -39,6 +39,7 @@ import RPLApplicationFormCPC32420Plumbing from "./Customer/AdditionalForms/Plumb
 import RPLSelfAssessmentApp from "./Customer/AdditionalForms/Plumbing/self-Assessment-plumbing-cpc-32420";
 import RPLIntakeCPC32620RoofPlumbing from "./Customer/AdditionalForms/RoofPlumbing/rpl-Intake-CPC32620-CertificateIII-inRoofPlumbing";
 import RPLEnrolment from "./Customer/AdditionalForms/RPLEnrollment/RPLEnrollmentForm";
+import RPLApplicationFormCPC31020 from "./Customer/AdditionalForms/solidPlastering/rpl-application-form-cpc-31020";
 
 function App() {
   return (
@@ -116,6 +117,11 @@ function App() {
         <Route
           path="/rpl-intake-cpc-32620-certificate-3-roofPlumbing"
           element={<RPLIntakeCPC32620RoofPlumbing />}
+        />
+        {/* Solid Plastering */}
+        <Route
+          path="/rpl-application-form-cpc-31020-certificate-3-solidPlastering"
+          element={<RPLApplicationFormCPC31020 />}
         />
         {/* Frontier RTO */}
         <Route
