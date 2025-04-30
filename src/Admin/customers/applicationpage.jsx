@@ -798,15 +798,28 @@ const Application = ({
 
             {/* Quick action buttons */}
             <div className="flex items-center space-x-2">
+              {/* <button
+                onClick={() => onClickInitiateCall(application.id)}
+                className="flex items-center px-3 py-1.5 bg-white bg-opacity-20 rounded-md text-white hover:bg-opacity-30 transition-all"
+                title="Call Now"
+                type="tel"
+              >
+                <IoCall className="mr-1.5" />
+                <span className="hidden sm:inline">Call</span>
+              </button> */}
               <button
                 onClick={() => onClickInitiateCall(application.id)}
                 className="flex items-center px-3 py-1.5 bg-white bg-opacity-20 rounded-md text-white hover:bg-opacity-30 transition-all"
                 title="Call Now"
               >
-                <IoCall className="mr-1.5" />
-                <span className="hidden sm:inline">Call</span>
+                <a
+                  href={`tel:${application.sif.contactNumber}`}
+                  className="text-white no-underline flex items-center"
+                >
+                  <IoCall className="mr-1.5" />
+                  <span className="hidden sm:inline">Call</span>
+                </a>
               </button>
-
               <button
                 onClick={() => resendEmailFunc(application.id)}
                 className="flex items-center px-3 py-1.5 bg-white bg-opacity-20 rounded-md text-white hover:bg-opacity-30 transition-all"

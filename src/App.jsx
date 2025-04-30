@@ -36,10 +36,9 @@ import FrontierRPLEnrollmentForm from "./Customer/AdditionalForms/Frontier/front
 import RPLIntakeCPC30320Concreting from "./Customer/AdditionalForms/Concreting/rpl-intake-cpc30320";
 import RPLIntakeCPC31420WaterProofing from "./Customer/AdditionalForms/ConstructionWaterProofing/rpl-intake-cpc31420";
 import RPLApplicationFormCPC32420Plumbing from "./Customer/AdditionalForms/Plumbing/rpl-application-form-cpc-32420";
-import RPLSelfAssessmentCPC32420 from "./Customer/AdditionalForms/Plumbing/self-Assessment-plumbing-cpc-32420";
-import RPLSelfAssessmentViewer from "./Customer/AdditionalForms/Plumbing/self-Assessment-plumbing-cpc-32420";
 import RPLSelfAssessmentApp from "./Customer/AdditionalForms/Plumbing/self-Assessment-plumbing-cpc-32420";
 import RPLIntakeCPC32620RoofPlumbing from "./Customer/AdditionalForms/RoofPlumbing/rpl-Intake-CPC32620-CertificateIII-inRoofPlumbing";
+import RPLEnrolment from "./Customer/AdditionalForms/RPLEnrollment/RPLEnrollmentForm";
 
 function App() {
   return (
@@ -75,13 +74,10 @@ function App() {
           element={<EntryInterviewForm />}
         />
         <Route path="/lln-assessment" element={<LLNAssessment />} />
-        <Route
-          path="/rpl-enrollment-form"
-          element={<RPLIntakeCPC31320WallFloorTiling />}
-        />
+        <Route path="/rpl-enrollment-kit" element={<RPLEnrolment />} />
         <Route
           path="/rpl-intake-cpc-31320-certificate-3-wall-and-floor-tiling"
-          element={<RPLAssessment />}
+          element={<RPLIntakeCPC31320WallFloorTiling />}
         />
         {/* Carpentry Alpha RTO*/}
         <Route

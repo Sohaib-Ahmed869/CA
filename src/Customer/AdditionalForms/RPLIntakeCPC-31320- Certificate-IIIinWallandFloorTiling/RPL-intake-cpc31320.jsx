@@ -3,7 +3,7 @@ import { BsChevronLeft, BsChevronRight } from "react-icons/bs";
 
 const RPLIntakeCPC31320WallFloorTiling = () => {
   const [activeSection, setActiveSection] = useState(1);
-  const totalSections = 5; // Total number of sections
+  const totalSections = 6; // Total number of sections
 
   const [formData, setFormData] = useState({
     studentInitials: "",
@@ -100,6 +100,28 @@ const RPLIntakeCPC31320WallFloorTiling = () => {
       emailAddress: "",
       signature: "",
       date: "",
+      competencies: {
+        investigateBusinessOpportunities: false,
+        manageFinances: false,
+        applyBasicLevelling: false,
+        carryOutBasicDemolition: false,
+        workEffectively: false,
+        planAndOrganiseWork: false,
+        conductWorkplaceCommunication: false,
+        carryOutMeasurements: false,
+        readAndInterpretPlans: false,
+        handleWallAndFloorTilingMaterials: false,
+        useWallAndFloorTilingTools: false,
+        prepareSurfaces: false,
+        installFloorTiles: false,
+        installWallTiles: false,
+        repairWallAndFloorTiling: false,
+        installDecorativeTiling: false,
+        installMosaicTiling: false,
+        applyWaterproofing: false,
+        tileCurvedSurfaces: false,
+        applyWHSRequirements: false,
+      },
     },
     confirmationOfAssessment: {
       studentName: "",
@@ -305,6 +327,7 @@ const RPLIntakeCPC31320WallFloorTiling = () => {
               <RefereeTestimonial
                 formData={formData}
                 handleNestedInputChange={handleNestedInputChange}
+                handleNestedCheckboxChange={handleNestedCheckboxChange}
               />
             )}
 
@@ -2168,7 +2191,11 @@ const EmployerVerification = ({ formData, handleDoubleNestedInputChange }) => {
 };
 
 // Referee Testimonial Component
-const RefereeTestimonial = ({ formData, handleNestedInputChange }) => {
+const RefereeTestimonial = ({
+  formData,
+  handleNestedInputChange,
+  handleNestedCheckboxChange,
+}) => {
   const competencyList = [
     {
       id: "investigateBusinessOpportunities",
@@ -2251,13 +2278,15 @@ const RefereeTestimonial = ({ formData, handleNestedInputChange }) => {
           competency in each area.
         </p>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6">
+        {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6">
           {competencyList.map((competency) => (
             <div key={competency.id} className="flex items-center">
               <input
                 type="checkbox"
                 id={`referee-${competency.id}`}
-                checked={formData.selfAssessment.competencies[competency.id]}
+                checked={
+                  formData.refereeTestimonial.competencies[competency.id]
+                }
                 onChange={() => {}}
                 className="w-5 h-5 text-emerald-600 focus:ring-emerald-500"
               />
@@ -2269,6 +2298,457 @@ const RefereeTestimonial = ({ formData, handleNestedInputChange }) => {
               </label>
             </div>
           ))}
+        </div> */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-2">
+          <div className="flex items-center">
+            <input
+              type="checkbox"
+              id="applyWHSRequirements"
+              checked={
+                formData.refereeTestimonial.competencies.applyWHSRequirements
+              }
+              onChange={() =>
+                handleNestedCheckboxChange(
+                  "refereeTestimonial",
+                  "competencies",
+                  "applyWHSRequirements"
+                )
+              }
+              className="w-5 h-5 text-emerald-600 focus:ring-emerald-500"
+            />
+            <label
+              htmlFor="applyWHSRequirements"
+              className="ml-2 text-gray-700"
+            >
+              Apply WHS requirements, policies and procedures in the
+              construction industry
+            </label>
+          </div>
+
+          <div className="flex items-center">
+            <input
+              type="checkbox"
+              id="investigateBusinessOpportunities"
+              checked={
+                formData.refereeTestimonial.competencies
+                  .investigateBusinessOpportunities
+              }
+              onChange={() =>
+                handleNestedCheckboxChange(
+                  "refereeTestimonial",
+                  "competencies",
+                  "investigateBusinessOpportunities"
+                )
+              }
+              className="w-5 h-5 text-emerald-600 focus:ring-emerald-500"
+            />
+            <label
+              htmlFor="investigateBusinessOpportunities"
+              className="ml-2 text-gray-700"
+            >
+              Investigate business opportunities
+            </label>
+          </div>
+
+          <div className="flex items-center">
+            <input
+              type="checkbox"
+              id="manageFinances"
+              checked={formData.refereeTestimonial.competencies.manageFinances}
+              onChange={() =>
+                handleNestedCheckboxChange(
+                  "refereeTestimonial",
+                  "competencies",
+                  "manageFinances"
+                )
+              }
+              className="w-5 h-5 text-emerald-600 focus:ring-emerald-500"
+            />
+            <label htmlFor="manageFinances" className="ml-2 text-gray-700">
+              Manage finances for new business ventures
+            </label>
+          </div>
+
+          <div className="flex items-center">
+            <input
+              type="checkbox"
+              id="applyBasicLevelling"
+              checked={
+                formData.refereeTestimonial.competencies.applyBasicLevelling
+              }
+              onChange={() =>
+                handleNestedCheckboxChange(
+                  "refereeTestimonial",
+                  "competencies",
+                  "applyBasicLevelling"
+                )
+              }
+              className="w-5 h-5 text-emerald-600 focus:ring-emerald-500"
+            />
+            <label htmlFor="applyBasicLevelling" className="ml-2 text-gray-700">
+              Apply basic levelling procedures
+            </label>
+          </div>
+
+          <div className="flex items-center">
+            <input
+              type="checkbox"
+              id="carryOutBasicDemolition"
+              checked={
+                formData.refereeTestimonial.competencies.carryOutBasicDemolition
+              }
+              onChange={() =>
+                handleNestedCheckboxChange(
+                  "refereeTestimonial",
+                  "competencies",
+                  "carryOutBasicDemolition"
+                )
+              }
+              className="w-5 h-5 text-emerald-600 focus:ring-emerald-500"
+            />
+            <label
+              htmlFor="carryOutBasicDemolition"
+              className="ml-2 text-gray-700"
+            >
+              Carry out basic demolition
+            </label>
+          </div>
+
+          <div className="flex items-center">
+            <input
+              type="checkbox"
+              id="workEffectively"
+              checked={formData.refereeTestimonial.competencies.workEffectively}
+              onChange={() =>
+                handleNestedCheckboxChange(
+                  "refereeTestimonial",
+                  "competencies",
+                  "workEffectively"
+                )
+              }
+              className="w-5 h-5 text-emerald-600 focus:ring-emerald-500"
+            />
+            <label htmlFor="workEffectively" className="ml-2 text-gray-700">
+              Work effectively and sustainably in the construction industry
+            </label>
+          </div>
+
+          <div className="flex items-center">
+            <input
+              type="checkbox"
+              id="planAndOrganiseWork"
+              checked={
+                formData.refereeTestimonial.competencies.planAndOrganiseWork
+              }
+              onChange={() =>
+                handleNestedCheckboxChange(
+                  "refereeTestimonial",
+                  "competencies",
+                  "planAndOrganiseWork"
+                )
+              }
+              className="w-5 h-5 text-emerald-600 focus:ring-emerald-500"
+            />
+            <label htmlFor="planAndOrganiseWork" className="ml-2 text-gray-700">
+              Plan and organise work
+            </label>
+          </div>
+
+          <div className="flex items-center">
+            <input
+              type="checkbox"
+              id="conductWorkplaceCommunication"
+              checked={
+                formData.refereeTestimonial.competencies
+                  .conductWorkplaceCommunication
+              }
+              onChange={() =>
+                handleNestedCheckboxChange(
+                  "refereeTestimonial",
+                  "competencies",
+                  "conductWorkplaceCommunication"
+                )
+              }
+              className="w-5 h-5 text-emerald-600 focus:ring-emerald-500"
+            />
+            <label
+              htmlFor="conductWorkplaceCommunication"
+              className="ml-2 text-gray-700"
+            >
+              Conduct workplace communication
+            </label>
+          </div>
+
+          <div className="flex items-center">
+            <input
+              type="checkbox"
+              id="carryOutMeasurements"
+              checked={
+                formData.refereeTestimonial.competencies.carryOutMeasurements
+              }
+              onChange={() =>
+                handleNestedCheckboxChange(
+                  "refereeTestimonial",
+                  "competencies",
+                  "carryOutMeasurements"
+                )
+              }
+              className="w-5 h-5 text-emerald-600 focus:ring-emerald-500"
+            />
+            <label
+              htmlFor="carryOutMeasurements"
+              className="ml-2 text-gray-700"
+            >
+              Carry out measurements and calculations
+            </label>
+          </div>
+
+          <div className="flex items-center">
+            <input
+              type="checkbox"
+              id="readAndInterpretPlans"
+              checked={
+                formData.refereeTestimonial.competencies.readAndInterpretPlans
+              }
+              onChange={() =>
+                handleNestedCheckboxChange(
+                  "refereeTestimonial",
+                  "competencies",
+                  "readAndInterpretPlans"
+                )
+              }
+              className="w-5 h-5 text-emerald-600 focus:ring-emerald-500"
+            />
+            <label
+              htmlFor="readAndInterpretPlans"
+              className="ml-2 text-gray-700"
+            >
+              Read and interpret plans and specifications
+            </label>
+          </div>
+
+          <div className="flex items-center">
+            <input
+              type="checkbox"
+              id="handleWallAndFloorTilingMaterials"
+              checked={
+                formData.refereeTestimonial.competencies
+                  .handleWallAndFloorTilingMaterials
+              }
+              onChange={() =>
+                handleNestedCheckboxChange(
+                  "refereeTestimonial",
+                  "competencies",
+                  "handleWallAndFloorTilingMaterials"
+                )
+              }
+              className="w-5 h-5 text-emerald-600 focus:ring-emerald-500"
+            />
+            <label
+              htmlFor="handleWallAndFloorTilingMaterials"
+              className="ml-2 text-gray-700"
+            >
+              Handle wall and floor tiling materials
+            </label>
+          </div>
+
+          <div className="flex items-center">
+            <input
+              type="checkbox"
+              id="useWallAndFloorTilingTools"
+              checked={
+                formData.refereeTestimonial.competencies
+                  .useWallAndFloorTilingTools
+              }
+              onChange={() =>
+                handleNestedCheckboxChange(
+                  "refereeTestimonial",
+                  "competencies",
+                  "useWallAndFloorTilingTools"
+                )
+              }
+              className="w-5 h-5 text-emerald-600 focus:ring-emerald-500"
+            />
+            <label
+              htmlFor="useWallAndFloorTilingTools"
+              className="ml-2 text-gray-700"
+            >
+              Use wall and floor tiling tools and equipment
+            </label>
+          </div>
+
+          <div className="flex items-center">
+            <input
+              type="checkbox"
+              id="prepareSurfaces"
+              checked={formData.refereeTestimonial.competencies.prepareSurfaces}
+              onChange={() =>
+                handleNestedCheckboxChange(
+                  "refereeTestimonial",
+                  "competencies",
+                  "prepareSurfaces"
+                )
+              }
+              className="w-5 h-5 text-emerald-600 focus:ring-emerald-500"
+            />
+            <label htmlFor="prepareSurfaces" className="ml-2 text-gray-700">
+              Prepare surfaces for tiling application
+            </label>
+          </div>
+
+          <div className="flex items-center">
+            <input
+              type="checkbox"
+              id="installFloorTiles"
+              checked={
+                formData.refereeTestimonial.competencies.installFloorTiles
+              }
+              onChange={() =>
+                handleNestedCheckboxChange(
+                  "refereeTestimonial",
+                  "competencies",
+                  "installFloorTiles"
+                )
+              }
+              className="w-5 h-5 text-emerald-600 focus:ring-emerald-500"
+            />
+            <label htmlFor="installFloorTiles" className="ml-2 text-gray-700">
+              Install floor tiles
+            </label>
+          </div>
+
+          <div className="flex items-center">
+            <input
+              type="checkbox"
+              id="installWallTiles"
+              checked={
+                formData.refereeTestimonial.competencies.installWallTiles
+              }
+              onChange={() =>
+                handleNestedCheckboxChange(
+                  "refereeTestimonial",
+                  "competencies",
+                  "installWallTiles"
+                )
+              }
+              className="w-5 h-5 text-emerald-600 focus:ring-emerald-500"
+            />
+            <label htmlFor="installWallTiles" className="ml-2 text-gray-700">
+              Install wall tiles
+            </label>
+          </div>
+
+          <div className="flex items-center">
+            <input
+              type="checkbox"
+              id="repairWallAndFloorTiling"
+              checked={
+                formData.refereeTestimonial.competencies
+                  .repairWallAndFloorTiling
+              }
+              onChange={() =>
+                handleNestedCheckboxChange(
+                  "refereeTestimonial",
+                  "competencies",
+                  "repairWallAndFloorTiling"
+                )
+              }
+              className="w-5 h-5 text-emerald-600 focus:ring-emerald-500"
+            />
+            <label
+              htmlFor="repairWallAndFloorTiling"
+              className="ml-2 text-gray-700"
+            >
+              Repair wall and floor tiling
+            </label>
+          </div>
+
+          <div className="flex items-center">
+            <input
+              type="checkbox"
+              id="installDecorativeTiling"
+              checked={
+                formData.refereeTestimonial.competencies.installDecorativeTiling
+              }
+              onChange={() =>
+                handleNestedCheckboxChange(
+                  "refereeTestimonial",
+                  "competencies",
+                  "installDecorativeTiling"
+                )
+              }
+              className="w-5 h-5 text-emerald-600 focus:ring-emerald-500"
+            />
+            <label
+              htmlFor="installDecorativeTiling"
+              className="ml-2 text-gray-700"
+            >
+              Install decorative tiling
+            </label>
+          </div>
+
+          <div className="flex items-center">
+            <input
+              type="checkbox"
+              id="installMosaicTiling"
+              checked={
+                formData.refereeTestimonial.competencies.installMosaicTiling
+              }
+              onChange={() =>
+                handleNestedCheckboxChange(
+                  "refereeTestimonial",
+                  "competencies",
+                  "installMosaicTiling"
+                )
+              }
+              className="w-5 h-5 text-emerald-600 focus:ring-emerald-500"
+            />
+            <label htmlFor="installMosaicTiling" className="ml-2 text-gray-700">
+              Install mosaic tiling
+            </label>
+          </div>
+
+          <div className="flex items-center">
+            <input
+              type="checkbox"
+              id="applyWaterproofing"
+              checked={
+                formData.refereeTestimonial.competencies.applyWaterproofing
+              }
+              onChange={() =>
+                handleNestedCheckboxChange(
+                  "refereeTestimonial",
+                  "competencies",
+                  "applyWaterproofing"
+                )
+              }
+              className="w-5 h-5 text-emerald-600 focus:ring-emerald-500"
+            />
+            <label htmlFor="applyWaterproofing" className="ml-2 text-gray-700">
+              Apply waterproofing for wall and floor tiling
+            </label>
+          </div>
+
+          <div className="flex items-center">
+            <input
+              type="checkbox"
+              id="tileCurvedSurfaces"
+              checked={
+                formData.refereeTestimonial.competencies.tileCurvedSurfaces
+              }
+              onChange={() =>
+                handleNestedCheckboxChange(
+                  "refereeTestimonial",
+                  "competencies",
+                  "tileCurvedSurfaces"
+                )
+              }
+              className="w-5 h-5 text-emerald-600 focus:ring-emerald-500"
+            />
+            <label htmlFor="tileCurvedSurfaces" className="ml-2 text-gray-700">
+              Tile curved surfaces
+            </label>
+          </div>
         </div>
       </div>
 
