@@ -15,6 +15,7 @@ const TaskCard = ({
   allAgents,
   onSave,
   currentUser,
+  ApplicationIds,
 }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const getTagInfo = (task, currentUser, role) => {
@@ -121,6 +122,7 @@ const TaskCard = ({
         <TaskModal
           task={task}
           onSave={onSave}
+          ApplicationIds={ApplicationIds}
           onClose={() => setIsModalOpen(false)}
           isManager={isManager}
           allAgents={allAgents}

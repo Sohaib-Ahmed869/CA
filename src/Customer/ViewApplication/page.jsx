@@ -28,6 +28,8 @@ import SpinnerLoader from "../components/spinnerLoader";
 import Modal from "../components/modal";
 import applicationImage from "../../assets/applications.png";
 import DocumentModal from "../components/viewDocsModal";
+import RPLIntakeDetails from "./rplIntakeDetails";
+import { getRplIntakeData } from "../Services/rtoFormsServices";
 
 const ViewApplications = () => {
   const [selectedForm, setSelectedForm] = useState("initial"); // Default form
@@ -45,6 +47,7 @@ const ViewApplications = () => {
   const navigate = useNavigate();
   const [DocumentModalOpen, setDocumentModalOpen] = useState(false);
   const [currentDoc, setCurrentDoc] = useState("");
+  const [rplIntakeData, setRplIntakeData] = useState([]);
 
   // Function to open modal with selected document
   const openModal = (doc) => {
@@ -118,7 +121,15 @@ const ViewApplications = () => {
       setSubmissionLoading(false);
     }
   };
-
+  useEffect(() => {
+    const getRplData = async () => {
+      console.log(application);
+      const response = await getRplIntakeData(application.id);
+      setRplIntakeData(response.data);
+      // console.log(response.data);
+    };
+    getRplData();
+  }, [application]);
   const handleViewDocument = (documentUrl) => {
     if (documentUrl) {
       window.open(documentUrl, "_blank");
@@ -855,6 +866,18 @@ const ViewApplications = () => {
                 >
                   Documents
                 </button>
+                {application?.rplIntakeSubmitted && (
+                  <button
+                    onClick={() => setSelectedForm("rplIntake")}
+                    className={`flex-1 py-4 px-4 text-center font-medium text-sm transition-all ${
+                      selectedForm === "rplIntake"
+                        ? "text-emerald-600 border-b-2 border-emerald-600"
+                        : "text-gray-500 hover:text-gray-700"
+                    }`}
+                  >
+                    RPL Intake
+                  </button>
+                )}
               </div>
             </div>
 
@@ -863,6 +886,9 @@ const ViewApplications = () => {
               {selectedForm === "initial" && renderInitialForm()}
               {selectedForm === "student" && renderStudentForm()}
               {selectedForm === "documents" && renderDocumentsForm()}
+              {selectedForm === "rplIntake" && (
+                <RPLIntakeDetails rplIntakeData={rplIntakeData} />
+              )}
             </div>
           </>
         ) : (

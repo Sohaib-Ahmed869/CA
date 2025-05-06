@@ -40,6 +40,12 @@ import RPLSelfAssessmentApp from "./Customer/AdditionalForms/Plumbing/self-Asses
 import RPLIntakeCPC32620RoofPlumbing from "./Customer/AdditionalForms/RoofPlumbing/rpl-Intake-CPC32620-CertificateIII-inRoofPlumbing";
 import RPLEnrolment from "./Customer/AdditionalForms/RPLEnrollment/RPLEnrollmentForm";
 import RPLApplicationFormCPC31020 from "./Customer/AdditionalForms/solidPlastering/rpl-application-form-cpc-31020";
+import RPLIntakeCPC31020 from "./Customer/AdditionalForms/solidPlastering/RPLIntakeCPC31020";
+import RPLIntakeCPC40120 from "./Customer/AdditionalForms/BuildingAndConstruction/RPLIntakeCPC40120";
+import RPLApplicationFormCPC40120 from "./Customer/AdditionalForms/BuildingAndConstruction/RPLApplicationFormCPC40120";
+import RPLIntakeForm from "./Customer/AdditionalForms/RPLIntakeTemplate/RPLIntakeForm";
+import { RPLIntakeData } from "./Customer/AdditionalForms/CompetenciesData";
+import ThirdPartyEvidenceKit from "./Customer/AdditionalForms/Carpentry/thirdPartyEvidenceKit";
 
 function App() {
   return (
@@ -75,7 +81,10 @@ function App() {
           element={<EntryInterviewForm />}
         />
         <Route path="/lln-assessment" element={<LLNAssessment />} />
-        <Route path="/rpl-enrollment-kit" element={<RPLEnrolment />} />
+        <Route
+          path="/rpl-enrollment-kit/:applicationId"
+          element={<RPLEnrolment />}
+        />
         <Route
           path="/rpl-intake-cpc-31320-certificate-3-wall-and-floor-tiling"
           element={<RPLIntakeCPC31320WallFloorTiling />}
@@ -94,15 +103,25 @@ function App() {
           path="/rpl-assessment-cpc-30220-certificate-3-carpentry"
           element={<RPLAssessmentCPC30220 />}
         />
+        <Route
+          path="/rpl-evidence-kit-carpentry"
+          element={<ThirdPartyEvidenceKit />}
+        />
         {/* Construction Concreting */}
         <Route
           path="/rpl-intake-cpc-30320-certificate-3-concreting"
           element={<RPLIntakeCPC30320Concreting />}
         />
         {/* Construction WaterProofing */}
+
         <Route
-          path="/rpl-intake-cpc-31420-certificate-3-waterProofing"
-          element={<RPLIntakeCPC31420WaterProofing />}
+          path="/rpl-intake-cpc-31420-certificate-3-waterProofing/:applicationId"
+          element={
+            <RPLIntakeForm
+              qualificationName={RPLIntakeData.CPC31420.qualification}
+              competencies={RPLIntakeData.CPC31420.competencies}
+            />
+          }
         />
         {/* Plumbing */}
         <Route
@@ -122,6 +141,49 @@ function App() {
         <Route
           path="/rpl-application-form-cpc-31020-certificate-3-solidPlastering"
           element={<RPLApplicationFormCPC31020 />}
+        />
+        <Route
+          path="/rpl-intake-cpc-31020-certificate-3-solidPlastering"
+          element={<RPLIntakeCPC31020 />}
+        />
+        {/*Building and construction */}
+        <Route
+          path="/rpl-intake-cpc-40120-certificate-IV-building-and-construction"
+          element={<RPLIntakeCPC40120 />}
+        />
+        <Route
+          path="/rpl-application-form-cpc-41020-certificate-IV-building-and-construction"
+          element={<RPLApplicationFormCPC40120 />}
+        />
+        {/*  Plumbing and Services */}
+        <Route
+          path="/rpl-intake-cpc-40920-certificate-IV-Plumbing-and-Services"
+          element={
+            <RPLIntakeForm
+              qualificationName={RPLIntakeData.CPC40920.qualification}
+              competencies={RPLIntakeData.CPC40920.competencies}
+            />
+          }
+        />
+        {/* Painting and Decorating */}
+        <Route
+          path="/rpl-intake-cpc-30620-certificate-III-Painting-and-Decorating"
+          element={
+            <RPLIntakeForm
+              qualificationName={RPLIntakeData.CPC30620.qualification}
+              competencies={RPLIntakeData.CPC30620.competencies}
+            />
+          }
+        />
+        {/* "CPC50220-Diploma of Building and Construction (Building) */}
+        <Route
+          path="/rpl-intake-cpc-50220-Diploma-of-Building-and-Construction-(Building)"
+          element={
+            <RPLIntakeForm
+              qualificationName={RPLIntakeData.CPC50220.qualification}
+              competencies={RPLIntakeData.CPC50220.competencies}
+            />
+          }
         />
         {/* Frontier RTO */}
         <Route

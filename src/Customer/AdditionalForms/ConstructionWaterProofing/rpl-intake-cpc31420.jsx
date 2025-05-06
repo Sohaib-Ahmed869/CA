@@ -3,7 +3,7 @@ import { BsChevronLeft, BsChevronRight } from "react-icons/bs";
 
 const RPLIntakeCPC31420WaterProofing = () => {
   const [activeSection, setActiveSection] = useState(1);
-  const totalSections = 6; // Total number of sections
+  const totalSections = 5; // Total number of sections
 
   const [formData, setFormData] = useState({
     studentInitials: "",
@@ -23,15 +23,15 @@ const RPLIntakeCPC31420WaterProofing = () => {
       mobile: "",
       dob: "",
     },
-    evidence: {
-      photos: false,
-      payslips: false,
-      certificates: false,
-      workSamples: false,
-      testimonials: false,
-      employerVerification: false,
-      selfAssessment: false,
-    },
+    // evidence: {
+    //   photos: false,
+    //   payslips: false,
+    //   certificates: false,
+    //   workSamples: false,
+    //   testimonials: false,
+    //   employerVerification: false,
+    //   selfAssessment: false,
+    // },
     selfAssessment: {
       workExperience: "",
       keySkills: "",
@@ -258,15 +258,15 @@ const RPLIntakeCPC31420WaterProofing = () => {
               />
             )}
             {/* Evidence Collection */}
-            {activeSection === 3 && (
+            {/* {activeSection === 3 && (
               <EvidenceCollection
                 formData={formData}
                 handleCheckboxChange={handleCheckboxChange}
               />
-            )}
+            )} */}
 
             {/* Self Assessment */}
-            {activeSection === 4 && (
+            {activeSection === 3 && (
               <SelfAssessment
                 formData={formData}
                 handleInputChange={handleInputChange}
@@ -276,7 +276,7 @@ const RPLIntakeCPC31420WaterProofing = () => {
             )}
 
             {/* Employer Verification */}
-            {activeSection === 5 && (
+            {activeSection === 4 && (
               <EmployerVerification
                 formData={formData}
                 handleDoubleNestedInputChange={handleDoubleNestedInputChange}
@@ -284,7 +284,7 @@ const RPLIntakeCPC31420WaterProofing = () => {
             )}
 
             {/* Referee Testimonial */}
-            {activeSection === 6 && (
+            {activeSection === 5 && (
               <RefereeTestimonial
                 formData={formData}
                 handleNestedInputChange={handleNestedInputChange}
@@ -808,7 +808,8 @@ const SelfAssessment = ({
               className="block text-gray-700 font-medium mb-2"
             >
               2. Describe your work experience and how it relates to the units
-              of competency in this course.
+              of competency in this course (briefly outline your industry
+              experience).
             </label>
             <textarea
               id="workExperience"

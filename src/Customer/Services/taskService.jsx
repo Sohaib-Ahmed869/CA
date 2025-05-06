@@ -14,7 +14,29 @@ export const createTask = async ({ title, agentName }) => {
     throw error;
   }
 };
-
+export const getApplicationById = async (applicationId) => {
+  try {
+    const response = await axios.get(
+      `${URL}/api/tasks/getApplicationDetails/${applicationId}`
+    );
+    // Return the response data directly since that's how your backend formats it
+    return response.data;
+  } catch (error) {
+    return error.response.data;
+  }
+};
+export const fetchApplicationIDs = async () => {
+  try {
+    const response = await axios.get(`${URL}/api/tasks/getAppIDs`);
+    return response.data;
+  } catch (error) {
+    console.error(
+      "Fetch Application IDs Error:",
+      error.response?.data || error.message
+    );
+    throw error;
+  }
+};
 // Update task details
 export const updateTaskDetails = async ({
   taskId,

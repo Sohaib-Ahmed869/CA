@@ -13,6 +13,7 @@ const Column = ({
   isManager,
   agents,
   onSave,
+  ApplicationIds,
 }) => {
   const [newTaskTitle, setNewTaskTitle] = useState("");
   const [showAddTaskInput, setShowAddTaskInput] = useState(false);
@@ -57,6 +58,7 @@ const Column = ({
             {tasks.map((task, index) => (
               <TaskCard
                 key={task.id}
+                ApplicationIds={ApplicationIds}
                 task={task}
                 onSave={onSave}
                 index={index}

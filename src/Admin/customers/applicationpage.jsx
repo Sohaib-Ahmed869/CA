@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { BiCheckCircle } from "react-icons/bi";
-import { FaCheck, FaCheckCircle, FaTimesCircle } from "react-icons/fa";
+import { FaCheck, FaCheckCircle, FaFile, FaTimesCircle } from "react-icons/fa";
 import { BsEye } from "react-icons/bs";
 import { BiPlus } from "react-icons/bi";
 import { FaArrowLeft } from "react-icons/fa";
@@ -70,17 +70,17 @@ const Application = ({
   const [viewIntakeForm, setViewIntakeForm] = useState(false);
   const [viewDocuments, setViewDocuments] = useState(false);
   const [documentLinks, setDocumentLinks] = useState([]);
-  const [color, setColor] = useState(application.color || "");
+  const [color, setColor] = useState(application?.color || "");
   const [isColorModalOpen, setIsColorModalOpen] = useState(false);
   const [isAddingNote, setIsAddingNote] = useState(false);
-  const [note, setNote] = useState(application.note || "");
+  const [note, setNote] = useState(application?.note || "");
   const [isUpdateEmailOpen, setIsUpdateEmailOpen] = useState(false);
   const [isUpdatePhoneOpen, setIsUpdatePhoneOpen] = useState(false);
   const [callAttempts, setCallAttempts] = useState(
-    application.contactAttempts || 1
+    application?.contactAttempts || 1
   );
   const [contactStatus, setContactStatus] = useState(
-    application.contactStatus || ""
+    application?.contactStatus || ""
   );
   const [isCallStatusModalOpen, setIsCallStatusModalOpen] = useState(false);
   const [isContactStatusModalOpen, setIsContactStatusModalOpen] =
@@ -101,10 +101,10 @@ const Application = ({
   const [discount, setDiscount] = useState("");
   // User information states
   const [updatedPhone, setUpdatedPhone] = useState(
-    application.user?.phone || ""
+    application?.user?.phone || ""
   );
   const [updatedEmail, setUpdatedEmail] = useState(
-    application.user?.email || ""
+    application?.user?.email || ""
   );
 
   // Admin assignment states
@@ -118,7 +118,7 @@ const Application = ({
     "Wania",
   ]);
   const [selectedAdmin, setSelectedAdmin] = useState(
-    application.assignedAdmin || ""
+    application?.assignedAdmin || ""
   );
   const [showDeadlineModal, setShowDeadlineModal] = useState(null);
   const [showUpdateDebitModal, setShowUpdateDebitModal] = useState(null);
@@ -339,7 +339,39 @@ const Application = ({
       setApplicationToDelete(null);
     }
   };
+  const handleRequestRtoDocuments = async () => {
+    if (application.rtoDocumentsRequested === true) {
+      toast.error("Rto Documents already requested");
+      return;
+    }
+    setSubmissionLoading(true);
 
+    try {
+      // Extract industry and qualification from application data
+      // This assumes these fields are available in the application or related forms
+      const industry = application.isf?.industry || "";
+      const qualification = application.isf?.lookingForWhatQualification || "";
+      const email = application.user.email;
+      // Make PATCH request to backend
+      const response = await axios.patch(
+        `${URL}/api/admin/request-rto-documents`,
+        {
+          appId: application.applicationId,
+          applicationId: application.id,
+          industry,
+          qualification,
+          email,
+        }
+      );
+
+      toast.success("Rto Documents Requested Successfully ");
+    } catch (error) {
+      console.error("Error requesting RTO documents:", error);
+      toast.error("Requesting Rto Documents Failed");
+    } finally {
+      setSubmissionLoading(false);
+    }
+  };
   const [payment2Deadline, setPayment2Deadline] = useState("");
   const [payment2DeadlineTime, setPayment2DeadlineTime] = useState("");
   const [hour, setHour] = useState("06");
@@ -781,10 +813,10 @@ const Application = ({
               </button>
               <div>
                 <h1 className="text-2xl font-bold text-white flex items-center">
-                  Application #{application.applicationId || application.id}
-                  {application.color && (
+                  Application #{application?.applicationId || application?.id}
+                  {application?.color && (
                     <span className="ml-2 text-sm px-3 py-1 rounded-full bg-white text-emerald-800">
-                      {getColorLabel(application.color)}
+                      {getColorLabel(application?.color)}
                     </span>
                   )}
                 </h1>
@@ -836,6 +868,13 @@ const Application = ({
               >
                 <FaArchive className="mr-1.5" />
                 <span className="hidden sm:inline">Archive</span>
+              </button>
+              <button
+                className="flex items-center px-3 py-1.5 bg-white bg-opacity-20 rounded-md text-white hover:bg-opacity-30 transition-all"
+                onClick={handleRequestRtoDocuments}
+              >
+                <FaFile className="mr-1.5" />
+                <span className="hidden sm:inline">Request Rto Documents</span>
               </button>
             </div>
           </div>

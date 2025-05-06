@@ -448,7 +448,7 @@ const AdminSidebar = () => {
           </div>
 
           <div className="px-4 mb-8">
-            <ul className="mb-6">
+            {/* <ul className="mb-6">
               {localStorage.getItem("type") === "agent" && (
                 <li className=" rounded-xl my-1">
                   <AgentTimer
@@ -457,7 +457,7 @@ const AdminSidebar = () => {
                   />
                 </li>
               )}
-            </ul>
+            </ul> */}
             <h2 className="text-emerald-100 text-xs uppercase tracking-wider mb-3 ml-2">
               Management
             </h2>
@@ -510,7 +510,7 @@ const AdminSidebar = () => {
                   onClick={() => setActive("TaskManagement")}
                 />
               )}
-              {localStorage.getItem("type") !== "agent" ? (
+              {/* {localStorage.getItem("type") !== "agent" ? (
                 <MenuItem
                   icon={<FaClock className="text-xl" />}
                   label="Agent Time Logs"
@@ -521,7 +521,7 @@ const AdminSidebar = () => {
                   }}
                   hasBorder={false}
                 />
-              ) : null}
+              ) : null} */}
             </ul>
           </div>
 

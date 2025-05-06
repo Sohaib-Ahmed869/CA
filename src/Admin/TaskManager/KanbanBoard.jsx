@@ -18,6 +18,7 @@ const KanbanBoard = ({
   agents,
   setLoading,
   loading,
+  ApplicationIds,
 }) => {
   const [selectedAgent, setSelectedAgent] = useState("all");
   const [tasks, setTasks] = useState([]);
@@ -171,6 +172,7 @@ const KanbanBoard = ({
           )}
           <div className="flex gap-4 mt-4">
             <Column
+              ApplicationIds={ApplicationIds}
               title="Todo"
               tasks={getTasksByStatus("todo")}
               status="todo"
@@ -189,6 +191,7 @@ const KanbanBoard = ({
               isManager={isManager}
               agents={agents}
               currentUser={currentUser}
+              ApplicationIds={ApplicationIds}
             />
 
             <Column
@@ -198,6 +201,7 @@ const KanbanBoard = ({
               status="completed"
               agents={agents}
               isManager={isManager}
+              ApplicationIds={ApplicationIds}
               currentUser={currentUser}
             />
           </div>

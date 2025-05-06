@@ -6,12 +6,23 @@ import { HiOutlineBadgeCheck } from "react-icons/hi";
 import { MdPayment } from "react-icons/md";
 import { getAgents } from "../../Customer/Services/adminServices";
 import SpinnerLoader from "../../Customer/components/spinnerLoader";
+import { fetchApplicationIDs } from "../../Customer/Services/taskService";
 
 const TaskManagement = () => {
   const [agents, setAgents] = useState([]);
   const [isManager, setIsManager] = useState(false);
   const [currentUser, setCurrentUser] = useState("");
   const [loading, setLoading] = useState(false);
+  const [ApplicationIds, setApplicationIds] = useState([]);
+  async function loadApplicationIds() {
+    try {
+      const ids = await fetchApplicationIDs(); // Wait for the Promise to resolve
+      setApplicationIds(ids); // Now you have the actual array of IDs
+      console.log(ids); // This will log the array: ["APP3745", "APP4472", etc.]
+    } catch (error) {
+      console.error("Failed to fetch application IDs:", error);
+    }
+  }
   useEffect(() => {
     setLoading(true);
     const userType = localStorage.getItem("type");
@@ -28,6 +39,7 @@ const TaskManagement = () => {
       setAgents(agents);
     };
     fetchData();
+    loadApplicationIds();
   }, []);
   return (
     <div>
@@ -108,6 +120,7 @@ const TaskManagement = () => {
           currentUser={currentUser}
           setLoading={setLoading}
           loading={loading}
+          ApplicationIds={ApplicationIds}
         />
       </div>
     </div>
