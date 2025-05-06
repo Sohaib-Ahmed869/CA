@@ -77,7 +77,7 @@ function App() {
         {/* Additional form routes */}
         <Route path="/cibt-enrollment-form" element={<EnrollmentForm />} />
         <Route
-          path="/cibt-entry-interview-form"
+          path="/cibt-entry-interview-form" 
           element={<EntryInterviewForm />}
         />
         <Route path="/lln-assessment" element={<LLNAssessment />} />
