@@ -144,9 +144,7 @@ const TimerLogsTable = () => {
                     <th className="px-6 py-6 text-left text-xs font-bold text-white uppercase tracking-wider">
                       Email
                     </th>
-                    <th className="px-6 py-6 text-left text-xs font-bold text-white uppercase tracking-wider">
-                      Last Start Time
-                    </th>
+                   
                     <th className="px-6 py-6 text-left text-xs font-bold text-white uppercase tracking-wider">
                       Status
                     </th>
@@ -174,9 +172,7 @@ const TimerLogsTable = () => {
                       <td className="px-6 py-4 border-b border-gray-200">
                         {log.agentEmail}
                       </td>
-                      <td className="px-6 py-4 border-b border-gray-200">
-                        {new Date(log.lastStartTime).toLocaleString()}
-                      </td>
+                     
                       <td className="px-6 py-4 border-b border-gray-200">
                         <span
                           className={`px-2 py-2 rounded ${
