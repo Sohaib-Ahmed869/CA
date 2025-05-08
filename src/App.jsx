@@ -1,7 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
 import CustomerDashboard from "./Customer/components/options";
-import ScreeningForm from "./Customer/inspection";
+import ScreeningForm from "./Customer/inspection"; 
 import ScreeningForm2 from "./Customer/newApplication";
 import ExistingApplications from "./Customer/existingApplications/page";
 import StudentIntakeForm from "./Customer/applicationSteps/studentForm/studentForm";
