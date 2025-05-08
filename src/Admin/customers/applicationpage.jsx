@@ -366,7 +366,7 @@ const Application = ({
       setSubmissionLoading(true);
       const result = await generateRPLIntakeForm(
         application.id,
-        rplIntakeData.formData
+        EnrollmentData.formData
       );
       if (result.success) {
         console.log("Form generated successfully:", result.fileUrl);
