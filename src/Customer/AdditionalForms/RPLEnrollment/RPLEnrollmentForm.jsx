@@ -5,6 +5,7 @@ import { BsChevronLeft, BsChevronRight } from "react-icons/bs";
 import EducationUnemploymentChart from "./llnAssessmentChart";
 import SpinnerLoader from "../../components/spinnerLoader";
 import { submitEnrollmentForm } from "../../Services/rtoFormsServices";
+import { useNavigate } from "react-router-dom";
 // import logo from "../../../assets/alpha-training-logo.png";
 
 const RPLEnrolment = () => {
@@ -14,6 +15,7 @@ const RPLEnrolment = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState(null);
   const [submitSuccess, setSubmitSuccess] = useState(false);
+  const navigate = useNavigate();
   useEffect(() => {
     const idFromUrl = window.location.pathname.split("/")[2];
     setApplicationId(idFromUrl);

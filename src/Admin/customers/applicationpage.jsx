@@ -52,6 +52,13 @@ import { getRtos } from "../../Customer/Services/customerApplication";
 import { SendApplicationToRto } from "../../Customer/Services/rtoservices";
 import ChangeQualification from "./changeQualification";
 import axios from "axios";
+import {
+  generateRPLIntakeForm,
+  getEnrollmentKitData,
+  getRplIntakeData,
+} from "../../Customer/Services/rtoFormsServices";
+import RPLIntakeDetails from "../../Customer/ViewApplication/rplIntakeDetails";
+import EnrollmentDetails from "../../Customer/ViewApplication/RplEnrollmentKitDetails";
 
 const Application = ({
   application,
@@ -64,6 +71,21 @@ const Application = ({
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
+
+  const [rplIntakeData, setRplIntakeData] = useState([]);
+  const [EnrollmentData, setEnrollmentData] = useState([]);
+  const [activeRtoDoc, setActiveRtoDoc] = useState("");
+  useEffect(() => {
+    const getRplData = async () => {
+      console.log(application);
+      const response = await getRplIntakeData(application.id);
+      const response2 = await getEnrollmentKitData(application.id);
+      setRplIntakeData(response.data);
+      setEnrollmentData(response2.data);
+      // console.log(response.data);
+    };
+    getRplData();
+  }, [application]);
   const [isApplicationCompleted, setIsApplicationCompleted] = useState(false);
   const [submissionLoading, setSubmissionLoading] = useState(false);
   const [activeView, setActiveView] = useState("overview");
@@ -337,6 +359,24 @@ const Application = ({
       setSubmissionLoading(false);
       setShowDeleteModal(false);
       setApplicationToDelete(null);
+    }
+  };
+  const handleGenerateForm = async () => {
+    try {
+      setSubmissionLoading(true);
+      const result = await generateRPLIntakeForm(
+        application.id,
+        rplIntakeData.formData
+      );
+      if (result.success) {
+        console.log("Form generated successfully:", result.fileUrl);
+        // Update UI or notify user
+      }
+    } catch (error) {
+      console.error("Failed to generate form:", error);
+      // Show error message to user
+    } finally {
+      setSubmissionLoading(false);
     }
   };
   const handleRequestRtoDocuments = async () => {
@@ -876,6 +916,13 @@ const Application = ({
                 <FaFile className="mr-1.5" />
                 <span className="hidden sm:inline">Request Rto Documents</span>
               </button>
+              <button
+                className="flex items-center px-3 py-1.5 bg-white bg-opacity-20 rounded-md text-white hover:bg-opacity-30 transition-all"
+                onClick={handleGenerateForm}
+              >
+                <FaFile className="mr-1.5" />
+                <span className="hidden sm:inline">Generate RTO Documents</span>
+              </button>
             </div>
           </div>
 
@@ -1024,13 +1071,87 @@ const Application = ({
                   />
                   <span className="font-medium">Documents</span>
                 </button>
+                {(application.rplIntakeSubmitted ||
+                  application.enrolmentFormSubmitted) && (
+                  <button
+                    onClick={() => {
+                      setActiveView("rtoDocs");
+                      // onClickViewDocuments();
+                    }}
+                    className={`w-full text-left px-6 py-4 flex items-center ${
+                      activeView === "rtoDocs"
+                        ? "bg-emerald-50 text-emerald-700"
+                        : "text-gray-700 hover:bg-gray-50"
+                    }`}
+                  >
+                    <BiUpload
+                      className={`mr-3 text-xl ${
+                        activeView === "rtoDocs"
+                          ? "text-emerald-600"
+                          : "text-gray-500"
+                      }`}
+                    />
+                    <span className="font-medium">RTO Documents</span>
+                  </button>
+                )}
               </div>
             </div>
           </div>
 
           {/* Right content area */}
           <div className="md:w-3/4">
+            {activeView == "rtoDocs" && (
+              <div className="w-full">
+                {/* Toggle Buttons */}
+                <div className="bg-white rounded-xl shadow-md overflow-hidden mb-6">
+                  <div className="border-b border-gray-200">
+                    <div className="flex overflow-x-auto">
+                      {application.rplIntakeSubmitted && (
+                        <button
+                          onClick={() => setActiveRtoDoc("rplIntake")}
+                          className={`px-6 py-3 text-md font-medium  whitespace-nowrap transition-all duration-200 ${
+                            activeRtoDoc === "rplIntake"
+                              ? "border-b-2 border-emerald-600 text-emerald-600"
+                              : "text-gray-500 hover:text-gray-700"
+                          }`}
+                        >
+                          RPL Intake
+                        </button>
+                      )}
+                      {application.enrolmentFormSubmitted && (
+                        <button
+                          onClick={() => setActiveRtoDoc("enrollment")}
+                          className={`px-6 py-3 text-md font-medium whitespace-nowrap transition-all duration-200 ${
+                            activeRtoDoc === "enrollment"
+                              ? "border-b-2 border-emerald-600 text-emerald-600"
+                              : "text-gray-500 hover:text-gray-700"
+                          }`}
+                        >
+                          Enrollment
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Component Display */}
+                <div className="mt-4">
+                  {activeRtoDoc === "rplIntake" && (
+                    <div>
+                      <RPLIntakeDetails rplIntakeData={rplIntakeData} />
+                    </div>
+                  )}
+
+                  {activeRtoDoc === "enrollment" && (
+                    <div>
+                      <EnrollmentDetails enrollmentData={EnrollmentData} />
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
             {/* Overview View */}
+
             {activeView === "overview" && (
               <div className="bg-white rounded-xl shadow-md overflow-hidden">
                 <div className="p-6">

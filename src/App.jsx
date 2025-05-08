@@ -46,11 +46,35 @@ import RPLApplicationFormCPC40120 from "./Customer/AdditionalForms/BuildingAndCo
 import RPLIntakeForm from "./Customer/AdditionalForms/RPLIntakeTemplate/RPLIntakeForm";
 import { RPLIntakeData } from "./Customer/AdditionalForms/CompetenciesData";
 import ThirdPartyEvidenceKit from "./Customer/AdditionalForms/Carpentry/thirdPartyEvidenceKit";
+import RPLApplicationFormCPC30620 from "./Customer/AdditionalForms/BilalForms/RPLApplicationFormCPC30620";
+import RPLApplicationFormCPC40920 from "./Customer/AdditionalForms/MaryamForms/form2";
+import RPLThirdPartyCPC40920 from "./Customer/AdditionalForms/MaryamForms/form5";
+import RPLSelfAssessmentCPC40920 from "./Customer/AdditionalForms/BilalForms/RPLSelfAssessmentCPC40920";
+import ThirdPartyEvidenceKitA from "./Customer/AdditionalForms/BilalForms/ThirdPartyEvidenceKit";
+import RPLAssessmentCPC30220A from "./Customer/AdditionalForms/MaryamForms/form4";
+import FORM4 from "./Customer/AdditionalForms/MaryamForms/form4";
+import DocumentModal from "./Customer/components/viewDocsModal";
 
 function App() {
   return (
     <Router>
       <Routes>
+        {/* Test Bilal Forms */}
+        <Route path="/bilal-form" element={<RPLSelfAssessmentCPC40920 />} />
+        <Route path="/maryam-form" element={<FORM4 />} />
+        <Route
+          path="/view-doc"
+          element={
+            <DocumentModal
+              isOpen={true}
+              docLink={
+                "https://firebasestorage.googleapis.com/v0/b/testca-e3e5e.firebasestorage.app/o/qat7MrFzrpTnQo0oYs0ZV7JsqWu2%2Frpl_intake_form_1gZAvZ4sATfwRNoI184L.pdf?alt=media&token=c816e79d-74ab-4160-806c-cad327d9a102"
+              }
+            />
+          }
+        />
+
+        {/* end */}
         <Route path="/login" element={<Login />} />
         <Route path="/" element={<CustomerDashboard />} />
         <Route path="/signup" element={<CustomerDashboardSignup />} />
@@ -77,7 +101,7 @@ function App() {
         {/* Additional form routes */}
         <Route path="/cibt-enrollment-form" element={<EnrollmentForm />} />
         <Route
-          path="/cibt-entry-interview-form" 
+          path="/cibt-entry-interview-form"
           element={<EntryInterviewForm />}
         />
         <Route path="/lln-assessment" element={<LLNAssessment />} />

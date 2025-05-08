@@ -86,5 +86,34 @@ export const getRplIntakeData = async (applicationId) => {
     );
   }
 };
+export const getEnrollmentKitData = async (applicationId) => {
+  try {
+    const response = await axios.get(
+      `${URL}/api/form/rpl-enrollment-kit/${applicationId}`
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching RPL intake data:", error);
+    return (
+      error.response?.data || {
+        error: true,
+        message: "Failed to fetch RPL intake data",
+      }
+    );
+  }
+};
 
+export const generateRPLIntakeForm = async (applicationId, formData) => {
+  try {
+    const response = await axios.post(
+      `${URL}/api/form/generate-rpl-intake/${applicationId}`,
+      { formData }
+    );
+
+    return response.data;
+  } catch (error) {
+    console.error("Error generating RPL Intake form:", error);
+    throw error;
+  }
+};
 export default submitRPLIntakeForm;

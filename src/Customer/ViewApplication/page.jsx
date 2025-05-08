@@ -29,7 +29,11 @@ import Modal from "../components/modal";
 import applicationImage from "../../assets/applications.png";
 import DocumentModal from "../components/viewDocsModal";
 import RPLIntakeDetails from "./rplIntakeDetails";
-import { getRplIntakeData } from "../Services/rtoFormsServices";
+import {
+  getEnrollmentKitData,
+  getRplIntakeData,
+} from "../Services/rtoFormsServices";
+import EnrollmentDetails from "./RplEnrollmentKitDetails";
 
 const ViewApplications = () => {
   const [selectedForm, setSelectedForm] = useState("initial"); // Default form
@@ -48,7 +52,7 @@ const ViewApplications = () => {
   const [DocumentModalOpen, setDocumentModalOpen] = useState(false);
   const [currentDoc, setCurrentDoc] = useState("");
   const [rplIntakeData, setRplIntakeData] = useState([]);
-
+  const [EnrollmentData, setEnrollmentData] = useState([]);
   // Function to open modal with selected document
   const openModal = (doc) => {
     setCurrentDoc(doc); // Directly set the file URL
@@ -126,6 +130,15 @@ const ViewApplications = () => {
       console.log(application);
       const response = await getRplIntakeData(application.id);
       setRplIntakeData(response.data);
+      // console.log(response.data);
+    };
+    getRplData();
+  }, [application]);
+  useEffect(() => {
+    const getRplData = async () => {
+      console.log(application);
+      const response = await getEnrollmentKitData(application.id);
+      setEnrollmentData(response.data);
       // console.log(response.data);
     };
     getRplData();
@@ -878,6 +891,18 @@ const ViewApplications = () => {
                     RPL Intake
                   </button>
                 )}
+                {application?.enrolmentFormSubmitted && (
+                  <button
+                    onClick={() => setSelectedForm("Enrollment")}
+                    className={`flex-1 py-4 px-4 text-center font-medium text-sm transition-all ${
+                      selectedForm === "Enrollment"
+                        ? "text-emerald-600 border-b-2 border-emerald-600"
+                        : "text-gray-500 hover:text-gray-700"
+                    }`}
+                  >
+                    RPL Enrollment
+                  </button>
+                )}
               </div>
             </div>
 
@@ -888,6 +913,9 @@ const ViewApplications = () => {
               {selectedForm === "documents" && renderDocumentsForm()}
               {selectedForm === "rplIntake" && (
                 <RPLIntakeDetails rplIntakeData={rplIntakeData} />
+              )}
+              {selectedForm === "Enrollment" && (
+                <EnrollmentDetails enrollmentData={EnrollmentData} />
               )}
             </div>
           </>

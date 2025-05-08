@@ -28,8 +28,12 @@ import SpinnerLoader from "../../Customer/components/spinnerLoader";
 import Modal from "../../Customer/components/modal";
 import applicationImage from "../../assets/applications.png";
 import DocumentModal from "../../Customer/components/viewDocsModal";
-import { getRplIntakeData } from "../../Customer/Services/rtoFormsServices";
+import {
+  getEnrollmentKitData,
+  getRplIntakeData,
+} from "../../Customer/Services/rtoFormsServices";
 import RPLIntakeDetails from "../../Customer/ViewApplication/rplIntakeDetails";
+import EnrollmentDetails from "../../Customer/ViewApplication/RplEnrollmentKitDetails";
 
 const ViewApplications = ({
   userId: propUserId,
@@ -50,6 +54,7 @@ const ViewApplications = ({
   const menuRef = useRef(null);
   const navigate = useNavigate();
   const [rplIntakeData, setRplIntakeData] = useState([]);
+  const [EnrollmentData, setEnrollmentData] = useState([]);
 
   // Use either props or params
   const effectiveUserId = propUserId || paramUserId;
@@ -58,10 +63,15 @@ const ViewApplications = ({
   const [currentDoc, setCurrentDoc] = useState("");
   useEffect(() => {
     const getRplData = async () => {
+      setSubmissionLoading(true);
       console.log(application);
       const response = await getRplIntakeData(application.id);
+      const response2 = await getEnrollmentKitData(application.id);
+      setEnrollmentData(response2.data);
       setRplIntakeData(response.data);
       console.log(response.data);
+      console.log(response2.data);
+      setSubmissionLoading(false);
     };
     getRplData();
   }, [application]);
@@ -734,6 +744,18 @@ const ViewApplications = ({
                     RPL Intake
                   </button>
                 )}
+                {application?.enrolmentFormSubmitted && (
+                  <button
+                    onClick={() => setSelectedForm("Enrollment")}
+                    className={`flex-1 py-4 px-4 text-center font-medium text-sm transition-all ${
+                      selectedForm === "Enrollment"
+                        ? "text-emerald-600 border-b-2 border-emerald-600"
+                        : "text-gray-500 hover:text-gray-700"
+                    }`}
+                  >
+                    RPL Enrollment
+                  </button>
+                )}
               </div>
             </div>
 
@@ -744,6 +766,9 @@ const ViewApplications = ({
               {selectedForm === "documents" && renderDocumentsForm()}
               {selectedForm === "rplIntake" && (
                 <RPLIntakeDetails rplIntakeData={rplIntakeData} />
+              )}
+              {selectedForm === "Enrollment" && (
+                <EnrollmentDetails enrollmentData={EnrollmentData} />
               )}
             </div>
           </>
