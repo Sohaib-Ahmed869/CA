@@ -3,6 +3,7 @@ import { BsChevronLeft, BsChevronRight } from "react-icons/bs";
 import { useNavigate } from "react-router-dom";
 import submitRPLIntakeForm from "../../Services/rtoFormsServices";
 import SpinnerLoader from "../../components/spinnerLoader";
+import ChatbotComponent from "../../Services/ChatbotComponent";
 
 // List of competencies for CPC31020 Certificate III in Solid Plastering
 
@@ -307,6 +308,7 @@ const RPLIntakeForm = ({ competencies, qualificationName }) => {
   return (
     <>
       {isSubmitting && <SpinnerLoader />}
+      <ChatbotComponent />
       <div className="bg-gray-50 min-h-screen">
         <div className="max-w-7xl mx-auto pt-10 p-6">
           <div className="bg-white rounded-lg shadow-lg p-8 mb-8">
