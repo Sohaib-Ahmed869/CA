@@ -12,11 +12,18 @@ export const getApplications = async () => {
     return error.response.data;
   }
 };
-export const SendApplicationToRto = async (application, rto) => {
+export const SendApplicationToRto = async (
+  application,
+  rto,
+  enrollmentData,
+  rplIntakeData
+) => {
   try {
     const response = await axios.post(`${URL}/api/rto/sendApplicationtoRto`, {
       application,
       rto,
+      enrollmentData,
+      rplIntakeData,
     });
 
     return response.data; // Ensure response is returned
