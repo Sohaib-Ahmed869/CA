@@ -125,23 +125,22 @@ const Industries = () => {
       toast.error("Please enter a valid price");
       return;
     }
-
+  
     setSubmissionLoading(true);
     try {
       await updatePrice(selectedCertificateId, updatedPrice);
-      setEditPriceModal(false);
-      fetchIndustries();
-      toast.success("Price updated successfully");
-
-      // Update the displayed certificates if the certificates modal is open
-      if (viewAllCertificates) {
-        const updatedIndustry = industries.find(
-          (ind) => ind._id === selectedIndustry
-        );
-        if (updatedIndustry) {
-          setSelectedCertificates(updatedIndustry.certifications);
+      
+      // Update the local state immediately
+      setSelectedCertificates(selectedCertificates.map(cert => {
+        if (cert.qualification === selectedCertificateId) {
+          return { ...cert, price: updatedPrice };
         }
-      }
+        return cert;
+      }));
+      
+      setEditPriceModal(false);
+      fetchIndustries(); // Keep this to update the background data
+      toast.success("Price updated successfully");
     } catch (error) {
       toast.error("Failed to update price");
     } finally {
@@ -714,7 +713,7 @@ const Industries = () => {
                             <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                               <button
                                 onClick={() => {
-                                  setSelectedCertificateId(certificate._id);
+                                  setSelectedCertificateId(certificate.qualification);
                                   setUpdatedPrice(certificate.price);
                                   setEditPriceModal(true);
                                 }}

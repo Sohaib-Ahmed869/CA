@@ -154,8 +154,6 @@ const ScreeningForm = () => {
     setStep((prevStep) => Math.min(prevStep + 1, 4));
   };
 
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-
   const handleBack = () => {
     setStep((prevStep) => Math.max(prevStep - 1, 0));
   };
@@ -213,15 +211,47 @@ const ScreeningForm = () => {
         price
       );
       console.log(response);
-      setSubmissionLoading(false);
+
       if (response.message === "User already exists") {
+        setSubmissionLoading(false);
         return notifyError("User already exists");
       }
       if (response.message === "Email already exists") {
+        setSubmissionLoading(false);
         return notifyError("Email already exists");
       }
+
       if (response) {
-        setIsDialogOpen(true);
+        // Login the user automatically after successful registration
+        try {
+          // Sign in with Firebase Auth
+          const userCredential = await signInWithEmailAndPassword(
+            auth,
+            email,
+            password
+          );
+
+          // Fetch the user's role from Firestore
+          const user = userCredential.user;
+          const userDocRef = doc(db, "users", user.uid);
+          const userDoc = await getDoc(userDocRef);
+
+          if (userDoc.data().role !== "customer") {
+            console.log(userDoc.data().role);
+            setSubmissionLoading(false);
+            alert("Invalid email or password");
+            return;
+          }
+
+          setSubmissionLoading(false);
+          // Redirect to confirmation page after successful login
+          navigate("/confirmation");
+        } catch (err) {
+          console.error("Login error:", err);
+          setSubmissionLoading(false);
+          // Even if login fails, still redirect to confirmation
+          navigate("/confirmation");
+        }
       }
     } catch (err) {
       setSubmissionLoading(false);
@@ -239,43 +269,6 @@ const ScreeningForm = () => {
     "Formal Education",
     "Final Details",
   ];
-
-  const onClickDashboard = async (e) => {
-    //login user
-    e.preventDefault();
-    setSubmissionLoading(true);
-    try {
-      // Sign in with Firebase Auth
-      const userCredential = await signInWithEmailAndPassword(
-        auth,
-        email,
-        password
-      );
-      //check what is user role must be customer
-      const user = userCredential.user;
-
-      // Fetch the user's role from Firestore
-      const userDocRef = doc(db, "users", user.uid); // Assuming you store user roles in Firestore under 'users' collection
-      const userDoc = await getDoc(userDocRef);
-
-      if (userDoc.data().role !== "customer") {
-        console.log(userDoc.data().role);
-        setSubmissionLoading(false);
-        alert("Invalid email or password");
-        return;
-      }
-
-      setSubmissionLoading(false);
-
-      // Redirect to dashboard
-      navigate("/");
-    } catch (err) {
-      alert("Invalid email or password");
-      console.error("Login error:", err);
-
-      setSubmissionLoading(false);
-    }
-  };
 
   return (
     <div className="min-h-screen">
@@ -376,35 +369,9 @@ const ScreeningForm = () => {
           </div>
         </div>
       </div>
-      {
-        //overlay
-        isDialogOpen && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 z-50"></div>
-        )
-      }
-      {isDialogOpen && (
-        <dialog className="modal" open>
-          <div className="modal-box">
-            <h3 className="font-bold text-lg">
-              Assessment Submitted Successfully!
-            </h3>
-            <p className="py-4">
-              Your fast skills assessment has been submitted successfully.
-              Please visit the dashboard to view your application.
-            </p>
-            <div className="modal-action">
-              <button
-                className="btn btn-primary text-white"
-                onClick={onClickDashboard}
-              >
-                Go to Dashboard
-              </button>
-            </div>
-          </div>
-        </dialog>
-      )}
     </div>
   );
 };
 
 export default ScreeningForm;
+ 

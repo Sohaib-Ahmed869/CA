@@ -193,6 +193,7 @@ export const resendEmail = async (applicationId) => {
 
 export const updatePrice = async (certificationName, updatedPrice) => {
   try {
+    console.log("Certification Name:", certificationName, updatedPrice);
     const response = await axios.put(`${URL}/api/industry/updatePrice`, {
       newPrice: updatedPrice,
       certificationName: certificationName,

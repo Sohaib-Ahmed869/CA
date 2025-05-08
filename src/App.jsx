@@ -22,7 +22,7 @@ import CustomersByAgent from "./Agent/Customers/page";
 import ExistingApplicationsbyAgent from "./Agent/Applications/page";
 import AssessorSidebar from "./Assessor/Sidebar/page";
 import ViewApplication from "./Customer/ViewApplication/page";
-
+import ConfirmationPage from "./Customer/ConfirmationPage";
 function App() {
   return (
     <Router>
@@ -31,6 +31,7 @@ function App() {
         <Route path="/" element={<CustomerDashboard />} />
         <Route path="/signup" element={<CustomerDashboardSignup />} />
         <Route path="/screening" element={<ScreeningForm />} />
+        <Route path="/confirmation" element={<ConfirmationPage />} />
         <Route path="/new-application" element={<ScreeningForm2 />} />
         <Route
           path="/existing-applications"
