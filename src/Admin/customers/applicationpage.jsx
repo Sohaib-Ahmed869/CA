@@ -192,21 +192,23 @@ const Application = ({
     }
 
     toast.success("Application sent to Rto");
-    // Show a loading toast
-
-    // const toastId = toast.loading("Sending application to Rto...");
     setLoading(true);
 
     try {
-      const response = await SendApplicationToRto(application, selectedRto);
+      const enrollmentData = EnrollmentData.formData;
+      const rplIntakeDataValue = rplIntakeData.formData;
+      const response = await SendApplicationToRto(
+        application,
+        selectedRto,
+        enrollmentData,
+        rplIntakeDataValue
+      );
 
       if (response && response.success) {
-        // toast.dismiss(toastId);
         toast.success("Application sent to RTO successfully");
       }
     } catch (error) {
       console.error(error);
-      // toast.dismiss(toastId);
       toast.error("Failed to send application to RTO");
     } finally {
       setLoading(false);
