@@ -27,7 +27,9 @@ import { getAuth } from "firebase/auth";
 import Papa from "papaparse";
 import { ClipLoader } from "react-spinners";
 
-import DocumentModal from "../../Customer/components/viewDocsModal";
+import DocumentModal, {
+  AgreementDocumentModal,
+} from "../../Customer/components/viewDocsModal";
 const URL = import.meta.env.VITE_REACT_BACKEND_URL;
 
 import certificate from "../../assets/certificate.pdf";
@@ -59,6 +61,8 @@ import {
 } from "../../Customer/Services/rtoFormsServices";
 import RPLIntakeDetails from "../../Customer/ViewApplication/rplIntakeDetails";
 import EnrollmentDetails from "../../Customer/ViewApplication/RplEnrollmentKitDetails";
+import RPLApplicationFormViewer from "../../Customer/ViewApplication/viewApplicationDetails";
+import assessmentDoc from "../../../public/4.pdf";
 
 const Application = ({
   application,
@@ -71,6 +75,8 @@ const Application = ({
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
+  const [AssessmentDocumentModalOpen, setAssessmentDocumentModalOpen] =
+    useState(false);
 
   const [rplIntakeData, setRplIntakeData] = useState([]);
   const [EnrollmentData, setEnrollmentData] = useState([]);
@@ -214,7 +220,11 @@ const Application = ({
       setLoading(false);
     }
   };
-
+  const closAssessmentModal = () => {
+    setDocumentModalOpen(false);
+    setActiveRtoDoc("rplIntake");
+    // Revoke the object URL to prevent memory leaks
+  };
   // Function to open modal with selected document
   const openModal = (doc) => {
     setCurrentDoc(doc); // Directly set the file URL
@@ -918,13 +928,13 @@ const Application = ({
                 <FaFile className="mr-1.5" />
                 <span className="hidden sm:inline">Request Rto Documents</span>
               </button>
-              <button
+              {/* <button
                 className="flex items-center px-3 py-1.5 bg-white bg-opacity-20 rounded-md text-white hover:bg-opacity-30 transition-all"
                 onClick={handleGenerateForm}
               >
                 <FaFile className="mr-1.5" />
                 <span className="hidden sm:inline">Generate RTO Documents</span>
-              </button>
+              </button> */}
             </div>
           </div>
 
@@ -1074,7 +1084,8 @@ const Application = ({
                   <span className="font-medium">Documents</span>
                 </button>
                 {(application.rplIntakeSubmitted ||
-                  application.enrolmentFormSubmitted) && (
+                  application.enrolmentFormSubmitted ||
+                  application.ApplicationFormSubmitted) && (
                   <button
                     onClick={() => {
                       setActiveView("rtoDocs");
@@ -1120,6 +1131,18 @@ const Application = ({
                           RPL Intake
                         </button>
                       )}
+                      {application.ApplicationFormSubmitted && (
+                        <button
+                          onClick={() => setActiveRtoDoc("applicationform")}
+                          className={`px-6 py-3 text-md font-medium  whitespace-nowrap transition-all duration-200 ${
+                            activeRtoDoc === "applicationform"
+                              ? "border-b-2 border-emerald-600 text-emerald-600"
+                              : "text-gray-500 hover:text-gray-700"
+                          }`}
+                        >
+                          RPL Application Form
+                        </button>
+                      )}
                       {application.enrolmentFormSubmitted && (
                         <button
                           onClick={() => setActiveRtoDoc("enrollment")}
@@ -1130,6 +1153,21 @@ const Application = ({
                           }`}
                         >
                           Enrollment
+                        </button>
+                      )}
+                      {application.assessmentFormSubmitted && (
+                        <button
+                          onClick={() => {
+                            setActiveRtoDoc("assessmentForm");
+                            setAssessmentDocumentModalOpen(true);
+                          }}
+                          className={`px-6 py-3 text-md font-medium whitespace-nowrap transition-all duration-200 ${
+                            activeRtoDoc === "assessmentForm"
+                              ? "border-b-2 border-emerald-600 text-emerald-600"
+                              : "text-gray-500 hover:text-gray-700"
+                          }`}
+                        >
+                          RPL Assessment Form
                         </button>
                       )}
                     </div>
@@ -1147,6 +1185,20 @@ const Application = ({
                   {activeRtoDoc === "enrollment" && (
                     <div>
                       <EnrollmentDetails enrollmentData={EnrollmentData} />
+                    </div>
+                  )}
+                  {activeRtoDoc === "applicationform" && (
+                    <div>
+                      <RPLApplicationFormViewer />
+                    </div>
+                  )}
+                  {activeRtoDoc === "assessmentForm" && (
+                    <div>
+                      <AgreementDocumentModal
+                        isOpen={AssessmentDocumentModalOpen}
+                        onClose={closAssessmentModal}
+                        docLink={assessmentDoc}
+                      />{" "}
                     </div>
                   )}
                 </div>

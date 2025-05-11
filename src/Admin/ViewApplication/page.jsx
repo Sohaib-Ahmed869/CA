@@ -27,13 +27,17 @@ import Loader from "../../Customer/components/loader";
 import SpinnerLoader from "../../Customer/components/spinnerLoader";
 import Modal from "../../Customer/components/modal";
 import applicationImage from "../../assets/applications.png";
-import DocumentModal from "../../Customer/components/viewDocsModal";
+import DocumentModal, {
+  AgreementDocumentModal,
+} from "../../Customer/components/viewDocsModal";
 import {
   getEnrollmentKitData,
   getRplIntakeData,
 } from "../../Customer/Services/rtoFormsServices";
 import RPLIntakeDetails from "../../Customer/ViewApplication/rplIntakeDetails";
 import EnrollmentDetails from "../../Customer/ViewApplication/RplEnrollmentKitDetails";
+import RPLApplicationFormViewer from "../../Customer/ViewApplication/viewApplicationDetails";
+import assessmentDoc from "../../../public/4.pdf";
 
 const ViewApplications = ({
   userId: propUserId,
@@ -55,7 +59,8 @@ const ViewApplications = ({
   const navigate = useNavigate();
   const [rplIntakeData, setRplIntakeData] = useState([]);
   const [EnrollmentData, setEnrollmentData] = useState([]);
-
+  const [AssessmentDocumentModalOpen, setAssessmentDocumentModalOpen] =
+    useState(false);
   // Use either props or params
   const effectiveUserId = propUserId || paramUserId;
   const effectiveId = propId || paramId;
@@ -86,7 +91,12 @@ const ViewApplications = ({
     // Revoke the object URL to prevent memory leaks
     setCurrentDoc("");
   };
-
+  const closAssessmentModal = () => {
+    setDocumentModalOpen(false);
+    setSelectedForm("rplIntake");
+    // Revoke the object URL to prevent memory leaks
+    setCurrentDoc("");
+  };
   useEffect(() => {
     setTimeout(() => setLoading(false), 1000);
   }, []);
@@ -756,6 +766,33 @@ const ViewApplications = ({
                     RPL Enrollment
                   </button>
                 )}
+                {application?.ApplicationFormSubmitted && (
+                  <button
+                    onClick={() => setSelectedForm("applicationform")}
+                    className={`flex-1 py-4 px-4 text-center font-medium text-sm transition-all ${
+                      selectedForm === "applicationform"
+                        ? "text-emerald-600 border-b-2 border-emerald-600"
+                        : "text-gray-500 hover:text-gray-700"
+                    }`}
+                  >
+                    RPL Application Form
+                  </button>
+                )}
+                {application?.assessmentFormSubmitted && (
+                  <button
+                    onClick={() => {
+                      setSelectedForm("assessmentForm");
+                      setAssessmentDocumentModalOpen(true);
+                    }}
+                    className={`flex-1 py-4 px-4 text-center font-medium text-sm transition-all ${
+                      selectedForm === "assessmentForm"
+                        ? "text-emerald-600 border-b-2 border-emerald-600"
+                        : "text-gray-500 hover:text-gray-700"
+                    }`}
+                  >
+                    RPL Assessment Form
+                  </button>
+                )}
               </div>
             </div>
 
@@ -769,6 +806,16 @@ const ViewApplications = ({
               )}
               {selectedForm === "Enrollment" && (
                 <EnrollmentDetails enrollmentData={EnrollmentData} />
+              )}
+              {selectedForm === "applicationform" && (
+                <RPLApplicationFormViewer />
+              )}
+              {selectedForm === "assessmentForm" && (
+                <AgreementDocumentModal
+                  isOpen={AssessmentDocumentModalOpen}
+                  onClose={closAssessmentModal}
+                  docLink={assessmentDoc}
+                />
               )}
             </div>
           </>

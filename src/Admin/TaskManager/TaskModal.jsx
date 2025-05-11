@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { format } from "date-fns";
 import {
   ChatBubbleOvalLeftIcon,
@@ -28,6 +28,8 @@ import SpinnerLoader from "../../Customer/components/spinnerLoader";
 import Application from "../customers/applicationpage";
 import { resendEmail } from "../../Customer/Services/adminServices";
 import toast, { Toaster } from "react-hot-toast";
+import PaymentPage from "../../Customer/checkoutForm";
+import { IoMdClose } from "react-icons/io";
 
 // Helper functions for lead status
 const getColorLabel = (colorValue) => {
@@ -73,6 +75,44 @@ const TaskModal = ({
     ...task,
     applicationDetails: task.applicationDetails || null, // Initialize with existing value or null
   });
+  const onClickPayment = (
+    price,
+    discount,
+    applicationId,
+    userId,
+    partialScheme,
+    paid,
+    payment1,
+    payment2,
+    full_paid
+  ) => {
+    setUserId(userId);
+
+    // Calculate discounted price
+    if (!discount) {
+      setPrice(price);
+    } else {
+      setPrice(calculateDiscountedPrice(price, discount));
+    }
+
+    setApplicationId(applicationId);
+    setPartialScheme(partialScheme);
+    setPaid(paid);
+    setPayment1(payment1);
+    setPayment2(payment2);
+    setFullPaid(full_paid);
+
+    setShowCheckoutModal(true);
+  };
+  const [showCheckoutModal, setShowCheckoutModal] = useState(false);
+  const [price, setPrice] = useState(0);
+  const [applicationId, setApplicationId] = useState("");
+  const [userId, setUserId] = useState(null);
+  const [partialScheme, setPartialScheme] = useState(false);
+  const [paid, setPaid] = useState(false);
+  const [payment1, setPayment1] = useState(0);
+  const [payment2, setPayment2] = useState(0);
+  const [full_paid, setFullPaid] = useState(false);
   const [newComment, setNewComment] = useState("");
   const [newChecklistItem, setNewChecklistItem] = useState("");
   const [editingItemId, setEditingItemId] = useState(null);
@@ -754,8 +794,62 @@ const TaskModal = ({
             getApplicationsData={() => {}}
             onClickInitiateCall={() => {}}
             resendEmailFunc={resendEmailFunc}
-            onClickPayment={() => {}}
+            onClickPayment={onClickPayment}
           />
+        </div>
+      )}
+      {/* Payment Modal */}
+      {showCheckoutModal && (
+        <div className="fixed inset-0 z-50 overflow-y-auto">
+          <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div
+              className="fixed inset-0 transition-opacity"
+              aria-hidden="true"
+            >
+              <div className="absolute inset-0 bg-gray-500 opacity-75"></div>
+            </div>
+
+            <span
+              className="hidden sm:inline-block sm:align-middle sm:h-screen"
+              aria-hidden="true"
+            >
+              &#8203;
+            </span>
+
+            <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+              <div className="bg-white px-4 pt-5 pb-4 sm:p-6">
+                <div className="flex justify-between items-center pb-3 border-b border-gray-200">
+                  <h3 className="text-lg leading-6 font-medium text-gray-900">
+                    Process Payment
+                  </h3>
+                  <button
+                    type="button"
+                    className="rounded-md text-gray-400 hover:text-gray-500 focus:outline-none"
+                    onClick={() => setShowCheckoutModal(false)}
+                  >
+                    <span className="sr-only">Close</span>
+                    <IoMdClose className="h-6 w-6" />
+                  </button>
+                </div>
+
+                <div className="mt-4">
+                  <Suspense fallback={<div>Loading...</div>}>
+                    <PaymentPage
+                      price={price}
+                      applicationId={applicationId}
+                      partialScheme={partialScheme}
+                      paid={paid}
+                      payment1={payment1}
+                      payment2={payment2}
+                      setShowCheckoutModal={setShowCheckoutModal}
+                      getUserApplications={() => {}}
+                      userId={userId}
+                    />
+                  </Suspense>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </>

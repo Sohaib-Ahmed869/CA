@@ -808,7 +808,13 @@ const fadeInAnimation = `
 const RTO_FORM_ROUTES = {
   "RPL Intake CPC31420 Certificate III in Construction Waterproofing":
     "/rpl-intake-cpc-31420-certificate-3-waterProofing",
+  "RPL Intake CPC30220 Certificate III in Carpentry":
+    "/rpl-intake-cpc-30220-certificate-3-carpentry",
   "RPL Enrolment Kit": "/rpl-enrollment-kit",
+  "RPL Self Assessment kit":
+    "/rpl-self-assessment-cpc-30220-certificate-3-carpentry",
+  "RPL Application Form":
+    "/rpl-applicationform-cpc-30220-certificate-3-carpentry",
   // Add more mappings as needed for other forms
   "RPL Intake CPC31320 Certificate III in Wall and Floor Tiling":
     "/rpl-intake-cpc-31320-certificate-3-wall-and-floor-tiling",
@@ -1071,13 +1077,22 @@ const ImprovedTimeline = ({
           // Check if this is an intake form and if rplIntakeSubmitted is true
           const isIntakeForm = formName.toLowerCase().includes("intake");
           const isEnrollmentForm = formName.toLowerCase().includes("enrolment");
-
+          const isApplicationForm = formName
+            .toLowerCase()
+            .includes("application");
+          const isAssessmentForm = formName
+            .toLowerCase()
+            .includes("assessment");
           // For intake forms, check ONLY rplIntakeSubmitted field
           // For other forms, use rtoFormsCompleted as before
           const isCompleted = isIntakeForm
             ? selectedApp.rplIntakeSubmitted === true
             : isEnrollmentForm
             ? selectedApp.enrolmentFormSubmitted === true
+            : isApplicationForm
+            ? selectedApp.ApplicationFormSubmitted === true
+            : isAssessmentForm
+            ? selectedApp.assessmentFormSubmitted === true
             : rtoFormsCompleted && rtoFormsCompleted[formName] === true;
 
           const formRoute = RTO_FORM_ROUTES[formName] || "#";

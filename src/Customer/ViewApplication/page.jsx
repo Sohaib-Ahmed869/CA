@@ -27,13 +27,17 @@ import Loader from "../components/loader";
 import SpinnerLoader from "../components/spinnerLoader";
 import Modal from "../components/modal";
 import applicationImage from "../../assets/applications.png";
-import DocumentModal from "../components/viewDocsModal";
+import DocumentModal, {
+  AgreementDocumentModal,
+} from "../components/viewDocsModal";
 import RPLIntakeDetails from "./rplIntakeDetails";
 import {
   getEnrollmentKitData,
   getRplIntakeData,
 } from "../Services/rtoFormsServices";
 import EnrollmentDetails from "./RplEnrollmentKitDetails";
+import RPLApplicationFormViewer from "./viewApplicationDetails";
+import assessmentDoc from "../../../public/4.pdf";
 
 const ViewApplications = () => {
   const [selectedForm, setSelectedForm] = useState("initial"); // Default form
@@ -50,6 +54,9 @@ const ViewApplications = () => {
   const menuRef = useRef(null);
   const navigate = useNavigate();
   const [DocumentModalOpen, setDocumentModalOpen] = useState(false);
+  const [AssessmentDocumentModalOpen, setAssessmentDocumentModalOpen] =
+    useState(false);
+
   const [currentDoc, setCurrentDoc] = useState("");
   const [rplIntakeData, setRplIntakeData] = useState([]);
   const [EnrollmentData, setEnrollmentData] = useState([]);
@@ -58,9 +65,18 @@ const ViewApplications = () => {
     setCurrentDoc(doc); // Directly set the file URL
     setDocumentModalOpen(true);
   };
+  const openAssessmentModal = () => {
+    setDocumentModalOpen(true);
+  };
 
   const closeModal = () => {
     setDocumentModalOpen(false);
+    // Revoke the object URL to prevent memory leaks
+    setCurrentDoc("");
+  };
+  const closAssessmentModal = () => {
+    setDocumentModalOpen(false);
+    setSelectedForm("rplIntake");
     // Revoke the object URL to prevent memory leaks
     setCurrentDoc("");
   };
@@ -699,11 +715,13 @@ const ViewApplications = () => {
             </div>
           </div>
         </div>
-        <DocumentModal
-          isOpen={DocumentModalOpen}
-          onClose={closeModal}
-          docLink={currentDoc}
-        />
+        {DocumentModalOpen && (
+          <DocumentModal
+            isOpen={openModal}
+            onClose={closeModal}
+            docLink={currentDoc}
+          />
+        )}
       </>
     );
   };
@@ -903,6 +921,33 @@ const ViewApplications = () => {
                     RPL Enrollment
                   </button>
                 )}
+                {application?.ApplicationFormSubmitted && (
+                  <button
+                    onClick={() => setSelectedForm("applicationform")}
+                    className={`flex-1 py-4 px-4 text-center font-medium text-sm transition-all ${
+                      selectedForm === "applicationform"
+                        ? "text-emerald-600 border-b-2 border-emerald-600"
+                        : "text-gray-500 hover:text-gray-700"
+                    }`}
+                  >
+                    RPL Application Form
+                  </button>
+                )}
+                {application?.assessmentFormSubmitted && (
+                  <button
+                    onClick={() => {
+                      setSelectedForm("assessmentForm");
+                      setAssessmentDocumentModalOpen(true);
+                    }}
+                    className={`flex-1 py-4 px-4 text-center font-medium text-sm transition-all ${
+                      selectedForm === "assessmentForm"
+                        ? "text-emerald-600 border-b-2 border-emerald-600"
+                        : "text-gray-500 hover:text-gray-700"
+                    }`}
+                  >
+                    RPL Assessment Form
+                  </button>
+                )}
               </div>
             </div>
 
@@ -916,6 +961,16 @@ const ViewApplications = () => {
               )}
               {selectedForm === "Enrollment" && (
                 <EnrollmentDetails enrollmentData={EnrollmentData} />
+              )}
+              {selectedForm === "applicationform" && (
+                <RPLApplicationFormViewer />
+              )}
+              {selectedForm === "assessmentForm" && (
+                <AgreementDocumentModal
+                  isOpen={AssessmentDocumentModalOpen}
+                  onClose={closAssessmentModal}
+                  docLink={assessmentDoc}
+                />
               )}
             </div>
           </>

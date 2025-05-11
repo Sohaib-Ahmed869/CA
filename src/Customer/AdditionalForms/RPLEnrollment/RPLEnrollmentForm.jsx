@@ -506,6 +506,13 @@ const RPLEnrolment = () => {
                   occupation={formData.occupation}
                   industry={formData.industry}
                   onChange={handleInputChange}
+                  update={(field, value) => {
+                    // This will update the occupation or industry field directly in formData
+                    setFormData((prev) => ({
+                      ...prev,
+                      [field]: value,
+                    }));
+                  }}
                 />
               )}
 
@@ -1731,7 +1738,7 @@ const EducationDetails = ({ data, onChange }) => (
 );
 
 // Employment Status Component (Step 10)
-const EmploymentStatus = ({ data, occupation, industry, onChange }) => (
+const EmploymentStatus = ({ data, occupation, industry, onChange, update }) => (
   <div>
     <h3 className="text-xl font-medium text-emerald-700 mb-6">
       10. Employment Status
@@ -1845,7 +1852,7 @@ const EmploymentStatus = ({ data, occupation, industry, onChange }) => (
                     name="occupation"
                     value={option}
                     checked={occupation === option}
-                    onChange={(e) => onChange("occupation", e.target.value)}
+                    onChange={(e) => update("occupation", e.target.value)}
                     className="mr-2"
                   />
                   {option}
@@ -1890,7 +1897,7 @@ const EmploymentStatus = ({ data, occupation, industry, onChange }) => (
                     name="industry"
                     value={option}
                     checked={industry === option}
-                    onChange={(e) => onChange("industry", e.target.value)}
+                    onChange={(e) => update("industry", e.target.value)}
                     className="mr-2"
                   />
                   {option}

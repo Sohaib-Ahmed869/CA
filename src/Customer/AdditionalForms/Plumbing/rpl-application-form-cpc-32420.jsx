@@ -8,7 +8,8 @@ const RPLApplicationFormCPC32420Plumbing = () => {
   const [formData, setFormData] = useState({
     studentInitials: "",
     studentName: "",
-    courseQualification: "CPC32420 - Certificate III in Plumbing",
+    courseQualification:
+      " RPL Application - CPC30220 Certificate III in Carpentry",
     studentDeclaration: {
       name: "",
       date: "",
@@ -175,7 +176,7 @@ const RPLApplicationFormCPC32420Plumbing = () => {
     citizenshipStatus: {
       status: "Australian Citizen", // Default value
     },
-    programSelection: "CPC32420 - Certificate III in Plumbing",
+    programSelection: "RPL Application - CPC30220 Certificate III in Carpentry",
     preTrainingChecklist: {
       preTrainingCompleted: false,
       entryRequirements: false,

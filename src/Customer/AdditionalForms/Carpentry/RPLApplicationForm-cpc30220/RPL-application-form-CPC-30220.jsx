@@ -1,11 +1,16 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Navbar from "../../../components/navbar";
 import { BsChevronLeft, BsChevronRight } from "react-icons/bs";
 import toast, { Toaster } from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
+const URL = import.meta.env.VITE_REACT_BACKEND_URL;
+import SpinnerLoader from "../../../components/spinnerLoader";
 
 const RPLApplicationFormCPC30220 = () => {
   const [activeSection, setActiveSection] = useState(1);
-  const totalSections = 18; // Total number of sections
+  const totalSections = 19; // Total number of sections
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [formData, setFormData] = useState({
     personalDetails: {
@@ -167,6 +172,13 @@ const RPLApplicationFormCPC30220 = () => {
     ],
     documentedEvidence: [],
   });
+  const navigate = useNavigate();
+  const [applicationId, setApplicationId] = useState("");
+  useEffect(() => {
+    const idFromUrl = window.location.pathname.split("/")[2];
+    setApplicationId(idFromUrl);
+    console.log("id passed", idFromUrl);
+  }, []);
 
   // Updated handleInputChange function to handle different types of state updates
   const handleInputChange = (section, field, value) => {
@@ -222,30 +234,62 @@ const RPLApplicationFormCPC30220 = () => {
   };
 
   const handleNext = () => {
-    if (validateSection(activeSection)) {
-      setActiveSection((prev) => Math.min(prev + 1, totalSections));
-    } else {
-      toast.error("Please complete all required fields before proceeding.");
-    }
+    // if (validateSection(activeSection)) {
+    setActiveSection((prev) => Math.min(prev + 1, totalSections));
+    // } else {
+    // toast.error("Please complete all required fields before proceeding.");
+    // }
   };
 
   const handleBack = () => {
     setActiveSection((prev) => Math.max(prev - 1, 1));
   };
 
-  const handleSubmit = (e) => {
+  // const handleSubmit = (e) => {
+  //   e.preventDefault();
+  //   // Handle form submission here
+  //   toast.success("Form Submitted Successfully");
+  //   console.log("Form submitted:", formData);
+  //   // You might want to send the data to an API endpoint
+  // };
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Handle form submission here
-    toast.success("Form Submitted Successfully");
-    console.log("Form submitted:", formData);
-    // You might want to send the data to an API endpoint
-  };
+    setIsSubmitting(true);
 
+    try {
+      // Send request to mark application as submitted
+      const response = await axios.post(
+        `${URL}/api/form/mark-application-submitted`,
+        {
+          applicationId,
+        }
+      );
+
+      // Handle successful response
+      if (response.status === 200) {
+        toast.success("Form Submitted Successfully");
+        navigate("/");
+        console.log("Application marked as submitted");
+        // You might want to redirect or update UI here
+      } else {
+        throw new Error("Submission failed");
+      }
+    } catch (error) {
+      console.error("Error marking application as submitted:", error);
+      toast.error(
+        error.response?.data?.error ||
+          "Failed to submit form. Please try again."
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
   const progressPercentage = (activeSection / totalSections) * 100;
 
   return (
     <div className="bg-gray-50 min-h-screen">
       <Navbar />
+      {isSubmitting && <SpinnerLoader />}
       <Toaster position="top-right" />
       <div className="max-w-7xl mx-auto pt-28 p-6">
         <div className="bg-white rounded-lg shadow-lg p-8 mb-8">
@@ -431,7 +475,7 @@ const RPLApplicationFormCPC30220 = () => {
                 <BsChevronLeft className="mr-2" /> Back
               </button>
 
-              {activeSection === totalSections ? (
+              {activeSection === totalSections - 1 ? (
                 <button
                   type="submit"
                   className="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"

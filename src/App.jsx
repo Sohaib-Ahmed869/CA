@@ -1,7 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
 import CustomerDashboard from "./Customer/components/options";
-import ScreeningForm from "./Customer/inspection"; 
+import ScreeningForm from "./Customer/inspection";
 import ScreeningForm2 from "./Customer/newApplication";
 import ExistingApplications from "./Customer/existingApplications/page";
 import StudentIntakeForm from "./Customer/applicationSteps/studentForm/studentForm";
@@ -54,13 +54,14 @@ import ThirdPartyEvidenceKitA from "./Customer/AdditionalForms/BilalForms/ThirdP
 import RPLAssessmentCPC30220A from "./Customer/AdditionalForms/MaryamForms/form4";
 import FORM4 from "./Customer/AdditionalForms/MaryamForms/form4";
 import DocumentModal from "./Customer/components/viewDocsModal";
-
+import RPLSelfAssessmentFormCPC30220 from "./Customer/AdditionalForms/Carpentry/RPLSelfAssessmentFormCPC30220";
+import RPL2 from "./Customer/AdditionalForms/CarpentryAssesmentkitForm/RPL22";
 function App() {
   return (
     <Router>
       <Routes>
         {/* Test Bilal Forms */}
-        <Route path="/bilal-form" element={<RPLSelfAssessmentCPC40920 />} />
+        {/* <Route path="/bilal-form" element={<RPL />} /> */}
         <Route path="/maryam-form" element={<FORM4 />} />
         <Route
           path="/view-doc"
@@ -114,19 +115,25 @@ function App() {
           element={<RPLIntakeCPC31320WallFloorTiling />}
         />
         {/* Carpentry Alpha RTO*/}
-        <Route
+        {/* <Route
           path="/rpl-intake-cpc-30220-certificate-3-carpentry"
           element={<RPLIntakeCPC30220Carpentry />}
+        /> */}
+
+        <Route
+          path="/rpl-applicationform-cpc-30220-certificate-3-carpentry/:applicationId"
+          element={<RPLApplicationFormCPC30220 />}
         />
 
         <Route
-          path="/rpl-applicationform-cpc-30220-certificate-3-carpentry"
-          element={<RPLApplicationFormCPC30220 />}
+          path="/rpl-self-assessment-cpc-30220-certificate-3-carpentry/:applicationId"
+          element={<RPL2 />}
         />
+        {/* 
         <Route
-          path="/rpl-assessment-cpc-30220-certificate-3-carpentry"
+          path="/rpl-assessment-cpc-30220-certificate-3-carpentry/:applicationId"
           element={<RPLAssessmentCPC30220 />}
-        />
+        /> */}
         <Route
           path="/rpl-evidence-kit-carpentry"
           element={<ThirdPartyEvidenceKit />}
@@ -144,6 +151,15 @@ function App() {
             <RPLIntakeForm
               qualificationName={RPLIntakeData.CPC31420.qualification}
               competencies={RPLIntakeData.CPC31420.competencies}
+            />
+          }
+        />
+        <Route
+          path="/rpl-intake-cpc-30220-certificate-3-carpentry/:applicationId"
+          element={
+            <RPLIntakeForm
+              qualificationName={RPLIntakeData.CPC30220.qualification}
+              competencies={RPLIntakeData.CPC30220.competencies}
             />
           }
         />
