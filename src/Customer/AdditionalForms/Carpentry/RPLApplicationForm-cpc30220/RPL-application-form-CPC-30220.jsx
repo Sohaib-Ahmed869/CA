@@ -9,7 +9,7 @@ import SpinnerLoader from "../../../components/spinnerLoader";
 
 const RPLApplicationFormCPC30220 = () => {
   const [activeSection, setActiveSection] = useState(1);
-  const totalSections = 19; // Total number of sections
+  const totalSections = 22; // Total number of sections
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [formData, setFormData] = useState({
@@ -101,11 +101,12 @@ const RPLApplicationFormCPC30220 = () => {
     previousQualifications: {
       hasCompleted: false,
       qualifications: [],
+      otherQualification: "",
     },
     studyReason: "",
     contactSource: "",
     citizenshipStatus: "",
-    program: "",
+    program: "CPC30220 Certificate III in Carpentry",
     preTraining: {
       preTrainingFormCompleted: false,
       entryRequirementsDiscussed: false,
@@ -122,9 +123,12 @@ const RPLApplicationFormCPC30220 = () => {
     },
     consent: {
       photoConsent: false,
+      agreeToTerms: false, // Added this field
+      signature: "", // Added this field
+      signatureDate: "", // Added this field
     },
     rplArea: {
-      courseApplying: "",
+      courseApplying: "CPC30220 Certificate III in Carpentry",
     },
     referees: [
       {
@@ -147,29 +151,16 @@ const RPLApplicationFormCPC30220 = () => {
     employmentHistory: [
       {
         employer: "",
-        fromDate: "",
-        toDate: "",
-        positionHeld: "",
-        employmentType: "",
-        duties: "",
-      },
-      {
-        employer: "",
-        fromDate: "",
-        toDate: "",
-        positionHeld: "",
-        employmentType: "",
-        duties: "",
-      },
-      {
-        employer: "",
-        fromDate: "",
-        toDate: "",
-        positionHeld: "",
-        employmentType: "",
+        periodFrom: "",
+        periodTo: "",
+        position: "",
+        employmentType: "Full Time", // Default value
         duties: "",
       },
     ],
+    studentHandbook: {
+      checkedItems: {},
+    },
     documentedEvidence: [],
   });
   const navigate = useNavigate();
@@ -199,6 +190,32 @@ const RPLApplicationFormCPC30220 = () => {
             : value,
       };
     });
+  };
+  const handleArrayItemChange = (section, index, field, value) => {
+    setFormData((prev) => ({
+      ...prev,
+      [section]: prev[section].map((item, i) =>
+        i === index ? { ...item, [field]: value } : item
+      ),
+    }));
+  };
+
+  // Add array item handler
+  const addArrayItem = (section, emptyItem) => {
+    setFormData((prev) => ({
+      ...prev,
+      [section]: [...prev[section], emptyItem],
+    }));
+  };
+
+  // Remove array item handler
+  const removeArrayItem = (section, index) => {
+    if (formData[section].length > 1) {
+      setFormData((prev) => ({
+        ...prev,
+        [section]: prev[section].filter((_, i) => i !== index),
+      }));
+    }
   };
 
   const validateSection = (section) => {
@@ -254,19 +271,24 @@ const RPLApplicationFormCPC30220 = () => {
   // };
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (formData.consent.signature === "") {
+      toast.error("please fill in all the fields");
+      return;
+    }
     setIsSubmitting(true);
 
     try {
       // Send request to mark application as submitted
       const response = await axios.post(
-        `${URL}/api/form/mark-application-submitted`,
+        `${URL}/api/form/submit-rpl-application-form`,
         {
           applicationId,
+          formData,
         }
       );
 
       // Handle successful response
-      if (response.status === 200) {
+      if (response.status === 201) {
         toast.success("Form Submitted Successfully");
         navigate("/");
         console.log("Application marked as submitted");
@@ -313,7 +335,11 @@ const RPLApplicationFormCPC30220 = () => {
             </div>
           </div>
 
-          <form onSubmit={handleSubmit}>
+          <form
+            onSubmit={(e) => {
+              handleSubmit(e);
+            }}
+          >
             {/* RPL Area Section */}
             {activeSection === 1 && (
               <RPLAreaSection
@@ -334,7 +360,9 @@ const RPLApplicationFormCPC30220 = () => {
             {activeSection === 3 && (
               <EmploymentHistorySection
                 formData={formData}
-                handleInputChange={handleInputChange}
+                handleArrayItemChange={handleArrayItemChange}
+                addArrayItem={addArrayItem}
+                removeArrayItem={removeArrayItem}
               />
             )}
 
@@ -415,49 +443,49 @@ const RPLApplicationFormCPC30220 = () => {
                 handleInputChange={handleInputChange}
               />
             )}
-            {activeSection === 11 && (
+            {activeSection === 16 && (
               <PreviousQualificationsSection
                 formData={formData}
                 handleInputChange={handleInputChange}
               />
             )}
-            {activeSection === 12 && (
+            {activeSection === 17 && (
               <StudyReasonSection
                 formData={formData}
                 handleInputChange={handleInputChange}
               />
             )}
-            {activeSection === 13 && (
+            {activeSection === 18 && (
               <ContactSourceSection
                 formData={formData}
                 handleInputChange={handleInputChange}
               />
             )}
-            {activeSection === 14 && (
+            {activeSection === 19 && (
               <StudentHandbookSection
                 formData={formData}
                 handleInputChange={handleInputChange}
               />
             )}
-            {activeSection === 15 && (
+            {activeSection === 20 && (
               <CitizenshipStatusSection
                 formData={formData}
                 handleInputChange={handleInputChange}
               />
             )}
-            {activeSection === 16 && (
+            {/* {activeSection === 16 && (
               <ProgramSelectionSection
                 formData={formData}
                 handleInputChange={handleInputChange}
               />
-            )}
-            {activeSection === 17 && (
+            )} */}
+            {activeSection === 21 && (
               <PreTrainingChecklistSection
                 formData={formData}
                 handleInputChange={handleInputChange}
               />
             )}
-            {activeSection === 18 && (
+            {activeSection === 22 && (
               <ConsentSection
                 formData={formData}
                 handleInputChange={handleInputChange}
@@ -475,7 +503,7 @@ const RPLApplicationFormCPC30220 = () => {
                 <BsChevronLeft className="mr-2" /> Back
               </button>
 
-              {activeSection === totalSections - 1 ? (
+              {activeSection === totalSections ? (
                 <button
                   type="submit"
                   className="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
@@ -556,12 +584,13 @@ const RPLAreaSection = ({ formData, handleInputChange }) => {
             Course applying for recognition:
           </label>
           <input
+            readOnly
             type="text"
             id="courseApplying"
             value={formData.rplArea.courseApplying}
-            onChange={(e) =>
-              handleInputChange("rplArea", "courseApplying", e.target.value)
-            }
+            // onChange={(e) =>
+            //   handleInputChange("rplArea", "courseApplying", e.target.value)
+            // }
             className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
             required
             placeholder="CPC30220 Certificate III in Carpentry"
@@ -829,182 +858,364 @@ const RefereesSection = ({ formData, handleInputChange }) => {
 };
 
 // Employment History Section Component
-const EmploymentHistorySection = ({ formData, handleInputChange }) => {
+// const EmploymentHistorySection = ({ formData, handleInputChange }) => {
+//   return (
+//     <div>
+//       <h3 className="text-xl font-medium text-emerald-700 mb-6">
+//         Applicant Employment History
+//       </h3>
+
+//       <div className="overflow-x-auto">
+//         <table className="min-w-full bg-white rounded-lg overflow-hidden border border-gray-200 mb-4">
+//           <thead className="bg-gray-100">
+//             <tr>
+//               <th className="py-3 px-4 text-left text-sm font-medium text-gray-700">
+//                 Name, Address and Phone number of Employers
+//               </th>
+//               <th className="py-3 px-4 text-left text-sm font-medium text-gray-700">
+//                 Period of Employment (DD/MM/YYYY)
+//               </th>
+//               <th className="py-3 px-4 text-left text-sm font-medium text-gray-700">
+//                 Position Held
+//               </th>
+//               <th className="py-3 px-4 text-left text-sm font-medium text-gray-700">
+//                 Employment Type
+//               </th>
+//               <th className="py-3 px-4 text-left text-sm font-medium text-gray-700">
+//                 Description of Major Duties
+//               </th>
+//             </tr>
+//           </thead>
+//           <tbody>
+//             {formData.employmentHistory.map((job, index) => (
+//               <tr key={index} className="border-t border-gray-200">
+//                 <td className="py-3 px-4">
+//                   <input
+//                     type="text"
+//                     value={job.employer}
+//                     onChange={(e) => {
+//                       const updatedHistory = [...formData.employmentHistory];
+//                       updatedHistory[index] = {
+//                         ...updatedHistory[index],
+//                         employer: e.target.value,
+//                       };
+//                       handleInputChange(
+//                         "employmentHistory",
+//                         null,
+//                         updatedHistory
+//                       );
+//                     }}
+//                     className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-emerald-500"
+//                     placeholder="Employer details"
+//                   />
+//                 </td>
+//                 <td className="py-3 px-4">
+//                   <div className="flex space-x-2">
+//                     <div>
+//                       <label className="block text-xs text-gray-500">
+//                         From
+//                       </label>
+//                       <input
+//                         type="date"
+//                         value={job.fromDate}
+//                         onChange={(e) => {
+//                           const updatedHistory = [
+//                             ...formData.employmentHistory,
+//                           ];
+//                           updatedHistory[index] = {
+//                             ...updatedHistory[index],
+//                             fromDate: e.target.value,
+//                           };
+//                           handleInputChange(
+//                             "employmentHistory",
+//                             null,
+//                             updatedHistory
+//                           );
+//                         }}
+//                         className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-emerald-500"
+//                       />
+//                     </div>
+//                     <div>
+//                       <label className="block text-xs text-gray-500">To</label>
+//                       <input
+//                         type="date"
+//                         value={job.toDate}
+//                         onChange={(e) => {
+//                           const updatedHistory = [
+//                             ...formData.employmentHistory,
+//                           ];
+//                           updatedHistory[index] = {
+//                             ...updatedHistory[index],
+//                             toDate: e.target.value,
+//                           };
+//                           handleInputChange(
+//                             "employmentHistory",
+//                             null,
+//                             updatedHistory
+//                           );
+//                         }}
+//                         className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-emerald-500"
+//                       />
+//                     </div>
+//                   </div>
+//                 </td>
+//                 <td className="py-3 px-4">
+//                   <input
+//                     type="text"
+//                     value={job.positionHeld}
+//                     onChange={(e) => {
+//                       const updatedHistory = [...formData.employmentHistory];
+//                       updatedHistory[index] = {
+//                         ...updatedHistory[index],
+//                         positionHeld: e.target.value,
+//                       };
+//                       handleInputChange(
+//                         "employmentHistory",
+//                         null,
+//                         updatedHistory
+//                       );
+//                     }}
+//                     className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-emerald-500"
+//                     placeholder="Position held"
+//                   />
+//                 </td>
+//                 <td className="py-3 px-4">
+//                   <select
+//                     value={job.employmentType}
+//                     onChange={(e) => {
+//                       const updatedHistory = [...formData.employmentHistory];
+//                       updatedHistory[index] = {
+//                         ...updatedHistory[index],
+//                         employmentType: e.target.value,
+//                       };
+//                       handleInputChange(
+//                         "employmentHistory",
+//                         null,
+//                         updatedHistory
+//                       );
+//                     }}
+//                     className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-emerald-500"
+//                   >
+//                     <option value="">Select</option>
+//                     <option value="Full Time">Full Time</option>
+//                     <option value="Part Time">Part Time</option>
+//                     <option value="Casual">Casual</option>
+//                   </select>
+//                 </td>
+//                 <td className="py-3 px-4">
+//                   <textarea
+//                     value={job.duties}
+//                     onChange={(e) => {
+//                       const updatedHistory = [...formData.employmentHistory];
+//                       updatedHistory[index] = {
+//                         ...updatedHistory[index],
+//                         duties: e.target.value,
+//                       };
+//                       handleInputChange(
+//                         "employmentHistory",
+//                         null,
+//                         updatedHistory
+//                       );
+//                     }}
+//                     className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-emerald-500"
+//                     placeholder="Description of duties"
+//                     rows="2"
+//                   ></textarea>
+//                 </td>
+//               </tr>
+//             ))}
+//           </tbody>
+//         </table>
+//       </div>
+
+//       <div className="text-sm text-gray-500 italic">
+//         *Attach additional sheet if required
+//       </div>
+//     </div>
+//   );
+// };
+const EmploymentHistorySection = ({
+  formData,
+  handleArrayItemChange,
+  addArrayItem,
+  removeArrayItem,
+}) => {
+  const emptyEmploymentRecord = {
+    employer: "",
+    periodFrom: "",
+    periodTo: "",
+    position: "",
+    employmentType: "Full Time",
+    duties: "",
+  };
+
   return (
     <div>
       <h3 className="text-xl font-medium text-emerald-700 mb-6">
-        Applicant Employment History
+        Employment History
       </h3>
+      <p className="text-gray-600 mb-4">
+        Please provide details of your employment history relevant to this
+        application.
+      </p>
 
-      <div className="overflow-x-auto">
-        <table className="min-w-full bg-white rounded-lg overflow-hidden border border-gray-200 mb-4">
-          <thead className="bg-gray-100">
-            <tr>
-              <th className="py-3 px-4 text-left text-sm font-medium text-gray-700">
-                Name, Address and Phone number of Employers
-              </th>
-              <th className="py-3 px-4 text-left text-sm font-medium text-gray-700">
-                Period of Employment (DD/MM/YYYY)
-              </th>
-              <th className="py-3 px-4 text-left text-sm font-medium text-gray-700">
-                Position Held
-              </th>
-              <th className="py-3 px-4 text-left text-sm font-medium text-gray-700">
+      {formData.employmentHistory.map((employment, index) => (
+        <div key={index} className="mb-8 p-4 border border-gray-200 rounded-md">
+          <div className="flex justify-between items-center mb-4">
+            <h4 className="font-medium text-emerald-700">
+              Employment Record {index + 1}
+            </h4>
+            {formData.employmentHistory.length > 1 && (
+              <button
+                type="button"
+                onClick={() => removeArrayItem("employmentHistory", index)}
+                className="px-2 py-1 bg-red-500 text-white rounded-md hover:bg-red-600 text-sm"
+              >
+                Remove
+              </button>
+            )}
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-gray-700 mb-2">
+                Name, Address and Phone number of Employer{" "}
+                <span className="text-red-500">*</span>
+              </label>
+              <textarea
+                value={employment.employer}
+                onChange={(e) =>
+                  handleArrayItemChange(
+                    "employmentHistory",
+                    index,
+                    "employer",
+                    e.target.value
+                  )
+                }
+                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                rows="3"
+                required
+              ></textarea>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-gray-700 mb-2">
+                  Period From <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="date"
+                  value={employment.periodFrom}
+                  onChange={(e) =>
+                    handleArrayItemChange(
+                      "employmentHistory",
+                      index,
+                      "periodFrom",
+                      e.target.value
+                    )
+                  }
+                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-gray-700 mb-2">
+                  Period To <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="date"
+                  value={employment.periodTo}
+                  onChange={(e) =>
+                    handleArrayItemChange(
+                      "employmentHistory",
+                      index,
+                      "periodTo",
+                      e.target.value
+                    )
+                  }
+                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  required
+                />
+              </div>
+            </div>
+            <div>
+              <label className="block text-gray-700 mb-2">
+                Position Held <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                value={employment.position}
+                onChange={(e) =>
+                  handleArrayItemChange(
+                    "employmentHistory",
+                    index,
+                    "position",
+                    e.target.value
+                  )
+                }
+                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-gray-700 mb-2">
                 Employment Type
-              </th>
-              <th className="py-3 px-4 text-left text-sm font-medium text-gray-700">
-                Description of Major Duties
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {formData.employmentHistory.map((job, index) => (
-              <tr key={index} className="border-t border-gray-200">
-                <td className="py-3 px-4">
-                  <input
-                    type="text"
-                    value={job.employer}
-                    onChange={(e) => {
-                      const updatedHistory = [...formData.employmentHistory];
-                      updatedHistory[index] = {
-                        ...updatedHistory[index],
-                        employer: e.target.value,
-                      };
-                      handleInputChange(
-                        "employmentHistory",
-                        null,
-                        updatedHistory
-                      );
-                    }}
-                    className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-emerald-500"
-                    placeholder="Employer details"
-                  />
-                </td>
-                <td className="py-3 px-4">
-                  <div className="flex space-x-2">
-                    <div>
-                      <label className="block text-xs text-gray-500">
-                        From
-                      </label>
-                      <input
-                        type="date"
-                        value={job.fromDate}
-                        onChange={(e) => {
-                          const updatedHistory = [
-                            ...formData.employmentHistory,
-                          ];
-                          updatedHistory[index] = {
-                            ...updatedHistory[index],
-                            fromDate: e.target.value,
-                          };
-                          handleInputChange(
-                            "employmentHistory",
-                            null,
-                            updatedHistory
-                          );
-                        }}
-                        className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-emerald-500"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs text-gray-500">To</label>
-                      <input
-                        type="date"
-                        value={job.toDate}
-                        onChange={(e) => {
-                          const updatedHistory = [
-                            ...formData.employmentHistory,
-                          ];
-                          updatedHistory[index] = {
-                            ...updatedHistory[index],
-                            toDate: e.target.value,
-                          };
-                          handleInputChange(
-                            "employmentHistory",
-                            null,
-                            updatedHistory
-                          );
-                        }}
-                        className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-emerald-500"
-                      />
-                    </div>
-                  </div>
-                </td>
-                <td className="py-3 px-4">
-                  <input
-                    type="text"
-                    value={job.positionHeld}
-                    onChange={(e) => {
-                      const updatedHistory = [...formData.employmentHistory];
-                      updatedHistory[index] = {
-                        ...updatedHistory[index],
-                        positionHeld: e.target.value,
-                      };
-                      handleInputChange(
-                        "employmentHistory",
-                        null,
-                        updatedHistory
-                      );
-                    }}
-                    className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-emerald-500"
-                    placeholder="Position held"
-                  />
-                </td>
-                <td className="py-3 px-4">
-                  <select
-                    value={job.employmentType}
-                    onChange={(e) => {
-                      const updatedHistory = [...formData.employmentHistory];
-                      updatedHistory[index] = {
-                        ...updatedHistory[index],
-                        employmentType: e.target.value,
-                      };
-                      handleInputChange(
-                        "employmentHistory",
-                        null,
-                        updatedHistory
-                      );
-                    }}
-                    className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-emerald-500"
-                  >
-                    <option value="">Select</option>
-                    <option value="Full Time">Full Time</option>
-                    <option value="Part Time">Part Time</option>
-                    <option value="Casual">Casual</option>
-                  </select>
-                </td>
-                <td className="py-3 px-4">
-                  <textarea
-                    value={job.duties}
-                    onChange={(e) => {
-                      const updatedHistory = [...formData.employmentHistory];
-                      updatedHistory[index] = {
-                        ...updatedHistory[index],
-                        duties: e.target.value,
-                      };
-                      handleInputChange(
-                        "employmentHistory",
-                        null,
-                        updatedHistory
-                      );
-                    }}
-                    className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-emerald-500"
-                    placeholder="Description of duties"
-                    rows="2"
-                  ></textarea>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+              </label>
+              <select
+                value={employment.employmentType}
+                onChange={(e) =>
+                  handleArrayItemChange(
+                    "employmentHistory",
+                    index,
+                    "employmentType",
+                    e.target.value
+                  )
+                }
+                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              >
+                <option value="Full Time">Full Time</option>
+                <option value="Part-time">Part-time</option>
+                <option value="Casual">Casual</option>
+              </select>
+            </div>
+            <div className="md:col-span-2">
+              <label className="block text-gray-700 mb-2">
+                Description of Major Duties{" "}
+                <span className="text-red-500">*</span>
+              </label>
+              <textarea
+                value={employment.duties}
+                onChange={(e) =>
+                  handleArrayItemChange(
+                    "employmentHistory",
+                    index,
+                    "duties",
+                    e.target.value
+                  )
+                }
+                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                rows="4"
+                required
+              ></textarea>
+            </div>
+          </div>
+        </div>
+      ))}
 
-      <div className="text-sm text-gray-500 italic">
-        *Attach additional sheet if required
+      <div className="text-center mt-4">
+        <button
+          type="button"
+          onClick={() =>
+            addArrayItem("employmentHistory", emptyEmploymentRecord)
+          }
+          className="px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700"
+        >
+          Add Another Employment Record
+        </button>
       </div>
     </div>
   );
 };
+
 // DocumentedEvidenceSection Component
 const DocumentedEvidenceSection = ({ formData, handleInputChange }) => {
   const [evidenceItems, setEvidenceItems] = useState(
@@ -3184,9 +3395,15 @@ const PreviousQualificationsSection = ({ formData, handleInputChange }) => {
     });
   };
 
+  // Check if "Other" qualification is selected
+  const hasOtherQualification =
+    formData.previousQualifications.qualifications.some(
+      (q) => q.type === "Other"
+    );
+
   return (
     <div>
-      <h3 className="text-xl font-medium text-emerald-700 mb-6">
+      <h3 className="text-xl font-medium text-emerald-700 mb-6 mt-8">
         Previous Qualifications
       </h3>
 
@@ -3233,81 +3450,109 @@ const PreviousQualificationsSection = ({ formData, handleInputChange }) => {
       </div>
 
       {formData.previousQualifications.hasCompleted && (
-        <div className="overflow-x-auto">
-          <table className="min-w-full bg-white border border-gray-200">
-            <thead>
-              <tr>
-                <th className="py-2 px-3 bg-gray-50 border-b text-left">
-                  Qualification
-                </th>
-                <th className="py-2 px-3 bg-gray-50 border-b text-center">
-                  Australian (A)
-                </th>
-                <th className="py-2 px-3 bg-gray-50 border-b text-center">
-                  Australian Equivalent (E)
-                </th>
-                <th className="py-2 px-3 bg-gray-50 border-b text-center">
-                  International (I)
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {[
-                "Bachelor Degree or Higher Degree",
-                "Advanced Diploma or Associate Degree",
-                "Diploma or Associate Diploma",
-                "Certificate IV or Advanced Cert/Technician",
-                "Certificate III or Trade Certificate",
-                "Certificate II",
-                "Certificate I",
-                "Other",
-              ].map((qualification, index) => {
-                const qual =
-                  formData.previousQualifications.qualifications.find(
-                    (q) => q.type === qualification
+        <>
+          <div className="overflow-x-auto">
+            <table className="min-w-full bg-white border border-gray-200">
+              <thead>
+                <tr>
+                  <th className="py-2 px-3 bg-gray-50 border-b text-left">
+                    Qualification
+                  </th>
+                  <th className="py-2 px-3 bg-gray-50 border-b text-center">
+                    Australian (A)
+                  </th>
+                  <th className="py-2 px-3 bg-gray-50 border-b text-center">
+                    Australian Equivalent (E)
+                  </th>
+                  <th className="py-2 px-3 bg-gray-50 border-b text-center">
+                    International (I)
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {[
+                  "Bachelor Degree or Higher Degree",
+                  "Advanced Diploma or Associate Degree",
+                  "Diploma or Associate Diploma",
+                  "Certificate IV or Advanced Cert/Technician",
+                  "Certificate III or Trade Certificate",
+                  "Certificate II",
+                  "Certificate I",
+                  "Other",
+                ].map((qualification, index) => {
+                  const qual =
+                    formData.previousQualifications.qualifications.find(
+                      (q) => q.type === qualification
+                    );
+                  return (
+                    <tr
+                      key={index}
+                      className={index % 2 === 0 ? "bg-gray-50" : ""}
+                    >
+                      <td className="py-2 px-3 border-b">{qualification}</td>
+                      <td className="py-2 px-3 border-b text-center">
+                        <input
+                          type="radio"
+                          name={`qual_${index}`}
+                          checked={qual?.origin === "A"}
+                          onChange={() =>
+                            handleQualificationChange(qualification, true)
+                          }
+                        />
+                      </td>
+                      <td className="py-2 px-3 border-b text-center">
+                        <input
+                          type="radio"
+                          name={`qual_${index}`}
+                          checked={qual?.origin === "E"}
+                          onChange={() =>
+                            handleQualificationChange(qualification, null)
+                          }
+                        />
+                      </td>
+                      <td className="py-2 px-3 border-b text-center">
+                        <input
+                          type="radio"
+                          name={`qual_${index}`}
+                          checked={qual?.origin === "I"}
+                          onChange={() =>
+                            handleQualificationChange(qualification, false)
+                          }
+                        />
+                      </td>
+                    </tr>
                   );
-                return (
-                  <tr
-                    key={index}
-                    className={index % 2 === 0 ? "bg-gray-50" : ""}
-                  >
-                    <td className="py-2 px-3 border-b">{qualification}</td>
-                    <td className="py-2 px-3 border-b text-center">
-                      <input
-                        type="radio"
-                        name={`qual_${index}`}
-                        checked={qual?.origin === "A"}
-                        onChange={() =>
-                          handleQualificationChange(qualification, true)
-                        }
-                      />
-                    </td>
-                    <td className="py-2 px-3 border-b text-center">
-                      <input
-                        type="radio"
-                        name={`qual_${index}`}
-                        checked={qual?.origin === "E"}
-                        onChange={() =>
-                          handleQualificationChange(qualification, null)
-                        }
-                      />
-                    </td>
-                    <td className="py-2 px-3 border-b text-center">
-                      <input
-                        type="radio"
-                        name={`qual_${index}`}
-                        checked={qual?.origin === "I"}
-                        onChange={() =>
-                          handleQualificationChange(qualification, false)
-                        }
-                      />
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+                })}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Add text field for "Other" qualification */}
+          {hasOtherQualification && (
+            <div className="mt-4">
+              <label
+                htmlFor="otherQualification"
+                className="block text-gray-700 font-medium mb-2"
+              >
+                Please specify other qualification:
+              </label>
+              <input
+                type="text"
+                id="otherQualification"
+                value={formData.previousQualifications.otherQualification || ""}
+                onChange={(e) =>
+                  handleInputChange(
+                    "previousQualifications",
+                    "otherQualification",
+                    e.target.value
+                  )
+                }
+                className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                placeholder="Please specify your other qualification"
+              />
+            </div>
+          )}
+        </>
       )}
     </div>
   );
@@ -3410,39 +3655,52 @@ const ContactSourceSection = ({ formData, handleInputChange }) => {
 
 // Student Handbook Section
 const StudentHandbookSection = ({ formData, handleInputChange }) => {
+  const handbookItems = [
+    "Student fee information",
+    "Refund Policy",
+    "Code of conduct",
+    "Complaints procedure",
+    "Appeals procedure",
+    "Assessment guidelines",
+    "Student welfare and support services",
+    "Recognition of prior learning",
+  ];
+
+  const [checkedItems, setCheckedItems] = useState(
+    formData.studentHandbook?.checkedItems || {}
+  );
+
+  const handleCheckboxChange = (item) => {
+    const updatedItems = {
+      ...checkedItems,
+      [item]: !checkedItems[item],
+    };
+    setCheckedItems(updatedItems);
+
+    // Update formData
+    handleInputChange("studentHandbook", "checkedItems", updatedItems);
+  };
+
   return (
     <div>
-      <h3 className="text-xl font-medium text-emerald-700 mb-6">
+      <h3 className="text-xl font-medium text-emerald-700 mb-6 mt-8">
         Student Handbook
       </h3>
 
       <div className="p-4 bg-gray-50 border border-gray-200 rounded-md mb-6">
         <p className="mb-4">The student handbook outlines the following:</p>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="p-2 bg-white border border-gray-200 rounded text-center">
-            Student fee information
-          </div>
-          <div className="p-2 bg-white border border-gray-200 rounded text-center">
-            Refund Policy
-          </div>
-          <div className="p-2 bg-white border border-gray-200 rounded text-center">
-            Code of conduct
-          </div>
-          <div className="p-2 bg-white border border-gray-200 rounded text-center">
-            Complaints procedure
-          </div>
-          <div className="p-2 bg-white border border-gray-200 rounded text-center">
-            Appeals procedure
-          </div>
-          <div className="p-2 bg-white border border-gray-200 rounded text-center">
-            Assessment guidelines
-          </div>
-          <div className="p-2 bg-white border border-gray-200 rounded text-center">
-            Student welfare and support services
-          </div>
-          <div className="p-2 bg-white border border-gray-200 rounded text-center">
-            Recognition of prior learning
-          </div>
+        <div className="grid grid-cols-1 gap-4">
+          {handbookItems.map((item, index) => (
+            <label key={index} className="flex items-start">
+              <input
+                type="checkbox"
+                checked={checkedItems[item] || false}
+                onChange={() => handleCheckboxChange(item)}
+                className="mt-1 mr-2"
+              />
+              <span>{item}</span>
+            </label>
+          ))}
         </div>
       </div>
 
@@ -3466,7 +3724,15 @@ const StudentHandbookSection = ({ formData, handleInputChange }) => {
       </div>
 
       <p className="text-sm text-gray-600 mb-6">
-        The Student Handbook can be found on RTO website. www.RTO.edu.au
+        The Student Handbook can be found on RTO website.{" "}
+        <a
+          href="https://www.RTO.edu.au"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-emerald-600 hover:underline"
+        >
+          www.RTO.edu.au
+        </a>
       </p>
     </div>
   );
@@ -3622,8 +3888,6 @@ const PreTrainingChecklistSection = ({ formData, handleInputChange }) => {
     </div>
   );
 };
-
-// Consent Section
 const ConsentSection = ({ formData, handleInputChange }) => {
   return (
     <div>
@@ -3765,7 +4029,15 @@ const ConsentSection = ({ formData, handleInputChange }) => {
 
       <div className="mb-6">
         <div className="flex items-center">
-          <input type="checkbox" id="agreeToTerms" className="mr-2" />
+          <input
+            type="checkbox"
+            id="agreeToTerms"
+            className="mr-2"
+            checked={formData.consent.agreeToTerms || false}
+            onChange={(e) =>
+              handleInputChange("consent", "agreeToTerms", e.target.checked)
+            }
+          />
           <label htmlFor="agreeToTerms">
             I agree to all terms and conditions stated above
           </label>
@@ -3782,6 +4054,10 @@ const ConsentSection = ({ formData, handleInputChange }) => {
             id="signature"
             className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
             placeholder="Type your full name"
+            value={formData.consent.signature || ""}
+            onChange={(e) =>
+              handleInputChange("consent", "signature", e.target.value)
+            }
           />
         </div>
         <div className="flex-1">
@@ -3792,6 +4068,10 @@ const ConsentSection = ({ formData, handleInputChange }) => {
             type="date"
             id="signatureDate"
             className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            value={formData.consent.signatureDate || ""}
+            onChange={(e) =>
+              handleInputChange("consent", "signatureDate", e.target.value)
+            }
           />
         </div>
       </div>

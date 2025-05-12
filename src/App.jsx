@@ -56,13 +56,22 @@ import FORM4 from "./Customer/AdditionalForms/MaryamForms/form4";
 import DocumentModal from "./Customer/components/viewDocsModal";
 import RPLSelfAssessmentFormCPC30220 from "./Customer/AdditionalForms/Carpentry/RPLSelfAssessmentFormCPC30220";
 import RPL2 from "./Customer/AdditionalForms/CarpentryAssesmentkitForm/RPL22";
+
+import RPLSelfAssessment2CPC30620A from "./Customer/FormsTOVerify/Bilals/4";
+import RPLAssessmentCPC31020b from "./Customer/FormsTOVerify/Maryams/1";
+import RPLAssessmentFormaaa from "./Customer/FormsTOVerify/Maryams/2";
+import RPLAssessmentCPC30220cccc from "./Customer/FormsTOVerify/Maryams/3";
+import RPLSelfAssessmentCPC40920e from "./Customer/FormsTOVerify/Bilals/5";
+import RPLSelfAssessmentForm40120ff from "./Customer/FormsTOVerify/Bilals/6";
+import RPLSelfAssessmentFormCPC30220k from "./Customer/FormsTOVerify/Bilals/7";
+import FormNavigation from "./Customer/FormsTOVerify/VERIFY.JSX";
 function App() {
   return (
     <Router>
       <Routes>
         {/* Test Bilal Forms */}
         {/* <Route path="/bilal-form" element={<RPL />} /> */}
-        <Route path="/maryam-form" element={<FORM4 />} />
+        <Route path="/maryam-form" element={<RPLApplicationFormCPC40920 />} />
         <Route
           path="/view-doc"
           element={
@@ -266,6 +275,24 @@ function App() {
           path="/agent/applications"
           element={<ExistingApplicationsbyAgent />}
         />
+
+        {/* Forms to Verify */}
+
+        {/* maryam */}
+        <Route path="/form-maryam-1" element={<RPLAssessmentCPC31020b />} />
+        <Route path="/form-maryam-2" element={<RPLAssessmentFormaaa />} />
+        <Route path="/form-maryam-3" element={<RPLAssessmentCPC30220cccc />} />
+
+        {/* Bilal */}
+
+        <Route path="/form-bilal-1" element={<RPLSelfAssessment2CPC30620A />} />
+        <Route path="/form-bilal-2" element={<RPLSelfAssessmentCPC40920e />} />
+        <Route
+          path="/form-bilal-3"
+          element={<RPLSelfAssessmentForm40120ff />}
+        />
+        <Route path="/form-bilal-4" element={<RPL2 />} />
+        <Route path="/verify-forms" element={<FormNavigation />} />
       </Routes>
     </Router>
   );

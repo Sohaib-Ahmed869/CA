@@ -33,6 +33,7 @@ import DocumentModal, {
 import {
   getEnrollmentKitData,
   getRplIntakeData,
+  getRplApplicationFormData,
 } from "../../Customer/Services/rtoFormsServices";
 import RPLIntakeDetails from "../../Customer/ViewApplication/rplIntakeDetails";
 import EnrollmentDetails from "../../Customer/ViewApplication/RplEnrollmentKitDetails";
@@ -59,6 +60,8 @@ const ViewApplications = ({
   const navigate = useNavigate();
   const [rplIntakeData, setRplIntakeData] = useState([]);
   const [EnrollmentData, setEnrollmentData] = useState([]);
+  const [ApplicationFormData, setApplicationFormData] = useState([]);
+
   const [AssessmentDocumentModalOpen, setAssessmentDocumentModalOpen] =
     useState(false);
   // Use either props or params
@@ -72,6 +75,11 @@ const ViewApplications = ({
       console.log(application);
       const response = await getRplIntakeData(application.id);
       const response2 = await getEnrollmentKitData(application.id);
+      const applicationFormResponse = await getRplApplicationFormData(
+        application.id
+      );
+      setApplicationFormData(applicationFormResponse.data);
+
       setEnrollmentData(response2.data);
       setRplIntakeData(response.data);
       console.log(response.data);
@@ -808,7 +816,9 @@ const ViewApplications = ({
                 <EnrollmentDetails enrollmentData={EnrollmentData} />
               )}
               {selectedForm === "applicationform" && (
-                <RPLApplicationFormViewer />
+                <RPLApplicationFormViewer
+                  rplApplicationFormData={ApplicationFormData}
+                />
               )}
               {selectedForm === "assessmentForm" && (
                 <AgreementDocumentModal

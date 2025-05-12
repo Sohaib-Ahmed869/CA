@@ -1,11 +1,13 @@
-import React, { useState } from "react";
+"use client"
+
+import { useState } from "react"
 // import Navbar from "../../../components/navbar";
-import { BsChevronLeft, BsChevronRight } from "react-icons/bs";
-import toast, { Toaster } from "react-hot-toast";
+import { BsChevronLeft, BsChevronRight } from "react-icons/bs"
+import { Toaster } from "react-hot-toast"
 
 const RPLApplicationFormCPC40920 = () => {
-  const [activeSection, setActiveSection] = useState(1);
-  const totalSections = 18; // Total number of sections
+  const [activeSection, setActiveSection] = useState(1)
+  const totalSections = 23 // Total number of sections
 
   const [formData, setFormData] = useState({
     personalDetails: {
@@ -84,6 +86,7 @@ const RPLApplicationFormCPC40920 = () => {
     },
     occupation: {
       classification: "",
+      otherOccupation: "",
     },
     industry: {
       classification: "",
@@ -96,9 +99,12 @@ const RPLApplicationFormCPC40920 = () => {
     previousQualifications: {
       hasCompleted: false,
       qualifications: [],
+      otherQualification: "",
     },
     studyReason: "",
+    otherStudyReason: "",
     contactSource: "",
+    otherContactSource: "",
     citizenshipStatus: "",
     program: "",
     preTraining: {
@@ -119,7 +125,7 @@ const RPLApplicationFormCPC40920 = () => {
       photoConsent: false,
     },
     rplArea: {
-      courseApplying: "",
+      courseApplying: "CPC40920 Certificate IV in Plumbing and Services (Operations)",
     },
     referees: [
       {
@@ -142,31 +148,18 @@ const RPLApplicationFormCPC40920 = () => {
     employmentHistory: [
       {
         employer: "",
-        fromDate: "",
-        toDate: "",
-        positionHeld: "",
-        employmentType: "",
-        duties: "",
-      },
-      {
-        employer: "",
-        fromDate: "",
-        toDate: "",
-        positionHeld: "",
-        employmentType: "",
-        duties: "",
-      },
-      {
-        employer: "",
-        fromDate: "",
-        toDate: "",
-        positionHeld: "",
-        employmentType: "",
+        periodFrom: "",
+        periodTo: "",
+        position: "",
+        employmentType: "Full Time",
         duties: "",
       },
     ],
     documentedEvidence: [],
-  });
+    studentHandbook: {
+      checkedItems: {},
+    },
+  })
 
   // Updated handleInputChange function to handle different types of state updates
   const handleInputChange = (section, field, value) => {
@@ -176,72 +169,61 @@ const RPLApplicationFormCPC40920 = () => {
         return {
           ...prev,
           [section]: value,
-        };
+        }
       }
       // Otherwise, update a specific field in a section
       return {
         ...prev,
-        [section]:
-          typeof prev[section] === "object"
-            ? { ...prev[section], [field]: value }
-            : value,
-      };
-    });
-  };
+        [section]: typeof prev[section] === "object" ? { ...prev[section], [field]: value } : value,
+      }
+    })
+  }
 
   const validateSection = (section) => {
     // Basic validation logic for each section
     switch (section) {
       case 1:
-        return formData.rplArea.courseApplying.trim() !== "";
+        return formData.rplArea.courseApplying.trim() !== ""
       case 2:
-        return (
-          formData.referees[0].name.trim() !== "" &&
-          formData.referees[0].position.trim() !== ""
-        );
+        return formData.referees[0].name.trim() !== "" && formData.referees[0].position.trim() !== ""
       case 3:
         return (
-          formData.employmentHistory[0].employer.trim() !== "" &&
-          formData.employmentHistory[0].positionHeld.trim() !== ""
-        );
+          formData.employmentHistory[0].employer.trim() !== "" && formData.employmentHistory[0].position.trim() !== ""
+        )
       case 4:
-        return true; // No required fields for documented evidence
+        return true // No required fields for documented evidence
       case 5:
-        return (
-          formData.personalDetails.firstName.trim() !== "" &&
-          formData.personalDetails.surname.trim() !== ""
-        );
+        return formData.personalDetails.firstName.trim() !== "" && formData.personalDetails.surname.trim() !== ""
       case 6:
-        return (
-          formData.contactDetails.email.trim() !== "" ||
-          formData.contactDetails.mobilePhone.trim() !== ""
-        );
+        return formData.contactDetails.email.trim() !== "" || formData.contactDetails.mobilePhone.trim() !== ""
       default:
-        return true;
+        return true
     }
-  };
+  }
 
   const handleNext = () => {
     // if (validateSection(activeSection)) {
-    setActiveSection((prev) => Math.min(prev + 1, totalSections));
+    setActiveSection((prev) => Math.min(prev + 1, totalSections))
     // } else {
     //   toast.error("Please complete all required fields before proceeding.");
     // }
-  };
+  }
 
   const handleBack = () => {
-    setActiveSection((prev) => Math.max(prev - 1, 1));
-  };
+    setActiveSection((prev) => Math.max(prev - 1, 1))
+  }
+
+  const [showSubmitPopup, setShowSubmitPopup] = useState(false)
 
   const handleSubmit = (e) => {
-    e.preventDefault();
+    e.preventDefault()
     // Handle form submission here
-    toast.success("Form Submitted Successfully");
-    console.log("Form submitted:", formData);
+    console.log("Form submitted:", formData)
     // You might want to send the data to an API endpoint
-  };
+    setShowSubmitPopup(true)
+  }
 
-  const progressPercentage = (activeSection / totalSections) * 100;
+  const progressPercentage = (activeSection / totalSections) * 100
 
   return (
     <div className="bg-gray-50 min-h-screen">
@@ -269,154 +251,98 @@ const RPLApplicationFormCPC40920 = () => {
 
           <form onSubmit={handleSubmit}>
             {/* RPL Area Section */}
-            {activeSection === 1 && (
-              <RPLAreaSection
-                formData={formData}
-                handleInputChange={handleInputChange}
-              />
-            )}
+            {activeSection === 1 && <RPLAreaSection formData={formData} handleInputChange={handleInputChange} />}
 
             {/* Referees Section */}
-            {activeSection === 2 && (
-              <RefereesSection
-                formData={formData}
-                handleInputChange={handleInputChange}
-              />
-            )}
+            {activeSection === 2 && <RefereesSection formData={formData} handleInputChange={handleInputChange} />}
 
             {/* Employment History Section */}
             {activeSection === 3 && (
-              <EmploymentHistorySection
-                formData={formData}
-                handleInputChange={handleInputChange}
-              />
+              <EmploymentHistorySection formData={formData} handleInputChange={handleInputChange} />
             )}
 
             {/* Documented Evidence Section */}
             {activeSection === 4 && (
-              <DocumentedEvidenceSection
-                formData={formData}
-                handleInputChange={handleInputChange}
-              />
+              <DocumentedEvidenceSection formData={formData} handleInputChange={handleInputChange} />
             )}
 
             {/* Personal Details Section */}
             {activeSection === 5 && (
-              <PersonalDetailsSection
-                formData={formData}
-                handleInputChange={handleInputChange}
-              />
+              <PersonalDetailsSection formData={formData} handleInputChange={handleInputChange} />
             )}
 
             {/* Contact Details Section */}
-            {activeSection === 6 && (
-              <ContactDetailsSection
-                formData={formData}
-                handleInputChange={handleInputChange}
-              />
-            )}
-            {activeSection === 7 && (
-              <AddressDetailsSection
-                formData={formData}
-                handleInputChange={handleInputChange}
-              />
-            )}
+            {activeSection === 6 && <ContactDetailsSection formData={formData} handleInputChange={handleInputChange} />}
+
+            {/* Address Details Section */}
+            {activeSection === 7 && <AddressDetailsSection formData={formData} handleInputChange={handleInputChange} />}
+
+            {/* Workplace Details Section */}
             {activeSection === 8 && (
-              <WorkplaceDetailsSection
-                formData={formData}
-                handleInputChange={handleInputChange}
-              />
+              <WorkplaceDetailsSection formData={formData} handleInputChange={handleInputChange} />
             )}
+
+            {/* Cultural Diversity Section */}
             {activeSection === 9 && (
-              <CulturalDiversitySection
-                formData={formData}
-                handleInputChange={handleInputChange}
-              />
+              <CulturalDiversitySection formData={formData} handleInputChange={handleInputChange} />
             )}
-            {activeSection === 10 && (
-              <USISection
-                formData={formData}
-                handleInputChange={handleInputChange}
-              />
-            )}
+
+            {/* USI Section */}
+            {activeSection === 10 && <USISection formData={formData} handleInputChange={handleInputChange} />}
+
+            {/* Education Details Section */}
             {activeSection === 11 && (
-              <EducationDetailsSection
-                formData={formData}
-                handleInputChange={handleInputChange}
-              />
+              <EducationDetailsSection formData={formData} handleInputChange={handleInputChange} />
             )}
+
+            {/* Employment Status Section */}
             {activeSection === 12 && (
-              <EmploymentStatusSection
-                formData={formData}
-                handleInputChange={handleInputChange}
-              />
+              <EmploymentStatusSection formData={formData} handleInputChange={handleInputChange} />
             )}
-            {activeSection === 13 && (
-              <OccupationSection
-                formData={formData}
-                handleInputChange={handleInputChange}
-              />
-            )}
-            {activeSection === 14 && (
-              <IndustrySection
-                formData={formData}
-                handleInputChange={handleInputChange}
-              />
-            )}
-            {activeSection === 15 && (
-              <DisabilitySection
-                formData={formData}
-                handleInputChange={handleInputChange}
-              />
-            )}
-            {activeSection === 11 && (
-              <PreviousQualificationsSection
-                formData={formData}
-                handleInputChange={handleInputChange}
-              />
-            )}
-            {activeSection === 12 && (
-              <StudyReasonSection
-                formData={formData}
-                handleInputChange={handleInputChange}
-              />
-            )}
-            {activeSection === 13 && (
-              <ContactSourceSection
-                formData={formData}
-                handleInputChange={handleInputChange}
-              />
-            )}
-            {activeSection === 14 && (
-              <StudentHandbookSection
-                formData={formData}
-                handleInputChange={handleInputChange}
-              />
-            )}
-            {activeSection === 15 && (
-              <CitizenshipStatusSection
-                formData={formData}
-                handleInputChange={handleInputChange}
-              />
-            )}
+
+            {/* Occupation Section */}
+            {activeSection === 13 && <OccupationSection formData={formData} handleInputChange={handleInputChange} />}
+
+            {/* Industry Section */}
+            {activeSection === 14 && <IndustrySection formData={formData} handleInputChange={handleInputChange} />}
+
+            {/* Disability Section */}
+            {activeSection === 15 && <DisabilitySection formData={formData} handleInputChange={handleInputChange} />}
+
+            {/* Previous Qualifications Section */}
             {activeSection === 16 && (
-              <ProgramSelectionSection
-                formData={formData}
-                handleInputChange={handleInputChange}
-              />
+              <PreviousQualificationsSection formData={formData} handleInputChange={handleInputChange} />
             )}
-            {activeSection === 17 && (
-              <PreTrainingChecklistSection
-                formData={formData}
-                handleInputChange={handleInputChange}
-              />
+
+            {/* Study Reason Section */}
+            {activeSection === 17 && <StudyReasonSection formData={formData} handleInputChange={handleInputChange} />}
+
+            {/* Contact Source Section */}
+            {activeSection === 18 && <ContactSourceSection formData={formData} handleInputChange={handleInputChange} />}
+
+            {/* Student Handbook Section */}
+            {activeSection === 19 && (
+              <StudentHandbookSection formData={formData} handleInputChange={handleInputChange} />
             )}
-            {activeSection === 18 && (
-              <ConsentSection
-                formData={formData}
-                handleInputChange={handleInputChange}
-              />
+
+            {/* Citizenship Status Section */}
+            {activeSection === 20 && (
+              <CitizenshipStatusSection formData={formData} handleInputChange={handleInputChange} />
             )}
+
+            {/* Program Selection Section
+            {activeSection === 21 && (
+              <ProgramSelectionSection formData={formData} handleInputChange={handleInputChange} />
+            )} */}
+
+            {/* Pre-Training Checklist Section */}
+            {activeSection === 21 && (
+              <PreTrainingChecklistSection formData={formData} handleInputChange={handleInputChange} />
+            )}
+
+            {/* Consent Section */}
+            {activeSection === 22 && <ConsentSection formData={formData} handleInputChange={handleInputChange} />}
+            {activeSection === 23 && <FormSubmitted />}
 
             {/* Navigation Buttons */}
             <div className="mt-8 flex justify-between">
@@ -430,10 +356,7 @@ const RPLApplicationFormCPC40920 = () => {
               </button>
 
               {activeSection === totalSections ? (
-                <button
-                  type="submit"
-                  className="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
-                >
+                <button type="submit" className="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700">
                   Submit Application
                 </button>
               ) : (
@@ -449,42 +372,50 @@ const RPLApplicationFormCPC40920 = () => {
           </form>
         </div>
       </div>
+      {/* Form Submission Popup */}
+      {showSubmitPopup && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-8 rounded-lg shadow-lg max-w-md w-full">
+            <h3 className="text-xl font-bold text-emerald-700 mb-4">Form Submitted Successfully</h3>
+            <p className="mb-6">
+              Thank you for submitting your RPL application form. We will review your application and contact you soon.
+            </p>
+            <div className="flex justify-end">
+              <button
+                onClick={() => setShowSubmitPopup(false)}
+                className="px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
-  );
-};
+  )
+}
 
-export default RPLApplicationFormCPC40920;
+export default RPLApplicationFormCPC40920
 
 // RPL Area Section Component
 const RPLAreaSection = ({ formData, handleInputChange }) => {
   return (
     <div>
-      <h3 className="text-xl font-medium text-emerald-700 mb-6">
-        Recognition Area
-      </h3>
+      <h3 className="text-xl font-medium text-emerald-700 mb-6">Recognition Area</h3>
       <div className="mb-8 p-4 bg-yellow-50 border border-yellow-200 rounded-md">
-        <h4 className="font-medium text-gray-800 mb-2 underline">
-          Welcome Message
-        </h4>
+        <h4 className="font-medium text-gray-800 mb-2 underline">Welcome Message</h4>
         <p className="mb-4">
-          Welcome to the Recognition of Prior Learning (RPL) Kit. You can use
-          this kit if you think you have the appropriate competence (skills,
-          knowledge and attitude) contained within course objectives. Having
-          competence means 'the ability to apply your knowledge and skills to
-          perform your job or workplace task effectively'
+          Welcome to the Recognition of Prior Learning (RPL) Kit. You can use this kit if you think you have the
+          appropriate competence (skills, knowledge and attitude) contained within course objectives. Having competence
+          means 'the ability to apply your knowledge and skills to perform your job or workplace task effectively'
         </p>
-        <p>
-          This kit has six sections/steps to complete the RPL application
-          process:
-        </p>
+        <p>This kit has six sections/steps to complete the RPL application process:</p>
         <ul className="list-disc pl-5 space-y-1 mt-2">
           <li>
-            <strong>Step 1:</strong> The Application process and RPL Application
-            Form
+            <strong>Step 1:</strong> The Application process and RPL Application Form
           </li>
           <li>
-            <strong>Step 2:</strong> Completing the RPL Self-Assessment
-            Information Kit
+            <strong>Step 2:</strong> Completing the RPL Self-Assessment Information Kit
           </li>
           <li>
             <strong>Step 3:</strong> RPL Competency Conversation Kit
@@ -503,19 +434,15 @@ const RPLAreaSection = ({ formData, handleInputChange }) => {
 
       <div className="grid grid-cols-1 gap-6">
         <div>
-          <label
-            htmlFor="courseApplying"
-            className="block text-gray-700 font-medium mb-2"
-          >
+          <label htmlFor="courseApplying" className="block text-gray-700 font-medium mb-2">
             Course applying for recognition:
           </label>
           <input
             type="text"
+            readOnly
             id="courseApplying"
             value={formData.rplArea.courseApplying}
-            onChange={(e) =>
-              handleInputChange("rplArea", "courseApplying", e.target.value)
-            }
+            onChange={(e) => handleInputChange("rplArea", "courseApplying", e.target.value)}
             className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
             required
             placeholder="CPC40920 Certificate IV in Plumbing and Services (Operations) "
@@ -523,35 +450,31 @@ const RPLAreaSection = ({ formData, handleInputChange }) => {
         </div>
       </div>
     </div>
-  );
-};
+  )
+}
 
 // Referees Section Component
 const RefereesSection = ({ formData, handleInputChange }) => {
   return (
     <div>
-      <h3 className="text-xl font-medium text-emerald-700 mb-6">
-        Professional Referees (relevant to work situation)
-      </h3>
+      <h3 className="text-xl font-medium text-emerald-700 mb-6">Professional Referees (relevant to work situation)</h3>
 
       {/* First Referee */}
       <div className="mb-6 p-6 bg-gray-50 border border-gray-200 rounded-md">
         <h4 className="font-medium text-gray-800 mb-4">Referee 1</h4>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-gray-700 font-medium mb-2">
-              Name:
-            </label>
+            <label className="block text-gray-700 font-medium mb-2">Name:</label>
             <input
               type="text"
               value={formData.referees[0].name}
               onChange={(e) => {
-                const updatedReferees = [...formData.referees];
+                const updatedReferees = [...formData.referees]
                 updatedReferees[0] = {
                   ...updatedReferees[0],
                   name: e.target.value,
-                };
-                handleInputChange("referees", null, updatedReferees);
+                }
+                handleInputChange("referees", null, updatedReferees)
               }}
               className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
               required
@@ -559,19 +482,17 @@ const RefereesSection = ({ formData, handleInputChange }) => {
           </div>
 
           <div>
-            <label className="block text-gray-700 font-medium mb-2">
-              Position:
-            </label>
+            <label className="block text-gray-700 font-medium mb-2">Position:</label>
             <input
               type="text"
               value={formData.referees[0].position}
               onChange={(e) => {
-                const updatedReferees = [...formData.referees];
+                const updatedReferees = [...formData.referees]
                 updatedReferees[0] = {
                   ...updatedReferees[0],
                   position: e.target.value,
-                };
-                handleInputChange("referees", null, updatedReferees);
+                }
+                handleInputChange("referees", null, updatedReferees)
               }}
               className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
               required
@@ -579,19 +500,17 @@ const RefereesSection = ({ formData, handleInputChange }) => {
           </div>
 
           <div>
-            <label className="block text-gray-700 font-medium mb-2">
-              Organisation:
-            </label>
+            <label className="block text-gray-700 font-medium mb-2">Organisation:</label>
             <input
               type="text"
               value={formData.referees[0].organization}
               onChange={(e) => {
-                const updatedReferees = [...formData.referees];
+                const updatedReferees = [...formData.referees]
                 updatedReferees[0] = {
                   ...updatedReferees[0],
                   organization: e.target.value,
-                };
-                handleInputChange("referees", null, updatedReferees);
+                }
+                handleInputChange("referees", null, updatedReferees)
               }}
               className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
               required
@@ -599,38 +518,34 @@ const RefereesSection = ({ formData, handleInputChange }) => {
           </div>
 
           <div>
-            <label className="block text-gray-700 font-medium mb-2">
-              Phone Number:
-            </label>
+            <label className="block text-gray-700 font-medium mb-2">Phone Number:</label>
             <input
               type="tel"
               value={formData.referees[0].phoneNumber}
               onChange={(e) => {
-                const updatedReferees = [...formData.referees];
+                const updatedReferees = [...formData.referees]
                 updatedReferees[0] = {
                   ...updatedReferees[0],
                   phoneNumber: e.target.value,
-                };
-                handleInputChange("referees", null, updatedReferees);
+                }
+                handleInputChange("referees", null, updatedReferees)
               }}
               className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
             />
           </div>
 
           <div>
-            <label className="block text-gray-700 font-medium mb-2">
-              Mobile Number:
-            </label>
+            <label className="block text-gray-700 font-medium mb-2">Mobile Number:</label>
             <input
               type="tel"
               value={formData.referees[0].mobileNumber}
               onChange={(e) => {
-                const updatedReferees = [...formData.referees];
+                const updatedReferees = [...formData.referees]
                 updatedReferees[0] = {
                   ...updatedReferees[0],
                   mobileNumber: e.target.value,
-                };
-                handleInputChange("referees", null, updatedReferees);
+                }
+                handleInputChange("referees", null, updatedReferees)
               }}
               className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
               required
@@ -638,19 +553,17 @@ const RefereesSection = ({ formData, handleInputChange }) => {
           </div>
 
           <div>
-            <label className="block text-gray-700 font-medium mb-2">
-              Email Address:
-            </label>
+            <label className="block text-gray-700 font-medium mb-2">Email Address:</label>
             <input
               type="email"
               value={formData.referees[0].email}
               onChange={(e) => {
-                const updatedReferees = [...formData.referees];
+                const updatedReferees = [...formData.referees]
                 updatedReferees[0] = {
                   ...updatedReferees[0],
                   email: e.target.value,
-                };
-                handleInputChange("referees", null, updatedReferees);
+                }
+                handleInputChange("referees", null, updatedReferees)
               }}
               className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
               required
@@ -664,114 +577,102 @@ const RefereesSection = ({ formData, handleInputChange }) => {
         <h4 className="font-medium text-gray-800 mb-4">Referee 2</h4>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-gray-700 font-medium mb-2">
-              Name:
-            </label>
+            <label className="block text-gray-700 font-medium mb-2">Name:</label>
             <input
               type="text"
               value={formData.referees[1].name}
               onChange={(e) => {
-                const updatedReferees = [...formData.referees];
+                const updatedReferees = [...formData.referees]
                 updatedReferees[1] = {
                   ...updatedReferees[1],
                   name: e.target.value,
-                };
-                handleInputChange("referees", null, updatedReferees);
+                }
+                handleInputChange("referees", null, updatedReferees)
               }}
               className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
             />
           </div>
 
           <div>
-            <label className="block text-gray-700 font-medium mb-2">
-              Position:
-            </label>
+            <label className="block text-gray-700 font-medium mb-2">Position:</label>
             <input
               type="text"
               value={formData.referees[1].position}
               onChange={(e) => {
-                const updatedReferees = [...formData.referees];
+                const updatedReferees = [...formData.referees]
                 updatedReferees[1] = {
                   ...updatedReferees[1],
                   position: e.target.value,
-                };
-                handleInputChange("referees", null, updatedReferees);
+                }
+                handleInputChange("referees", null, updatedReferees)
               }}
               className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
             />
           </div>
 
           <div>
-            <label className="block text-gray-700 font-medium mb-2">
-              Organisation:
-            </label>
+            <label className="block text-gray-700 font-medium mb-2">Organisation:</label>
             <input
               type="text"
               value={formData.referees[1].organization}
               onChange={(e) => {
-                const updatedReferees = [...formData.referees];
+                const updatedReferees = [...formData.referees]
                 updatedReferees[1] = {
                   ...updatedReferees[1],
                   organization: e.target.value,
-                };
-                handleInputChange("referees", null, updatedReferees);
+                }
+                handleInputChange("referees", null, updatedReferees)
               }}
               className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
             />
           </div>
 
           <div>
-            <label className="block text-gray-700 font-medium mb-2">
-              Phone Number:
-            </label>
+            <label className="block text-gray-700 font-medium mb-2">Phone Number:</label>
             <input
               type="tel"
               value={formData.referees[1].phoneNumber}
               onChange={(e) => {
-                const updatedReferees = [...formData.referees];
+                const updatedReferees = [...formData.referees]
                 updatedReferees[1] = {
                   ...updatedReferees[1],
                   phoneNumber: e.target.value,
-                };
-                handleInputChange("referees", null, updatedReferees);
+                }
+                handleInputChange("referees", null, updatedReferees)
               }}
               className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
             />
           </div>
 
           <div>
-            <label className="block text-gray-700 font-medium mb-2">
-              Mobile Number:
-            </label>
+            <label className="block text-gray-700 font-medium mb-2">Mobile Number:</label>
             <input
               type="tel"
               value={formData.referees[1].mobileNumber}
               onChange={(e) => {
-                const updatedReferees = [...formData.referees];
+                const updatedReferees = [...formData.referees]
                 updatedReferees[1] = {
                   ...updatedReferees[1],
                   mobileNumber: e.target.value,
-                };
-                handleInputChange("referees", null, updatedReferees);
+                }
+                handleInputChange("referees", null, updatedReferees)
               }}
               className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
             />
           </div>
 
           <div>
-            <label className="block text-gray-700 font-medium mb-2">
-              Email Address:
-            </label>
+            <label className="block text-gray-700 font-medium mb-2">Email Address:</label>
             <input
               type="email"
               value={formData.referees[1].email}
               onChange={(e) => {
-                const updatedReferees = [...formData.referees];
+                const updatedReferees = [...formData.referees]
                 updatedReferees[1] = {
                   ...updatedReferees[1],
                   email: e.target.value,
-                };
-                handleInputChange("referees", null, updatedReferees);
+                }
+                handleInputChange("referees", null, updatedReferees)
               }}
               className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
             />
@@ -779,245 +680,199 @@ const RefereesSection = ({ formData, handleInputChange }) => {
         </div>
       </div>
     </div>
-  );
-};
+  )
+}
 
 // Employment History Section Component
 const EmploymentHistorySection = ({ formData, handleInputChange }) => {
+  const emptyEmploymentRecord = {
+    employer: "",
+    periodFrom: "",
+    periodTo: "",
+    position: "",
+    employmentType: "Full Time",
+    duties: "",
+  }
+
+  const handleArrayItemChange = (arrayName, index, field, value) => {
+    const updatedArray = [...formData[arrayName]]
+    updatedArray[index] = {
+      ...updatedArray[index],
+      [field]: value,
+    }
+    handleInputChange(arrayName, null, updatedArray)
+  }
+
+  const addArrayItem = (arrayName, emptyItem) => {
+    const updatedArray = [...formData[arrayName], emptyItem]
+    handleInputChange(arrayName, null, updatedArray)
+  }
+
+  const removeArrayItem = (arrayName, index) => {
+    const updatedArray = [...formData[arrayName]]
+    updatedArray.splice(index, 1)
+    handleInputChange(arrayName, null, updatedArray)
+  }
+
   return (
     <div>
-      <h3 className="text-xl font-medium text-emerald-700 mb-6">
-        Applicant Employment History
-      </h3>
+      <h3 className="text-xl font-medium text-emerald-700 mb-6">Employment History</h3>
+      <p className="text-gray-600 mb-4">
+        Please provide details of your employment history relevant to this application.
+      </p>
 
-      <div className="overflow-x-auto">
-        <table className="min-w-full bg-white rounded-lg overflow-hidden border border-gray-200 mb-4">
-          <thead className="bg-gray-100">
-            <tr>
-              <th className="py-3 px-4 text-left text-sm font-medium text-gray-700">
-                Name, Address and Phone number of Employers
-              </th>
-              <th className="py-3 px-4 text-left text-sm font-medium text-gray-700">
-                Period of Employment (DD/MM/YYYY)
-              </th>
-              <th className="py-3 px-4 text-left text-sm font-medium text-gray-700">
-                Position Held
-              </th>
-              <th className="py-3 px-4 text-left text-sm font-medium text-gray-700">
-                Employment Type
-              </th>
-              <th className="py-3 px-4 text-left text-sm font-medium text-gray-700">
-                Description of Major Duties
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {formData.employmentHistory.map((job, index) => (
-              <tr key={index} className="border-t border-gray-200">
-                <td className="py-3 px-4">
-                  <input
-                    type="text"
-                    value={job.employer}
-                    onChange={(e) => {
-                      const updatedHistory = [...formData.employmentHistory];
-                      updatedHistory[index] = {
-                        ...updatedHistory[index],
-                        employer: e.target.value,
-                      };
-                      handleInputChange(
-                        "employmentHistory",
-                        null,
-                        updatedHistory
-                      );
-                    }}
-                    className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-emerald-500"
-                    placeholder="Employer details"
-                  />
-                </td>
-                <td className="py-3 px-4">
-                  <div className="flex space-x-2">
-                    <div>
-                      <label className="block text-xs text-gray-500">
-                        From
-                      </label>
-                      <input
-                        type="date"
-                        value={job.fromDate}
-                        onChange={(e) => {
-                          const updatedHistory = [
-                            ...formData.employmentHistory,
-                          ];
-                          updatedHistory[index] = {
-                            ...updatedHistory[index],
-                            fromDate: e.target.value,
-                          };
-                          handleInputChange(
-                            "employmentHistory",
-                            null,
-                            updatedHistory
-                          );
-                        }}
-                        className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-emerald-500"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs text-gray-500">To</label>
-                      <input
-                        type="date"
-                        value={job.toDate}
-                        onChange={(e) => {
-                          const updatedHistory = [
-                            ...formData.employmentHistory,
-                          ];
-                          updatedHistory[index] = {
-                            ...updatedHistory[index],
-                            toDate: e.target.value,
-                          };
-                          handleInputChange(
-                            "employmentHistory",
-                            null,
-                            updatedHistory
-                          );
-                        }}
-                        className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-emerald-500"
-                      />
-                    </div>
-                  </div>
-                </td>
-                <td className="py-3 px-4">
-                  <input
-                    type="text"
-                    value={job.positionHeld}
-                    onChange={(e) => {
-                      const updatedHistory = [...formData.employmentHistory];
-                      updatedHistory[index] = {
-                        ...updatedHistory[index],
-                        positionHeld: e.target.value,
-                      };
-                      handleInputChange(
-                        "employmentHistory",
-                        null,
-                        updatedHistory
-                      );
-                    }}
-                    className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-emerald-500"
-                    placeholder="Position held"
-                  />
-                </td>
-                <td className="py-3 px-4">
-                  <select
-                    value={job.employmentType}
-                    onChange={(e) => {
-                      const updatedHistory = [...formData.employmentHistory];
-                      updatedHistory[index] = {
-                        ...updatedHistory[index],
-                        employmentType: e.target.value,
-                      };
-                      handleInputChange(
-                        "employmentHistory",
-                        null,
-                        updatedHistory
-                      );
-                    }}
-                    className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-emerald-500"
-                  >
-                    <option value="">Select</option>
-                    <option value="Full Time">Full Time</option>
-                    <option value="Part Time">Part Time</option>
-                    <option value="Casual">Casual</option>
-                  </select>
-                </td>
-                <td className="py-3 px-4">
-                  <textarea
-                    value={job.duties}
-                    onChange={(e) => {
-                      const updatedHistory = [...formData.employmentHistory];
-                      updatedHistory[index] = {
-                        ...updatedHistory[index],
-                        duties: e.target.value,
-                      };
-                      handleInputChange(
-                        "employmentHistory",
-                        null,
-                        updatedHistory
-                      );
-                    }}
-                    className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-emerald-500"
-                    placeholder="Description of duties"
-                    rows="2"
-                  ></textarea>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      {formData.employmentHistory.map((employment, index) => (
+        <div key={index} className="mb-8 p-4 border border-gray-200 rounded-md">
+          <div className="flex justify-between items-center mb-4">
+            <h4 className="font-medium text-emerald-700">Employment Record {index + 1}</h4>
+            {formData.employmentHistory.length > 1 && (
+              <button
+                type="button"
+                onClick={() => removeArrayItem("employmentHistory", index)}
+                className="px-2 py-1 bg-red-500 text-white rounded-md hover:bg-red-600 text-sm"
+              >
+                Remove
+              </button>
+            )}
+          </div>
 
-      <div className="text-sm text-gray-500 italic">
-        *Attach additional sheet if required
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-gray-700 mb-2">
+                Name, Address and Phone number of Employer <span className="text-red-500">*</span>
+              </label>
+              <textarea
+                value={employment.employer}
+                onChange={(e) => handleArrayItemChange("employmentHistory", index, "employer", e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                rows="3"
+                required
+              ></textarea>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-gray-700 mb-2">
+                  Period From <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="date"
+                  value={employment.periodFrom}
+                  onChange={(e) => handleArrayItemChange("employmentHistory", index, "periodFrom", e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-gray-700 mb-2">
+                  Period To <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="date"
+                  value={employment.periodTo}
+                  onChange={(e) => handleArrayItemChange("employmentHistory", index, "periodTo", e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  required
+                />
+              </div>
+            </div>
+            <div>
+              <label className="block text-gray-700 mb-2">
+                Position Held <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                value={employment.position}
+                onChange={(e) => handleArrayItemChange("employmentHistory", index, "position", e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-gray-700 mb-2">Employment Type</label>
+              <select
+                value={employment.employmentType}
+                onChange={(e) => handleArrayItemChange("employmentHistory", index, "employmentType", e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              >
+                <option value="Full Time">Full Time</option>
+                <option value="Part-time">Part-time</option>
+                <option value="Casual">Casual</option>
+              </select>
+            </div>
+            <div className="md:col-span-2">
+              <label className="block text-gray-700 mb-2">
+                Description of Major Duties <span className="text-red-500">*</span>
+              </label>
+              <textarea
+                value={employment.duties}
+                onChange={(e) => handleArrayItemChange("employmentHistory", index, "duties", e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                rows="4"
+                required
+              ></textarea>
+            </div>
+          </div>
+        </div>
+      ))}
+
+      <div className="text-center mt-4">
+        <button
+          type="button"
+          onClick={() => addArrayItem("employmentHistory", emptyEmploymentRecord)}
+          className="px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700"
+        >
+          Add Another Employment Record
+        </button>
       </div>
     </div>
-  );
-};
+  )
+}
 // DocumentedEvidenceSection Component
 const DocumentedEvidenceSection = ({ formData, handleInputChange }) => {
-  const [evidenceItems, setEvidenceItems] = useState(
-    formData.documentedEvidence || []
-  );
+  const [evidenceItems, setEvidenceItems] = useState(formData.documentedEvidence || [])
 
   const addEvidenceItem = () => {
-    const newItem = { description: "", assessorNotes: "" };
-    const updatedItems = [...evidenceItems, newItem];
-    setEvidenceItems(updatedItems);
-    handleInputChange("documentedEvidence", null, updatedItems);
-  };
+    const newItem = { description: "", assessorNotes: "" }
+    const updatedItems = [...evidenceItems, newItem]
+    setEvidenceItems(updatedItems)
+    handleInputChange("documentedEvidence", null, updatedItems)
+  }
 
   const updateEvidenceItem = (index, field, value) => {
-    const updatedItems = [...evidenceItems];
-    updatedItems[index] = { ...updatedItems[index], [field]: value };
-    setEvidenceItems(updatedItems);
-    handleInputChange("documentedEvidence", null, updatedItems);
-  };
+    const updatedItems = [...evidenceItems]
+    updatedItems[index] = { ...updatedItems[index], [field]: value }
+    setEvidenceItems(updatedItems)
+    handleInputChange("documentedEvidence", null, updatedItems)
+  }
 
   const removeEvidenceItem = (index) => {
-    const updatedItems = evidenceItems.filter((_, i) => i !== index);
-    setEvidenceItems(updatedItems);
-    handleInputChange("documentedEvidence", null, updatedItems);
-  };
+    const updatedItems = evidenceItems.filter((_, i) => i !== index)
+    setEvidenceItems(updatedItems)
+    handleInputChange("documentedEvidence", null, updatedItems)
+  }
 
   return (
     <div>
-      <h3 className="text-xl font-medium text-emerald-700 mb-6">
-        Documented Evidence
-      </h3>
+      <h3 className="text-xl font-medium text-emerald-700 mb-6">Documented Evidence</h3>
       <p className="mb-4 text-gray-600">
-        If you are including documents in your application, please provide a
-        brief description below. If you have an Australian Qualification or
-        Statement of Attainment, please attach a verified copy.
+        If you are including documents in your application, please provide a brief description below. If you have an
+        Australian Qualification or Statement of Attainment, please attach a verified copy. (e.g. Qualifications, Statement of Attainment, 
+Resume, Photos, Awards , Certificates etc) 
       </p>
 
       <div className="bg-gray-50 border border-gray-200 rounded-md p-4 mb-6">
         {evidenceItems.length === 0 ? (
-          <p className="text-gray-500 italic mb-4">
-            No evidence items added yet.
-          </p>
+          <p className="text-gray-500 italic mb-4">No evidence items added yet.</p>
         ) : (
           <div className="space-y-4 mb-4">
             {evidenceItems.map((item, index) => (
-              <div
-                key={index}
-                className="flex items-start space-x-4 pb-4 border-b border-gray-200"
-              >
+              <div key={index} className="flex items-start space-x-4 pb-4 border-b border-gray-200">
                 <div className="flex-grow">
-                  <label className="block text-gray-700 font-medium mb-2">
-                    Document Description
-                  </label>
+                  <label className="block text-gray-700 font-medium mb-2">Document Description</label>
                   <input
                     type="text"
                     value={item.description}
-                    onChange={(e) =>
-                      updateEvidenceItem(index, "description", e.target.value)
-                    }
+                    onChange={(e) => updateEvidenceItem(index, "description", e.target.value)}
                     className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
                     placeholder="e.g. Qualifications, Resume, Photos, Awards, Certificates etc."
                   />
@@ -1046,39 +901,29 @@ const DocumentedEvidenceSection = ({ formData, handleInputChange }) => {
       <div className="bg-gray-50 border border-gray-200 rounded-md p-4">
         <h4 className="font-medium text-gray-800 mb-2">Upload Documents</h4>
         <p className="text-gray-600 mb-4">
-          Please upload scanned copies of your evidence documents. Accepted
-          formats: PDF, JPG, PNG (max 5MB per file)
+          Please upload scanned copies of your evidence documents. Accepted formats: PDF, JPG, PNG (max 5MB per file)
         </p>
-        <input
-          type="file"
-          multiple
-          className="w-full p-2 border border-gray-300 rounded-md"
-        />
+        <input type="file" multiple className="w-full p-2 border border-gray-300 rounded-md" />
         <p className="text-sm text-gray-500 mt-2">
-          Note: Original documents may need to be presented during the
-          verification process.
+          Note: Original documents may need to be presented during the verification process.
         </p>
       </div>
     </div>
-  );
-};
+  )
+}
 
 // PersonalDetailsSection Component
 const PersonalDetailsSection = ({ formData, handleInputChange }) => {
   return (
     <div>
-      <h3 className="text-xl font-medium text-emerald-700 mb-6">
-        Personal Details
-      </h3>
+      <h3 className="text-xl font-medium text-emerald-700 mb-6 mt-8">Personal Details</h3>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
         <div>
           <label className="block text-gray-700 font-medium mb-2">Title:</label>
           <select
             value={formData.personalDetails.title}
-            onChange={(e) =>
-              handleInputChange("personalDetails", "title", e.target.value)
-            }
+            onChange={(e) => handleInputChange("personalDetails", "title", e.target.value)}
             className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
           >
             <option value="">Select</option>
@@ -1092,18 +937,14 @@ const PersonalDetailsSection = ({ formData, handleInputChange }) => {
         </div>
 
         <div className="md:col-span-2">
-          <label className="block text-gray-700 font-medium mb-2">
-            Gender:
-          </label>
+          <label className="block text-gray-700 font-medium mb-2">Gender:</label>
           <div className="flex space-x-4 mt-2">
             <label className="inline-flex items-center">
               <input
                 type="radio"
                 value="Male"
                 checked={formData.personalDetails.gender === "Male"}
-                onChange={(e) =>
-                  handleInputChange("personalDetails", "gender", e.target.value)
-                }
+                onChange={(e) => handleInputChange("personalDetails", "gender", e.target.value)}
                 className="form-radio h-5 w-5 text-emerald-600"
               />
               <span className="ml-2">Male</span>
@@ -1113,9 +954,7 @@ const PersonalDetailsSection = ({ formData, handleInputChange }) => {
                 type="radio"
                 value="Female"
                 checked={formData.personalDetails.gender === "Female"}
-                onChange={(e) =>
-                  handleInputChange("personalDetails", "gender", e.target.value)
-                }
+                onChange={(e) => handleInputChange("personalDetails", "gender", e.target.value)}
                 className="form-radio h-5 w-5 text-emerald-600"
               />
               <span className="ml-2">Female</span>
@@ -1132,15 +971,11 @@ const PersonalDetailsSection = ({ formData, handleInputChange }) => {
           <input
             type="text"
             value={formData.personalDetails.surname}
-            onChange={(e) =>
-              handleInputChange("personalDetails", "surname", e.target.value)
-            }
+            onChange={(e) => handleInputChange("personalDetails", "surname", e.target.value)}
             className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
             required
           />
-          <p className="text-xs text-gray-500 mt-1">
-            If Single Name only, enter here
-          </p>
+          <p className="text-xs text-gray-500 mt-1">If Single Name only, enter here</p>
         </div>
 
         <div>
@@ -1150,9 +985,7 @@ const PersonalDetailsSection = ({ formData, handleInputChange }) => {
           <input
             type="text"
             value={formData.personalDetails.firstName}
-            onChange={(e) =>
-              handleInputChange("personalDetails", "firstName", e.target.value)
-            }
+            onChange={(e) => handleInputChange("personalDetails", "firstName", e.target.value)}
             className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
             required
           />
@@ -1161,33 +994,21 @@ const PersonalDetailsSection = ({ formData, handleInputChange }) => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
         <div>
-          <label className="block text-gray-700 font-medium mb-2">
-            Middle Name(s):
-          </label>
+          <label className="block text-gray-700 font-medium mb-2">Middle Name(s):</label>
           <input
             type="text"
             value={formData.personalDetails.middleName}
-            onChange={(e) =>
-              handleInputChange("personalDetails", "middleName", e.target.value)
-            }
+            onChange={(e) => handleInputChange("personalDetails", "middleName", e.target.value)}
             className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
           />
         </div>
 
         <div>
-          <label className="block text-gray-700 font-medium mb-2">
-            Preferred Name:
-          </label>
+          <label className="block text-gray-700 font-medium mb-2">Preferred Name:</label>
           <input
             type="text"
             value={formData.personalDetails.preferredName}
-            onChange={(e) =>
-              handleInputChange(
-                "personalDetails",
-                "preferredName",
-                e.target.value
-              )
-            }
+            onChange={(e) => handleInputChange("personalDetails", "preferredName", e.target.value)}
             className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
           />
         </div>
@@ -1200,56 +1021,34 @@ const PersonalDetailsSection = ({ formData, handleInputChange }) => {
         <input
           type="date"
           value={formData.personalDetails.dateOfBirth}
-          onChange={(e) =>
-            handleInputChange("personalDetails", "dateOfBirth", e.target.value)
-          }
+          onChange={(e) => handleInputChange("personalDetails", "dateOfBirth", e.target.value)}
           className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
           required
         />
       </div>
 
-      <h3 className="text-xl font-medium text-emerald-700 mb-6 mt-8">
-        Address Details
-      </h3>
+      <h3 className="text-xl font-medium text-emerald-700 mb-6 mt-8">Address Details</h3>
 
       <div className="mb-6">
-        <h4 className="font-medium text-gray-800 mb-4">
-          Usual Residential Address (Not a PO Box)
-        </h4>
+        <h4 className="font-medium text-gray-800 mb-4">Usual Residential Address (Not a PO Box)</h4>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-gray-700 mb-1">
-              Building/Property name:
-            </label>
+            <label className="block text-gray-700 mb-1">Building/Property name:</label>
             <input
               type="text"
               value={formData.addressDetails.buildingName}
-              onChange={(e) =>
-                handleInputChange(
-                  "addressDetails",
-                  "buildingName",
-                  e.target.value
-                )
-              }
+              onChange={(e) => handleInputChange("addressDetails", "buildingName", e.target.value)}
               className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
             />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-gray-700 mb-1">
-                Flat/Unit Number:
-              </label>
+              <label className="block text-gray-700 mb-1">Flat/Unit Number:</label>
               <input
                 type="text"
                 value={formData.addressDetails.unitNumber}
-                onChange={(e) =>
-                  handleInputChange(
-                    "addressDetails",
-                    "unitNumber",
-                    e.target.value
-                  )
-                }
+                onChange={(e) => handleInputChange("addressDetails", "unitNumber", e.target.value)}
                 className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
               />
             </div>
@@ -1258,13 +1057,7 @@ const PersonalDetailsSection = ({ formData, handleInputChange }) => {
               <input
                 type="text"
                 value={formData.addressDetails.streetNo}
-                onChange={(e) =>
-                  handleInputChange(
-                    "addressDetails",
-                    "streetNo",
-                    e.target.value
-                  )
-                }
+                onChange={(e) => handleInputChange("addressDetails", "streetNo", e.target.value)}
                 className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
               />
             </div>
@@ -1277,13 +1070,7 @@ const PersonalDetailsSection = ({ formData, handleInputChange }) => {
             <input
               type="text"
               value={formData.addressDetails.streetName}
-              onChange={(e) =>
-                handleInputChange(
-                  "addressDetails",
-                  "streetName",
-                  e.target.value
-                )
-              }
+              onChange={(e) => handleInputChange("addressDetails", "streetName", e.target.value)}
               className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
             />
           </div>
@@ -1292,9 +1079,7 @@ const PersonalDetailsSection = ({ formData, handleInputChange }) => {
             <input
               type="text"
               value={formData.addressDetails.city}
-              onChange={(e) =>
-                handleInputChange("addressDetails", "city", e.target.value)
-              }
+              onChange={(e) => handleInputChange("addressDetails", "city", e.target.value)}
               className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
             />
           </div>
@@ -1303,9 +1088,7 @@ const PersonalDetailsSection = ({ formData, handleInputChange }) => {
               <label className="block text-gray-700 mb-1">State:</label>
               <select
                 value={formData.addressDetails.state}
-                onChange={(e) =>
-                  handleInputChange("addressDetails", "state", e.target.value)
-                }
+                onChange={(e) => handleInputChange("addressDetails", "state", e.target.value)}
                 className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
               >
                 <option value="">Select</option>
@@ -1324,13 +1107,7 @@ const PersonalDetailsSection = ({ formData, handleInputChange }) => {
               <input
                 type="text"
                 value={formData.addressDetails.postcode}
-                onChange={(e) =>
-                  handleInputChange(
-                    "addressDetails",
-                    "postcode",
-                    e.target.value
-                  )
-                }
+                onChange={(e) => handleInputChange("addressDetails", "postcode", e.target.value)}
                 className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
               />
             </div>
@@ -1343,18 +1120,10 @@ const PersonalDetailsSection = ({ formData, handleInputChange }) => {
           <input
             type="checkbox"
             checked={formData.addressDetails.sameAsResidential}
-            onChange={(e) =>
-              handleInputChange(
-                "addressDetails",
-                "sameAsResidential",
-                e.target.checked
-              )
-            }
+            onChange={(e) => handleInputChange("addressDetails", "sameAsResidential", e.target.checked)}
             className="form-checkbox h-5 w-5 text-emerald-600"
           />
-          <span className="ml-2 text-gray-700">
-            Postal address is same as residential address
-          </span>
+          <span className="ml-2 text-gray-700">Postal address is same as residential address</span>
         </label>
       </div>
 
@@ -1363,19 +1132,11 @@ const PersonalDetailsSection = ({ formData, handleInputChange }) => {
           <h4 className="font-medium text-gray-800 mb-4">Postal Address</h4>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-gray-700 mb-1">
-                Building/Property name:
-              </label>
+              <label className="block text-gray-700 mb-1">Building/Property name:</label>
               <input
                 type="text"
                 value={formData.addressDetails.postalBuildingName}
-                onChange={(e) =>
-                  handleInputChange(
-                    "addressDetails",
-                    "postalBuildingName",
-                    e.target.value
-                  )
-                }
+                onChange={(e) => handleInputChange("addressDetails", "postalBuildingName", e.target.value)}
                 className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
               />
             </div>
@@ -1386,13 +1147,7 @@ const PersonalDetailsSection = ({ formData, handleInputChange }) => {
                 <input
                   type="text"
                   value={formData.addressDetails.postalUnitNumber}
-                  onChange={(e) =>
-                    handleInputChange(
-                      "addressDetails",
-                      "postalUnitNumber",
-                      e.target.value
-                    )
-                  }
+                  onChange={(e) => handleInputChange("addressDetails", "postalUnitNumber", e.target.value)}
                   className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
                 />
               </div>
@@ -1401,13 +1156,7 @@ const PersonalDetailsSection = ({ formData, handleInputChange }) => {
                 <input
                   type="text"
                   value={formData.addressDetails.postalStreetNo}
-                  onChange={(e) =>
-                    handleInputChange(
-                      "addressDetails",
-                      "postalStreetNo",
-                      e.target.value
-                    )
-                  }
+                  onChange={(e) => handleInputChange("addressDetails", "postalStreetNo", e.target.value)}
                   className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
                 />
               </div>
@@ -1416,13 +1165,7 @@ const PersonalDetailsSection = ({ formData, handleInputChange }) => {
                 <input
                   type="text"
                   value={formData.addressDetails.postalPOBox}
-                  onChange={(e) =>
-                    handleInputChange(
-                      "addressDetails",
-                      "postalPOBox",
-                      e.target.value
-                    )
-                  }
+                  onChange={(e) => handleInputChange("addressDetails", "postalPOBox", e.target.value)}
                   className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
                 />
               </div>
@@ -1435,13 +1178,7 @@ const PersonalDetailsSection = ({ formData, handleInputChange }) => {
               <input
                 type="text"
                 value={formData.addressDetails.postalStreetName}
-                onChange={(e) =>
-                  handleInputChange(
-                    "addressDetails",
-                    "postalStreetName",
-                    e.target.value
-                  )
-                }
+                onChange={(e) => handleInputChange("addressDetails", "postalStreetName", e.target.value)}
                 className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
               />
             </div>
@@ -1450,13 +1187,7 @@ const PersonalDetailsSection = ({ formData, handleInputChange }) => {
               <input
                 type="text"
                 value={formData.addressDetails.postalCity}
-                onChange={(e) =>
-                  handleInputChange(
-                    "addressDetails",
-                    "postalCity",
-                    e.target.value
-                  )
-                }
+                onChange={(e) => handleInputChange("addressDetails", "postalCity", e.target.value)}
                 className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
               />
             </div>
@@ -1465,13 +1196,7 @@ const PersonalDetailsSection = ({ formData, handleInputChange }) => {
                 <label className="block text-gray-700 mb-1">State:</label>
                 <select
                   value={formData.addressDetails.postalState}
-                  onChange={(e) =>
-                    handleInputChange(
-                      "addressDetails",
-                      "postalState",
-                      e.target.value
-                    )
-                  }
+                  onChange={(e) => handleInputChange("addressDetails", "postalState", e.target.value)}
                   className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
                 >
                   <option value="">Select</option>
@@ -1490,13 +1215,7 @@ const PersonalDetailsSection = ({ formData, handleInputChange }) => {
                 <input
                   type="text"
                   value={formData.addressDetails.postalPostcode}
-                  onChange={(e) =>
-                    handleInputChange(
-                      "addressDetails",
-                      "postalPostcode",
-                      e.target.value
-                    )
-                  }
+                  onChange={(e) => handleInputChange("addressDetails", "postalPostcode", e.target.value)}
                   className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
                 />
               </div>
@@ -1505,28 +1224,22 @@ const PersonalDetailsSection = ({ formData, handleInputChange }) => {
         </div>
       )}
     </div>
-  );
-};
+  )
+}
 
 // ContactDetailsSection Component
 const ContactDetailsSection = ({ formData, handleInputChange }) => {
   return (
     <div>
-      <h3 className="text-xl font-medium text-emerald-700 mb-6">
-        Contact Details
-      </h3>
+      <h3 className="text-xl font-medium text-emerald-700 mb-6 mt-8">Contact Details</h3>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
         <div>
-          <label className="block text-gray-700 font-medium mb-2">
-            Home Phone:
-          </label>
+          <label className="block text-gray-700 font-medium mb-2">Home Phone:</label>
           <input
             type="tel"
             value={formData.contactDetails.homePhone}
-            onChange={(e) =>
-              handleInputChange("contactDetails", "homePhone", e.target.value)
-            }
+            onChange={(e) => handleInputChange("contactDetails", "homePhone", e.target.value)}
             className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
           />
         </div>
@@ -1538,9 +1251,7 @@ const ContactDetailsSection = ({ formData, handleInputChange }) => {
           <input
             type="tel"
             value={formData.contactDetails.mobilePhone}
-            onChange={(e) =>
-              handleInputChange("contactDetails", "mobilePhone", e.target.value)
-            }
+            onChange={(e) => handleInputChange("contactDetails", "mobilePhone", e.target.value)}
             className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
             required
           />
@@ -1555,48 +1266,32 @@ const ContactDetailsSection = ({ formData, handleInputChange }) => {
           <input
             type="email"
             value={formData.contactDetails.email}
-            onChange={(e) =>
-              handleInputChange("contactDetails", "email", e.target.value)
-            }
+            onChange={(e) => handleInputChange("contactDetails", "email", e.target.value)}
             className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
             required
           />
         </div>
 
         <div>
-          <label className="block text-gray-700 font-medium mb-2">
-            Work Phone:
-          </label>
+          <label className="block text-gray-700 font-medium mb-2">Work Phone:</label>
           <input
             type="tel"
             value={formData.contactDetails.workPhone}
-            onChange={(e) =>
-              handleInputChange("contactDetails", "workPhone", e.target.value)
-            }
+            onChange={(e) => handleInputChange("contactDetails", "workPhone", e.target.value)}
             className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
           />
         </div>
       </div>
 
       <div className="mb-6">
-        <label className="block text-gray-700 font-medium mb-2">
-          Preferred Contact Method:
-        </label>
+        <label className="block text-gray-700 font-medium mb-2">Preferred Contact Method:</label>
         <div className="flex flex-wrap gap-4">
           <label className="inline-flex items-center">
             <input
               type="radio"
               value="Mobile"
-              checked={
-                formData.contactDetails.preferredContactMethod === "Mobile"
-              }
-              onChange={(e) =>
-                handleInputChange(
-                  "contactDetails",
-                  "preferredContactMethod",
-                  e.target.value
-                )
-              }
+              checked={formData.contactDetails.preferredContactMethod === "Mobile"}
+              onChange={(e) => handleInputChange("contactDetails", "preferredContactMethod", e.target.value)}
               className="form-radio h-5 w-5 text-emerald-600"
             />
             <span className="ml-2">via Mobile Phone</span>
@@ -1605,16 +1300,8 @@ const ContactDetailsSection = ({ formData, handleInputChange }) => {
             <input
               type="radio"
               value="Email"
-              checked={
-                formData.contactDetails.preferredContactMethod === "Email"
-              }
-              onChange={(e) =>
-                handleInputChange(
-                  "contactDetails",
-                  "preferredContactMethod",
-                  e.target.value
-                )
-              }
+              checked={formData.contactDetails.preferredContactMethod === "Email"}
+              onChange={(e) => handleInputChange("contactDetails", "preferredContactMethod", e.target.value)}
               className="form-radio h-5 w-5 text-emerald-600"
             />
             <span className="ml-2">via Email</span>
@@ -1623,16 +1310,8 @@ const ContactDetailsSection = ({ formData, handleInputChange }) => {
             <input
               type="radio"
               value="Post"
-              checked={
-                formData.contactDetails.preferredContactMethod === "Post"
-              }
-              onChange={(e) =>
-                handleInputChange(
-                  "contactDetails",
-                  "preferredContactMethod",
-                  e.target.value
-                )
-              }
+              checked={formData.contactDetails.preferredContactMethod === "Post"}
+              onChange={(e) => handleInputChange("contactDetails", "preferredContactMethod", e.target.value)}
               className="form-radio h-5 w-5 text-emerald-600"
             />
             <span className="ml-2">via Post</span>
@@ -1640,9 +1319,7 @@ const ContactDetailsSection = ({ formData, handleInputChange }) => {
         </div>
       </div>
 
-      <h3 className="text-xl font-medium text-emerald-700 mb-6 mt-8">
-        Emergency Contact
-      </h3>
+      <h3 className="text-xl font-medium text-emerald-700 mb-6 mt-8">Emergency Contact</h3>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
         <div>
@@ -1652,9 +1329,7 @@ const ContactDetailsSection = ({ formData, handleInputChange }) => {
           <input
             type="text"
             value={formData.emergencyContact.name}
-            onChange={(e) =>
-              handleInputChange("emergencyContact", "name", e.target.value)
-            }
+            onChange={(e) => handleInputChange("emergencyContact", "name", e.target.value)}
             className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
             required
           />
@@ -1667,13 +1342,7 @@ const ContactDetailsSection = ({ formData, handleInputChange }) => {
           <input
             type="text"
             value={formData.emergencyContact.relationship}
-            onChange={(e) =>
-              handleInputChange(
-                "emergencyContact",
-                "relationship",
-                e.target.value
-              )
-            }
+            onChange={(e) => handleInputChange("emergencyContact", "relationship", e.target.value)}
             className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
             required
           />
@@ -1682,15 +1351,11 @@ const ContactDetailsSection = ({ formData, handleInputChange }) => {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
         <div>
-          <label className="block text-gray-700 font-medium mb-2">
-            Home Phone:
-          </label>
+          <label className="block text-gray-700 font-medium mb-2">Home Phone:</label>
           <input
             type="tel"
             value={formData.emergencyContact.homePhone}
-            onChange={(e) =>
-              handleInputChange("emergencyContact", "homePhone", e.target.value)
-            }
+            onChange={(e) => handleInputChange("emergencyContact", "homePhone", e.target.value)}
             className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
           />
         </div>
@@ -1702,169 +1367,62 @@ const ContactDetailsSection = ({ formData, handleInputChange }) => {
           <input
             type="tel"
             value={formData.emergencyContact.mobilePhone}
-            onChange={(e) =>
-              handleInputChange(
-                "emergencyContact",
-                "mobilePhone",
-                e.target.value
-              )
-            }
+            onChange={(e) => handleInputChange("emergencyContact", "mobilePhone", e.target.value)}
             className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
             required
           />
         </div>
 
         <div>
-          <label className="block text-gray-700 font-medium mb-2">
-            Work Phone:
-          </label>
+          <label className="block text-gray-700 font-medium mb-2">Work Phone:</label>
           <input
             type="tel"
             value={formData.emergencyContact.workPhone}
-            onChange={(e) =>
-              handleInputChange("emergencyContact", "workPhone", e.target.value)
-            }
+            onChange={(e) => handleInputChange("emergencyContact", "workPhone", e.target.value)}
             className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
           />
         </div>
       </div>
-      {/* 
-      <div className="mt-8 p-6 bg-gray-50 border border-gray-200 rounded-md">
-        <h3 className="text-lg font-medium text-gray-800 mb-4">
-          Declaration and Consent
-        </h3>
-
-        <div className="space-y-4">
-          <label className="flex items-start">
-            <input
-              type="checkbox"
-              checked={formData.consent.photoConsent}
-              onChange={(e) =>
-                handleInputChange("consent", "photoConsent", e.target.checked)
-              }
-              className="form-checkbox h-5 w-5 text-emerald-600 mt-1"
-            />
-            <span className="ml-2 text-gray-700">
-              I consent to the RTO occasionally taking photos of students
-              participating in classes for publicity purposes. These photos may
-              be displayed on the website. The names and details of the people
-              in the photos are not released or published. Staff will always
-              identify when they are taking photos so students who don't wish to
-              have their photo taken can be excluded from the photo.
-            </span>
-          </label>
-
-          <label className="flex items-start">
-            <input
-              type="checkbox"
-              checked={formData.preTraining.readStudentHandbook}
-              onChange={(e) =>
-                handleInputChange(
-                  "preTraining",
-                  "readStudentHandbook",
-                  e.target.checked
-                )
-              }
-              className="form-checkbox h-5 w-5 text-emerald-600 mt-1"
-            />
-            <span className="ml-2 text-gray-700">
-              I declare that I have read and understood RTO student handbook and
-              their policies & procedures.
-            </span>
-          </label>
-
-          <label className="flex items-start">
-            <input
-              type="checkbox"
-              className="form-checkbox h-5 w-5 text-emerald-600 mt-1"
-              required
-            />
-            <span className="ml-2 text-gray-700">
-              I declare that the information I have provided on this enrolment
-              form is true and accurate, and understand that providing false
-              information may affect my eligibility to obtain government
-              funding.
-            </span>
-          </label>
-        </div>
-
-        <div className="mt-6">
-          <p className="text-sm text-gray-600 mb-2">
-            By submitting this form, you acknowledge that you have completed all
-            questions truthfully and agree to be bound by the RTO's Student Code
-            of Conduct, regulations, policies and disciplinary procedures.
-          </p>
-        </div>
-      </div> */}
     </div>
-  );
-};
+  )
+}
 const AddressDetailsSection = ({ formData, handleInputChange }) => {
   return (
     <div>
-      <h3 className="text-xl font-medium text-emerald-700 mb-6">
-        Address Details
-      </h3>
+      <h3 className="text-xl font-medium text-emerald-700 mb-6 mt-8">Address Details</h3>
 
       {/* Residential Address Used While Studying */}
       <h4 className="text-lg font-medium text-gray-700 mb-4">
         RESIDENTIAL ADDRESS USED WHILE STUDYING
-        <span className="text-sm font-normal text-gray-500">
-          {" "}
-          (if different to Usual Residential Address)
-        </span>
+        <span className="text-sm font-normal text-gray-500"> (if different to Usual Residential Address)</span>
       </h4>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
         <div>
-          <label className="block text-gray-700 font-medium mb-2">
-            Building/Property name:
-          </label>
+          <label className="block text-gray-700 font-medium mb-2">Building/Property name:</label>
           <input
             type="text"
             value={formData.addressDetails.studyBuildingName}
-            onChange={(e) =>
-              handleInputChange(
-                "addressDetails",
-                "studyBuildingName",
-                e.target.value
-              )
-            }
+            onChange={(e) => handleInputChange("addressDetails", "studyBuildingName", e.target.value)}
             className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
           />
         </div>
 
         <div>
-          <label className="block text-gray-700 font-medium mb-2">
-            Flat/Unit Number:
-          </label>
+          <label className="block text-gray-700 font-medium mb-2">Flat/Unit Number:</label>
           <input
             type="text"
             value={formData.addressDetails.studyUnitNumber}
-            onChange={(e) =>
-              handleInputChange(
-                "addressDetails",
-                "studyUnitNumber",
-                e.target.value
-              )
-            }
+            onChange={(e) => handleInputChange("addressDetails", "studyUnitNumber", e.target.value)}
             className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
           />
         </div>
 
         <div>
-          <label className="block text-gray-700 font-medium mb-2">
-            Street No:
-          </label>
+          <label className="block text-gray-700 font-medium mb-2">Street No:</label>
           <input
             type="text"
             value={formData.addressDetails.studyStreetNo}
-            onChange={(e) =>
-              handleInputChange(
-                "addressDetails",
-                "studyStreetNo",
-                e.target.value
-              )
-            }
+            onChange={(e) => handleInputChange("addressDetails", "studyStreetNo", e.target.value)}
             className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
           />
         </div>
@@ -1872,33 +1430,21 @@ const AddressDetailsSection = ({ formData, handleInputChange }) => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
         <div>
-          <label className="block text-gray-700 font-medium mb-2">
-            Street Name:
-          </label>
+          <label className="block text-gray-700 font-medium mb-2">Street Name:</label>
           <input
             type="text"
             value={formData.addressDetails.studyStreetName}
-            onChange={(e) =>
-              handleInputChange(
-                "addressDetails",
-                "studyStreetName",
-                e.target.value
-              )
-            }
+            onChange={(e) => handleInputChange("addressDetails", "studyStreetName", e.target.value)}
             className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
           />
         </div>
 
         <div>
-          <label className="block text-gray-700 font-medium mb-2">
-            City/Town:
-          </label>
+          <label className="block text-gray-700 font-medium mb-2">City/Town:</label>
           <input
             type="text"
             value={formData.addressDetails.studyCity}
-            onChange={(e) =>
-              handleInputChange("addressDetails", "studyCity", e.target.value)
-            }
+            onChange={(e) => handleInputChange("addressDetails", "studyCity", e.target.value)}
             className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
           />
         </div>
@@ -1909,9 +1455,7 @@ const AddressDetailsSection = ({ formData, handleInputChange }) => {
           <label className="block text-gray-700 font-medium mb-2">State:</label>
           <select
             value={formData.addressDetails.studyState}
-            onChange={(e) =>
-              handleInputChange("addressDetails", "studyState", e.target.value)
-            }
+            onChange={(e) => handleInputChange("addressDetails", "studyState", e.target.value)}
             className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
           >
             <option value="">Please select</option>
@@ -1927,103 +1471,61 @@ const AddressDetailsSection = ({ formData, handleInputChange }) => {
         </div>
 
         <div>
-          <label className="block text-gray-700 font-medium mb-2">
-            Postcode:
-          </label>
+          <label className="block text-gray-700 font-medium mb-2">Postcode:</label>
           <input
             type="text"
             value={formData.addressDetails.studyPostcode}
-            onChange={(e) =>
-              handleInputChange(
-                "addressDetails",
-                "studyPostcode",
-                e.target.value
-              )
-            }
+            onChange={(e) => handleInputChange("addressDetails", "studyPostcode", e.target.value)}
             className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
             maxLength="4"
           />
         </div>
       </div>
     </div>
-  );
-};
+  )
+}
 const WorkplaceDetailsSection = ({ formData, handleInputChange }) => {
   return (
     <div>
-      <h3 className="text-xl font-medium text-emerald-700 mb-6">
-        Workplace Employer Details
-      </h3>
+      <h3 className="text-xl font-medium text-emerald-700 mb-6 mt-8">Workplace Employer Details</h3>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
         <div>
-          <label className="block text-gray-700 font-medium mb-2">
-            Trading Name:
-          </label>
+          <label className="block text-gray-700 font-medium mb-2">Trading Name:</label>
           <input
             type="text"
             value={formData.workplaceDetails.tradingName}
-            onChange={(e) =>
-              handleInputChange(
-                "workplaceDetails",
-                "tradingName",
-                e.target.value
-              )
-            }
+            onChange={(e) => handleInputChange("workplaceDetails", "tradingName", e.target.value)}
             className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
           />
         </div>
 
         <div>
-          <label className="block text-gray-700 font-medium mb-2">
-            Contact Name:
-          </label>
+          <label className="block text-gray-700 font-medium mb-2">Contact Name:</label>
           <input
             type="text"
             value={formData.workplaceDetails.contactName}
-            onChange={(e) =>
-              handleInputChange(
-                "workplaceDetails",
-                "contactName",
-                e.target.value
-              )
-            }
+            onChange={(e) => handleInputChange("workplaceDetails", "contactName", e.target.value)}
             className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
           />
         </div>
       </div>
 
       <div className="mb-6">
-        <label className="block text-gray-700 font-medium mb-2">
-          Supervisor Name:
-        </label>
+        <label className="block text-gray-700 font-medium mb-2">Supervisor Name:</label>
         <input
           type="text"
           value={formData.workplaceDetails.supervisorName}
-          onChange={(e) =>
-            handleInputChange(
-              "workplaceDetails",
-              "supervisorName",
-              e.target.value
-            )
-          }
+          onChange={(e) => handleInputChange("workplaceDetails", "supervisorName", e.target.value)}
           className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
         />
       </div>
 
       <div className="mb-6">
-        <label className="block text-gray-700 font-medium mb-2">
-          Trading Address:
-        </label>
+        <label className="block text-gray-700 font-medium mb-2">Trading Address:</label>
         <textarea
           value={formData.workplaceDetails.tradingAddress}
-          onChange={(e) =>
-            handleInputChange(
-              "workplaceDetails",
-              "tradingAddress",
-              e.target.value
-            )
-          }
+          onChange={(e) => handleInputChange("workplaceDetails", "tradingAddress", e.target.value)}
           className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
           rows="3"
         ></textarea>
@@ -2035,36 +1537,28 @@ const WorkplaceDetailsSection = ({ formData, handleInputChange }) => {
           <input
             type="tel"
             value={formData.workplaceDetails.phone}
-            onChange={(e) =>
-              handleInputChange("workplaceDetails", "phone", e.target.value)
-            }
+            onChange={(e) => handleInputChange("workplaceDetails", "phone", e.target.value)}
             className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
           />
         </div>
 
         <div>
-          <label className="block text-gray-700 font-medium mb-2">
-            Employer Email:
-          </label>
+          <label className="block text-gray-700 font-medium mb-2">Employer Email:</label>
           <input
             type="email"
             value={formData.workplaceDetails.email}
-            onChange={(e) =>
-              handleInputChange("workplaceDetails", "email", e.target.value)
-            }
+            onChange={(e) => handleInputChange("workplaceDetails", "email", e.target.value)}
             className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
           />
         </div>
       </div>
     </div>
-  );
-};
+  )
+}
 const CulturalDiversitySection = ({ formData, handleInputChange }) => {
   return (
     <div>
-      <h3 className="text-xl font-medium text-emerald-700 mb-6">
-        Language and Cultural Diversity
-      </h3>
+      <h3 className="text-xl font-medium text-emerald-700 mb-6 mt-8">Language and Cultural Diversity</h3>
 
       <div className="mb-6">
         <label className="block text-gray-700 font-medium mb-2">
@@ -2076,13 +1570,7 @@ const CulturalDiversitySection = ({ formData, handleInputChange }) => {
               type="radio"
               value="No"
               checked={formData.culturalDiversity.aboriginalOrigin === "No"}
-              onChange={(e) =>
-                handleInputChange(
-                  "culturalDiversity",
-                  "aboriginalOrigin",
-                  e.target.value
-                )
-              }
+              onChange={(e) => handleInputChange("culturalDiversity", "aboriginalOrigin", e.target.value)}
               className="form-radio h-5 w-5 text-emerald-600"
             />
             <span className="ml-2">No</span>
@@ -2091,17 +1579,8 @@ const CulturalDiversitySection = ({ formData, handleInputChange }) => {
             <input
               type="radio"
               value="Yes, Torres Strait Islander"
-              checked={
-                formData.culturalDiversity.aboriginalOrigin ===
-                "Yes, Torres Strait Islander"
-              }
-              onChange={(e) =>
-                handleInputChange(
-                  "culturalDiversity",
-                  "aboriginalOrigin",
-                  e.target.value
-                )
-              }
+              checked={formData.culturalDiversity.aboriginalOrigin === "Yes, Torres Strait Islander"}
+              onChange={(e) => handleInputChange("culturalDiversity", "aboriginalOrigin", e.target.value)}
               className="form-radio h-5 w-5 text-emerald-600"
             />
             <span className="ml-2">Yes, Torres Strait Islander</span>
@@ -2110,17 +1589,8 @@ const CulturalDiversitySection = ({ formData, handleInputChange }) => {
             <input
               type="radio"
               value="Yes, Aboriginal"
-              checked={
-                formData.culturalDiversity.aboriginalOrigin ===
-                "Yes, Aboriginal"
-              }
-              onChange={(e) =>
-                handleInputChange(
-                  "culturalDiversity",
-                  "aboriginalOrigin",
-                  e.target.value
-                )
-              }
+              checked={formData.culturalDiversity.aboriginalOrigin === "Yes, Aboriginal"}
+              onChange={(e) => handleInputChange("culturalDiversity", "aboriginalOrigin", e.target.value)}
               className="form-radio h-5 w-5 text-emerald-600"
             />
             <span className="ml-2">Yes, Aboriginal</span>
@@ -2129,17 +1599,8 @@ const CulturalDiversitySection = ({ formData, handleInputChange }) => {
             <input
               type="radio"
               value="Yes, Aboriginal & T.S. Islander"
-              checked={
-                formData.culturalDiversity.aboriginalOrigin ===
-                "Yes, Aboriginal & T.S. Islander"
-              }
-              onChange={(e) =>
-                handleInputChange(
-                  "culturalDiversity",
-                  "aboriginalOrigin",
-                  e.target.value
-                )
-              }
+              checked={formData.culturalDiversity.aboriginalOrigin === "Yes, Aboriginal & T.S. Islander"}
+              onChange={(e) => handleInputChange("culturalDiversity", "aboriginalOrigin", e.target.value)}
               className="form-radio h-5 w-5 text-emerald-600"
             />
             <span className="ml-2">Yes, Aboriginal & T.S. Islander</span>
@@ -2148,24 +1609,16 @@ const CulturalDiversitySection = ({ formData, handleInputChange }) => {
       </div>
 
       <div className="mb-6">
-        <label className="block text-gray-700 font-medium mb-2">
-          In which country were you born?
-        </label>
+        <label className="block text-gray-700 font-medium mb-2">In which country were you born?</label>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <label className="inline-flex items-center">
             <input
               type="radio"
               value="Australia"
-              checked={
-                formData.culturalDiversity.countryOfBirth === "Australia"
-              }
+              checked={formData.culturalDiversity.countryOfBirth === "Australia"}
               onChange={(e) => {
-                handleInputChange(
-                  "culturalDiversity",
-                  "countryOfBirth",
-                  e.target.value
-                );
-                handleInputChange("culturalDiversity", "otherCountry", "");
+                handleInputChange("culturalDiversity", "countryOfBirth", e.target.value)
+                handleInputChange("culturalDiversity", "otherCountry", "")
               }}
               className="form-radio h-5 w-5 text-emerald-600"
             />
@@ -2176,13 +1629,7 @@ const CulturalDiversitySection = ({ formData, handleInputChange }) => {
               type="radio"
               value="Other"
               checked={formData.culturalDiversity.countryOfBirth === "Other"}
-              onChange={(e) =>
-                handleInputChange(
-                  "culturalDiversity",
-                  "countryOfBirth",
-                  e.target.value
-                )
-              }
+              onChange={(e) => handleInputChange("culturalDiversity", "countryOfBirth", e.target.value)}
               className="form-radio h-5 w-5 text-emerald-600"
             />
             <span className="ml-2">Other (please specify below)</span>
@@ -2193,13 +1640,7 @@ const CulturalDiversitySection = ({ formData, handleInputChange }) => {
             <input
               type="text"
               value={formData.culturalDiversity.otherCountry}
-              onChange={(e) =>
-                handleInputChange(
-                  "culturalDiversity",
-                  "otherCountry",
-                  e.target.value
-                )
-              }
+              onChange={(e) => handleInputChange("culturalDiversity", "otherCountry", e.target.value)}
               className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
               placeholder="Please specify country"
             />
@@ -2218,17 +1659,9 @@ const CulturalDiversitySection = ({ formData, handleInputChange }) => {
               value="No"
               checked={formData.culturalDiversity.speakOtherLanguage === "No"}
               onChange={(e) => {
-                handleInputChange(
-                  "culturalDiversity",
-                  "speakOtherLanguage",
-                  e.target.value
-                );
-                handleInputChange("culturalDiversity", "otherLanguage", "");
-                handleInputChange(
-                  "culturalDiversity",
-                  "englishProficiency",
-                  ""
-                );
+                handleInputChange("culturalDiversity", "speakOtherLanguage", e.target.value)
+                handleInputChange("culturalDiversity", "otherLanguage", "")
+                handleInputChange("culturalDiversity", "englishProficiency", "")
               }}
               className="form-radio h-5 w-5 text-emerald-600"
             />
@@ -2239,13 +1672,7 @@ const CulturalDiversitySection = ({ formData, handleInputChange }) => {
               type="radio"
               value="Yes"
               checked={formData.culturalDiversity.speakOtherLanguage === "Yes"}
-              onChange={(e) =>
-                handleInputChange(
-                  "culturalDiversity",
-                  "speakOtherLanguage",
-                  e.target.value
-                )
-              }
+              onChange={(e) => handleInputChange("culturalDiversity", "speakOtherLanguage", e.target.value)}
               className="form-radio h-5 w-5 text-emerald-600"
             />
             <span className="ml-2">Yes (please specify below)</span>
@@ -2256,13 +1683,7 @@ const CulturalDiversitySection = ({ formData, handleInputChange }) => {
             <input
               type="text"
               value={formData.culturalDiversity.otherLanguage}
-              onChange={(e) =>
-                handleInputChange(
-                  "culturalDiversity",
-                  "otherLanguage",
-                  e.target.value
-                )
-              }
+              onChange={(e) => handleInputChange("culturalDiversity", "otherLanguage", e.target.value)}
               className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
               placeholder="Please specify language"
             />
@@ -2273,24 +1694,15 @@ const CulturalDiversitySection = ({ formData, handleInputChange }) => {
       {formData.culturalDiversity.speakOtherLanguage === "Yes" && (
         <div className="mb-6">
           <label className="block text-gray-700 font-medium mb-2">
-            If you speak a language other than English at home, how well do you
-            speak English?
+            If you speak a language other than English at home, how well do you speak English?
           </label>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <label className="inline-flex items-center">
               <input
                 type="radio"
                 value="Very Well"
-                checked={
-                  formData.culturalDiversity.englishProficiency === "Very Well"
-                }
-                onChange={(e) =>
-                  handleInputChange(
-                    "culturalDiversity",
-                    "englishProficiency",
-                    e.target.value
-                  )
-                }
+                checked={formData.culturalDiversity.englishProficiency === "Very Well"}
+                onChange={(e) => handleInputChange("culturalDiversity", "englishProficiency", e.target.value)}
                 className="form-radio h-5 w-5 text-emerald-600"
               />
               <span className="ml-2">Very Well</span>
@@ -2299,16 +1711,8 @@ const CulturalDiversitySection = ({ formData, handleInputChange }) => {
               <input
                 type="radio"
                 value="Well"
-                checked={
-                  formData.culturalDiversity.englishProficiency === "Well"
-                }
-                onChange={(e) =>
-                  handleInputChange(
-                    "culturalDiversity",
-                    "englishProficiency",
-                    e.target.value
-                  )
-                }
+                checked={formData.culturalDiversity.englishProficiency === "Well"}
+                onChange={(e) => handleInputChange("culturalDiversity", "englishProficiency", e.target.value)}
                 className="form-radio h-5 w-5 text-emerald-600"
               />
               <span className="ml-2">Well</span>
@@ -2317,16 +1721,8 @@ const CulturalDiversitySection = ({ formData, handleInputChange }) => {
               <input
                 type="radio"
                 value="Not well"
-                checked={
-                  formData.culturalDiversity.englishProficiency === "Not well"
-                }
-                onChange={(e) =>
-                  handleInputChange(
-                    "culturalDiversity",
-                    "englishProficiency",
-                    e.target.value
-                  )
-                }
+                checked={formData.culturalDiversity.englishProficiency === "Not well"}
+                onChange={(e) => handleInputChange("culturalDiversity", "englishProficiency", e.target.value)}
                 className="form-radio h-5 w-5 text-emerald-600"
               />
               <span className="ml-2">Not well</span>
@@ -2335,16 +1731,8 @@ const CulturalDiversitySection = ({ formData, handleInputChange }) => {
               <input
                 type="radio"
                 value="Not at all"
-                checked={
-                  formData.culturalDiversity.englishProficiency === "Not at all"
-                }
-                onChange={(e) =>
-                  handleInputChange(
-                    "culturalDiversity",
-                    "englishProficiency",
-                    e.target.value
-                  )
-                }
+                checked={formData.culturalDiversity.englishProficiency === "Not at all"}
+                onChange={(e) => handleInputChange("culturalDiversity", "englishProficiency", e.target.value)}
                 className="form-radio h-5 w-5 text-emerald-600"
               />
               <span className="ml-2">Not at all</span>
@@ -2353,36 +1741,29 @@ const CulturalDiversitySection = ({ formData, handleInputChange }) => {
         </div>
       )}
     </div>
-  );
-};
+  )
+}
 
 const USISection = ({ formData, handleInputChange }) => {
   return (
     <div>
-      <h3 className="text-xl font-medium text-emerald-700 mb-6">
-        Unique Student Identifier (USI)
-      </h3>
+      <h3 className="text-xl font-medium text-emerald-700 mb-6 mt-8">Unique Student Identifier (USI)</h3>
       <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-md">
         <p className="mb-2">
-          A Unique Student Identifier (USI) is a reference number made up of
-          numbers and letters that gives students access to their USI account. A
-          USI will allow an individual's USI account to be linked to the
-          National Vocational Education and Training (VET) Data Collection
-          allowing an individual to see all of their training results from all
-          providers including all completed training units and qualifications.
+          A Unique Student Identifier (USI) is a reference number made up of numbers and letters that gives students
+          access to their USI account. A USI will allow an individual's USI account to be linked to the National
+          Vocational Education and Training (VET) Data Collection allowing an individual to see all of their training
+          results from all providers including all completed training units and qualifications.
         </p>
         <p>
-          It is a Government requirement that a student needs a USI when
-          enrolling or re-enrolling in nationally recognised training from 1
-          January 2015.
+          It is a Government requirement that a student needs a USI when enrolling or re-enrolling in nationally
+          recognised training from 1 January 2015.
         </p>
       </div>
 
       <div className="grid grid-cols-1 gap-6">
         <div className="mb-4">
-          <p className="block text-gray-700 font-medium mb-2">
-            Do you have a USI?
-          </p>
+          <p className="block text-gray-700 font-medium mb-2">Do you have a USI?</p>
           <div className="flex items-center space-x-6">
             <div className="flex items-center">
               <input
@@ -2411,19 +1792,14 @@ const USISection = ({ formData, handleInputChange }) => {
 
         {formData.usi.haveUSI ? (
           <div>
-            <label
-              htmlFor="usiNumber"
-              className="block text-gray-700 font-medium mb-2"
-            >
+            <label htmlFor="usiNumber" className="block text-gray-700 font-medium mb-2">
               Enter your USI:
             </label>
             <input
               type="text"
               id="usiNumber"
               value={formData.usi.usiNumber}
-              onChange={(e) =>
-                handleInputChange("usi", "usiNumber", e.target.value)
-              }
+              onChange={(e) => handleInputChange("usi", "usiNumber", e.target.value)}
               className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
               maxLength={10}
               placeholder="Enter your 10-character USI"
@@ -2437,21 +1813,17 @@ const USISection = ({ formData, handleInputChange }) => {
                   type="checkbox"
                   id="allowUSICreation"
                   checked={formData.usi.allowCreation}
-                  onChange={(e) =>
-                    handleInputChange("usi", "allowCreation", e.target.checked)
-                  }
+                  onChange={(e) => handleInputChange("usi", "allowCreation", e.target.checked)}
                   className="mr-2"
                 />
                 <label htmlFor="allowUSICreation" className="text-gray-700">
-                  I give RTO permission to create, view and update a USI on my
-                  behalf using the personal details I have provided.
+                  I give RTO permission to create, view and update a USI on my behalf using the personal details I have
+                  provided.
                 </label>
               </div>
             </div>
             <div className="p-4 bg-gray-50 border border-gray-200 rounded-md">
-              <p className="font-medium mb-2">
-                Please provide two forms of ID:
-              </p>
+              <p className="font-medium mb-2">Please provide two forms of ID:</p>
               <div className="grid grid-cols-2 gap-4">
                 <div className="flex items-center">
                   <input type="checkbox" id="driverLicense" className="mr-2" />
@@ -2467,25 +1839,15 @@ const USISection = ({ formData, handleInputChange }) => {
                 </div>
                 <div className="flex items-center">
                   <input type="checkbox" id="visa" className="mr-2" />
-                  <label htmlFor="visa">
-                    Visa (with Non-Australian Passport)
-                  </label>
+                  <label htmlFor="visa">Visa (with Non-Australian Passport)</label>
                 </div>
                 <div className="flex items-center">
-                  <input
-                    type="checkbox"
-                    id="birthCertificate"
-                    className="mr-2"
-                  />
-                  <label htmlFor="birthCertificate">
-                    Birth Certificate (Australian)
-                  </label>
+                  <input type="checkbox" id="birthCertificate" className="mr-2" />
+                  <label htmlFor="birthCertificate">Birth Certificate (Australian)</label>
                 </div>
                 <div className="flex items-center">
                   <input type="checkbox" id="descent" className="mr-2" />
-                  <label htmlFor="descent">
-                    Certificate of Registration by Descent
-                  </label>
+                  <label htmlFor="descent">Certificate of Registration by Descent</label>
                 </div>
                 <div className="flex items-center">
                   <input type="checkbox" id="citizenship" className="mr-2" />
@@ -2501,21 +1863,17 @@ const USISection = ({ formData, handleInputChange }) => {
         )}
       </div>
     </div>
-  );
-};
+  )
+}
 
 const EducationDetailsSection = ({ formData, handleInputChange }) => {
   return (
     <div>
-      <h3 className="text-xl font-medium text-emerald-700 mb-6">
-        Education Details
-      </h3>
+      <h3 className="text-xl font-medium text-emerald-700 mb-6 mt-8">Education Details</h3>
 
       <div className="grid grid-cols-1 gap-6">
         <div className="mb-4">
-          <p className="block text-gray-700 font-medium mb-2">
-            Are you still attending secondary school?
-          </p>
+          <p className="block text-gray-700 font-medium mb-2">Are you still attending secondary school?</p>
           <div className="flex items-center space-x-6">
             <div className="flex items-center">
               <input
@@ -2523,9 +1881,7 @@ const EducationDetailsSection = ({ formData, handleInputChange }) => {
                 id="stillAtSchool-yes"
                 name="stillAtSchool"
                 checked={formData.education.stillAtSchool}
-                onChange={() =>
-                  handleInputChange("education", "stillAtSchool", true)
-                }
+                onChange={() => handleInputChange("education", "stillAtSchool", true)}
                 className="mr-2"
               />
               <label htmlFor="stillAtSchool-yes">Yes</label>
@@ -2536,9 +1892,7 @@ const EducationDetailsSection = ({ formData, handleInputChange }) => {
                 id="stillAtSchool-no"
                 name="stillAtSchool"
                 checked={!formData.education.stillAtSchool}
-                onChange={() =>
-                  handleInputChange("education", "stillAtSchool", false)
-                }
+                onChange={() => handleInputChange("education", "stillAtSchool", false)}
                 className="mr-2"
               />
               <label htmlFor="stillAtSchool-no">No</label>
@@ -2547,23 +1901,13 @@ const EducationDetailsSection = ({ formData, handleInputChange }) => {
         </div>
 
         <div>
-          <label
-            htmlFor="highestSchoolLevel"
-            className="block text-gray-700 font-medium mb-2"
-          >
-            What is your highest COMPLETED school level? (Not inclusive of
-            higher education)
+          <label htmlFor="highestSchoolLevel" className="block text-gray-700 font-medium mb-2">
+            What is your highest COMPLETED school level? (Not inclusive of higher education)
           </label>
           <select
             id="highestSchoolLevel"
             value={formData.education.highestSchoolLevel}
-            onChange={(e) =>
-              handleInputChange(
-                "education",
-                "highestSchoolLevel",
-                e.target.value
-              )
-            }
+            onChange={(e) => handleInputChange("education", "highestSchoolLevel", e.target.value)}
             className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
           >
             <option value="">-- Select --</option>
@@ -2577,19 +1921,14 @@ const EducationDetailsSection = ({ formData, handleInputChange }) => {
         </div>
 
         <div>
-          <label
-            htmlFor="yearCompleted"
-            className="block text-gray-700 font-medium mb-2"
-          >
+          <label htmlFor="yearCompleted" className="block text-gray-700 font-medium mb-2">
             In which year did you complete this school level?
           </label>
           <input
             type="text"
             id="yearCompleted"
             value={formData.education.yearCompleted}
-            onChange={(e) =>
-              handleInputChange("education", "yearCompleted", e.target.value)
-            }
+            onChange={(e) => handleInputChange("education", "yearCompleted", e.target.value)}
             className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
             placeholder="YYYY"
           />
@@ -2597,89 +1936,63 @@ const EducationDetailsSection = ({ formData, handleInputChange }) => {
 
         {formData.education.stillAtSchool && (
           <div>
-            <label
-              htmlFor="currentSchool"
-              className="block text-gray-700 font-medium mb-2"
-            >
+            <label htmlFor="currentSchool" className="block text-gray-700 font-medium mb-2">
               If still attending school, name of school:
             </label>
             <input
               type="text"
               id="currentSchool"
               value={formData.education.currentSchool}
-              onChange={(e) =>
-                handleInputChange("education", "currentSchool", e.target.value)
-              }
+              onChange={(e) => handleInputChange("education", "currentSchool", e.target.value)}
               className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
             />
           </div>
         )}
 
         <div>
-          <label
-            htmlFor="previousSchool"
-            className="block text-gray-700 font-medium mb-2"
-          >
+          <label htmlFor="previousSchool" className="block text-gray-700 font-medium mb-2">
             Previous secondary school (if applicable):
           </label>
           <input
             type="text"
             id="previousSchool"
             value={formData.education.previousSchool}
-            onChange={(e) =>
-              handleInputChange("education", "previousSchool", e.target.value)
-            }
+            onChange={(e) => handleInputChange("education", "previousSchool", e.target.value)}
             className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
           />
         </div>
       </div>
     </div>
-  );
-};
+  )
+}
 
 const EmploymentStatusSection = ({ formData, handleInputChange }) => {
   return (
     <div>
-      <h3 className="text-xl font-medium text-emerald-700 mb-6">
-        Employment Status
-      </h3>
+      <h3 className="text-xl font-medium text-emerald-700 mb-6 mt-8">Employment Status</h3>
 
       <div className="grid grid-cols-1 gap-6">
         <div>
-          <label
-            htmlFor="employmentStatus"
-            className="block text-gray-700 font-medium mb-2"
-          >
-            Which of the following categories BEST describes your current
-            employment status?
+          <label htmlFor="employmentStatus" className="block text-gray-700 font-medium mb-2">
+            Which of the following categories BEST describes your current employment status?
           </label>
           <select
             id="employmentStatus"
             value={formData.employment.status}
-            onChange={(e) =>
-              handleInputChange("employment", "status", e.target.value)
-            }
+            onChange={(e) => handleInputChange("employment", "status", e.target.value)}
             className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
           >
             <option value="">-- Select --</option>
             <option value="Full time employee">Full time employee</option>
             <option value="Part time employee">Part time employee</option>
-            <option value="Self-employed – not employing others">
-              Self-employed – not employing others
-            </option>
+            <option value="Self-employed – not employing others">Self-employed – not employing others</option>
             <option value="Self-employed – employing others">Employer</option>
             <option value="Employed – unpaid worker in a family business">
               Employed – unpaid worker in a family business
             </option>
-            <option value="Unemployed – seeking full time work">
-              Unemployed – seeking full time work
-            </option>
-            <option value="Unemployed – seeking part time work">
-              Unemployed – seeking part time work
-            </option>
-            <option value="Not employed – not seeking employment">
-              Not employed – not seeking employment
-            </option>
+            <option value="Unemployed – seeking full time work">Unemployed – seeking full time work</option>
+            <option value="Unemployed – seeking part time work">Unemployed – seeking part time work</option>
+            <option value="Not employed – not seeking employment">Not employed – not seeking employment</option>
           </select>
         </div>
 
@@ -2688,23 +2001,14 @@ const EmploymentStatusSection = ({ formData, handleInputChange }) => {
           !formData.employment.status.includes("Not employed") && (
             <>
               <div>
-                <label
-                  htmlFor="employedAt"
-                  className="block text-gray-700 font-medium mb-2"
-                >
+                <label htmlFor="employedAt" className="block text-gray-700 font-medium mb-2">
                   Where are you employed?
                 </label>
                 <input
                   type="text"
                   id="employedAt"
                   value={formData.employment.employedAt}
-                  onChange={(e) =>
-                    handleInputChange(
-                      "employment",
-                      "employedAt",
-                      e.target.value
-                    )
-                  }
+                  onChange={(e) => handleInputChange("employment", "employedAt", e.target.value)}
                   className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
                 />
               </div>
@@ -2720,13 +2024,7 @@ const EmploymentStatusSection = ({ formData, handleInputChange }) => {
                       id="employeeCount-up-to-20"
                       name="employeeCount"
                       checked={formData.employment.employeeCount === "Up to 20"}
-                      onChange={() =>
-                        handleInputChange(
-                          "employment",
-                          "employeeCount",
-                          "Up to 20"
-                        )
-                      }
+                      onChange={() => handleInputChange("employment", "employeeCount", "Up to 20")}
                       className="mr-2"
                     />
                     <label htmlFor="employeeCount-up-to-20">Up to 20</label>
@@ -2737,13 +2035,7 @@ const EmploymentStatusSection = ({ formData, handleInputChange }) => {
                       id="employeeCount-over-20"
                       name="employeeCount"
                       checked={formData.employment.employeeCount === "Over 20"}
-                      onChange={() =>
-                        handleInputChange(
-                          "employment",
-                          "employeeCount",
-                          "Over 20"
-                        )
-                      }
+                      onChange={() => handleInputChange("employment", "employeeCount", "Over 20")}
                       className="mr-2"
                     />
                     <label htmlFor="employeeCount-over-20">Over 20</label>
@@ -2754,84 +2046,86 @@ const EmploymentStatusSection = ({ formData, handleInputChange }) => {
           )}
       </div>
     </div>
-  );
-};
+  )
+}
 
 const OccupationSection = ({ formData, handleInputChange }) => {
+  const [showOtherInput, setShowOtherInput] = useState(formData.occupation.classification === "9 - Other")
+
+  const handleClassificationChange = (e) => {
+    const value = e.target.value
+    handleInputChange("occupation", "classification", value)
+    setShowOtherInput(value === "9 - Other")
+  }
+
   return (
     <div>
-      <h3 className="text-xl font-medium text-emerald-700 mb-6">Occupation</h3>
+      <h3 className="text-xl font-medium text-emerald-700 mb-6 mt-8">Occupation</h3>
 
       <div className="grid grid-cols-1 gap-6">
         <div>
-          <label
-            htmlFor="occupationClassification"
-            className="block text-gray-700 font-medium mb-2"
-          >
-            Which of the following classifications BEST describes your current
-            (or recent) occupation?
+          <label htmlFor="occupationClassification" className="block text-gray-700 font-medium mb-2">
+            Which of the following classifications BEST describes your current (or recent) occupation?
           </label>
           <select
             id="occupationClassification"
             value={formData.occupation.classification}
-            onChange={(e) =>
-              handleInputChange("occupation", "classification", e.target.value)
-            }
+            onChange={handleClassificationChange}
             className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
           >
             <option value="">-- Select --</option>
             <option value="1 - Managers">1 - Managers</option>
             <option value="2 - Professionals">2 - Professionals</option>
-            <option value="3 - Technicians & Trade Workers">
-              3 - Technicians & Trade Workers
-            </option>
+            <option value="3 - Technicians & Trade Workers">3 - Technicians & Trade Workers</option>
             <option value="4 - Community and Personal Service Workers">
               4 - Community and Personal Service Workers
             </option>
-            <option value="5 - Clerical & Administrative Workers">
-              5 - Clerical & Administrative Workers
-            </option>
+            <option value="5 - Clerical & Administrative Workers">5 - Clerical & Administrative Workers</option>
             <option value="6 - Sales Workers">6 - Sales Workers</option>
-            <option value="7 - Machinery Operators & Drivers">
-              7 - Machinery Operators & Drivers
-            </option>
+            <option value="7 - Machinery Operators & Drivers">7 - Machinery Operators & Drivers</option>
             <option value="8 - Labourers">8 - Labourers</option>
             <option value="9 - Other">9 - Other</option>
           </select>
         </div>
+
+        {showOtherInput && (
+          <div>
+            <label htmlFor="otherOccupation" className="block text-gray-700 font-medium mb-2">
+              Please specify your occupation:
+            </label>
+            <input
+              type="text"
+              id="otherOccupation"
+              value={formData.occupation.otherOccupation || ""}
+              onChange={(e) => handleInputChange("occupation", "otherOccupation", e.target.value)}
+              className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              placeholder="Please specify your occupation"
+            />
+          </div>
+        )}
       </div>
     </div>
-  );
-};
+  )
+}
 
 const IndustrySection = ({ formData, handleInputChange }) => {
   return (
     <div>
-      <h3 className="text-xl font-medium text-emerald-700 mb-6">
-        Industry of Employment
-      </h3>
+      <h3 className="text-xl font-medium text-emerald-700 mb-6 mt-8">Industry of Employment</h3>
 
       <div className="grid grid-cols-1 gap-6">
         <div>
-          <label
-            htmlFor="industryClassification"
-            className="block text-gray-700 font-medium mb-2"
-          >
-            Which of the following classifications BEST describes the Industry
-            of your current (or recent) Employer?
+          <label htmlFor="industryClassification" className="block text-gray-700 font-medium mb-2">
+            Which of the following classifications BEST describes the Industry of your current (or recent) Employer?
           </label>
           <select
             id="industryClassification"
             value={formData.industry.classification}
-            onChange={(e) =>
-              handleInputChange("industry", "classification", e.target.value)
-            }
+            onChange={(e) => handleInputChange("industry", "classification", e.target.value)}
             className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
           >
             <option value="">-- Select --</option>
-            <option value="A - Agriculture, Forestry and Fishing">
-              A - Agriculture, Forestry and Fishing
-            </option>
+            <option value="A - Agriculture, Forestry and Fishing">A - Agriculture, Forestry and Fishing</option>
             <option value="B - Mining">B - Mining</option>
             <option value="C - Manufacturing">C - Manufacturing</option>
             <option value="D - Electricity, Gas, Water & Waste Services">
@@ -2840,74 +2134,55 @@ const IndustrySection = ({ formData, handleInputChange }) => {
             <option value="E - Construction">E - Construction</option>
             <option value="F - Wholesale Trade">F - Wholesale Trade</option>
             <option value="G - Retail Trade">G - Retail Trade</option>
-            <option value="H - Accommodation & Feed Services">
-              H - Accommodation & Feed Services
-            </option>
-            <option value="I - Transport, Postal & Warehousing">
-              I - Transport, Postal & Warehousing
-            </option>
+            <option value="H - Accommodation & Feed Services">H - Accommodation & Feed Services</option>
+            <option value="I - Transport, Postal & Warehousing">I - Transport, Postal & Warehousing</option>
             <option value="J - Information Media & Telecommunications">
               J - Information Media & Telecommunications
             </option>
-            <option value="K - Financial & Insurance Services">
-              K - Financial & Insurance Services
-            </option>
-            <option value="L - Rental, Hiring & Real Estate Services">
-              L - Rental, Hiring & Real Estate Services
-            </option>
+            <option value="K - Financial & Insurance Services">K - Financial & Insurance Services</option>
+            <option value="L - Rental, Hiring & Real Estate Services">L - Rental, Hiring & Real Estate Services</option>
             <option value="M - Professional, Scientific & Technical Services">
               M - Professional, Scientific & Technical Services
             </option>
-            <option value="N - Administrative Support Services">
-              N - Administrative Support Services
-            </option>
-            <option value="O - Public Administration and Safety">
-              O - Public Administration and Safety
-            </option>
-            <option value="P - Education & Training">
-              P - Education & Training
-            </option>
-            <option value="Q - Health Care & Social Assistance">
-              Q - Health Care & Social Assistance
-            </option>
-            <option value="R - Arts and Recreation Services">
-              R - Arts and Recreation Services
-            </option>
+            <option value="N - Administrative Support Services">N - Administrative Support Services</option>
+            <option value="O - Public Administration and Safety">O - Public Administration and Safety</option>
+            <option value="P - Education & Training">P - Education & Training</option>
+            <option value="Q - Health Care & Social Assistance">Q - Health Care & Social Assistance</option>
+            <option value="R - Arts and Recreation Services">R - Arts and Recreation Services</option>
             <option value="S - Other Services">S - Other Services</option>
           </select>
         </div>
       </div>
     </div>
-  );
-};
+  )
+}
 
 const DisabilitySection = ({ formData, handleInputChange }) => {
   const handleDisabilityTypeChange = (type, checked) => {
-    const updatedTypes = [...formData.disability.disabilityTypes];
+    const updatedTypes = [...formData.disability.disabilityTypes]
 
     if (checked) {
       if (!updatedTypes.includes(type)) {
-        updatedTypes.push(type);
+        updatedTypes.push(type)
       }
     } else {
-      const index = updatedTypes.indexOf(type);
+      const index = updatedTypes.indexOf(type)
       if (index > -1) {
-        updatedTypes.splice(index, 1);
+        updatedTypes.splice(index, 1)
       }
     }
 
-    handleInputChange("disability", "disabilityTypes", updatedTypes);
-  };
+    handleInputChange("disability", "disabilityTypes", updatedTypes)
+  }
 
   return (
     <div>
-      <h3 className="text-xl font-medium text-emerald-700 mb-6">Disability</h3>
+      <h3 className="text-xl font-medium text-emerald-700 mb-6 mt-8">Disability</h3>
 
       <div className="grid grid-cols-1 gap-6">
         <div className="mb-4">
           <p className="block text-gray-700 font-medium mb-2">
-            Do you consider yourself to have a disability, impairment or long
-            term condition?
+            Do you consider yourself to have a disability, impairment or long term condition?
           </p>
           <div className="flex items-center space-x-6">
             <div className="flex items-center">
@@ -2916,9 +2191,7 @@ const DisabilitySection = ({ formData, handleInputChange }) => {
                 id="hasDisability-yes"
                 name="hasDisability"
                 checked={formData.disability.hasDisability}
-                onChange={() =>
-                  handleInputChange("disability", "hasDisability", true)
-                }
+                onChange={() => handleInputChange("disability", "hasDisability", true)}
                 className="mr-2"
               />
               <label htmlFor="hasDisability-yes">Yes</label>
@@ -2929,9 +2202,7 @@ const DisabilitySection = ({ formData, handleInputChange }) => {
                 id="hasDisability-no"
                 name="hasDisability"
                 checked={!formData.disability.hasDisability}
-                onChange={() =>
-                  handleInputChange("disability", "hasDisability", false)
-                }
+                onChange={() => handleInputChange("disability", "hasDisability", false)}
                 className="mr-2"
               />
               <label htmlFor="hasDisability-no">No</label>
@@ -2942,20 +2213,16 @@ const DisabilitySection = ({ formData, handleInputChange }) => {
         {formData.disability.hasDisability && (
           <div>
             <p className="block text-gray-700 font-medium mb-2">
-              If yes, please indicate the areas of disability, impairment or
-              long term condition. You may indicate more than one.
+              If yes, please indicate the areas of disability, impairment or long term condition. You may indicate more
+              than one.
             </p>
             <div className="grid grid-cols-2 gap-2">
               <div className="flex items-center">
                 <input
                   type="checkbox"
                   id="disability-hearing"
-                  checked={formData.disability.disabilityTypes.includes(
-                    "Hearing/deaf"
-                  )}
-                  onChange={(e) =>
-                    handleDisabilityTypeChange("Hearing/deaf", e.target.checked)
-                  }
+                  checked={formData.disability.disabilityTypes.includes("Hearing/deaf")}
+                  onChange={(e) => handleDisabilityTypeChange("Hearing/deaf", e.target.checked)}
                   className="mr-2"
                 />
                 <label htmlFor="disability-hearing">Hearing/deaf</label>
@@ -2964,12 +2231,8 @@ const DisabilitySection = ({ formData, handleInputChange }) => {
                 <input
                   type="checkbox"
                   id="disability-physical"
-                  checked={formData.disability.disabilityTypes.includes(
-                    "Physical"
-                  )}
-                  onChange={(e) =>
-                    handleDisabilityTypeChange("Physical", e.target.checked)
-                  }
+                  checked={formData.disability.disabilityTypes.includes("Physical")}
+                  onChange={(e) => handleDisabilityTypeChange("Physical", e.target.checked)}
                   className="mr-2"
                 />
                 <label htmlFor="disability-physical">Physical</label>
@@ -2978,12 +2241,8 @@ const DisabilitySection = ({ formData, handleInputChange }) => {
                 <input
                   type="checkbox"
                   id="disability-intellectual"
-                  checked={formData.disability.disabilityTypes.includes(
-                    "Intellectual"
-                  )}
-                  onChange={(e) =>
-                    handleDisabilityTypeChange("Intellectual", e.target.checked)
-                  }
+                  checked={formData.disability.disabilityTypes.includes("Intellectual")}
+                  onChange={(e) => handleDisabilityTypeChange("Intellectual", e.target.checked)}
                   className="mr-2"
                 />
                 <label htmlFor="disability-intellectual">Intellectual</label>
@@ -2992,12 +2251,8 @@ const DisabilitySection = ({ formData, handleInputChange }) => {
                 <input
                   type="checkbox"
                   id="disability-learning"
-                  checked={formData.disability.disabilityTypes.includes(
-                    "Learning"
-                  )}
-                  onChange={(e) =>
-                    handleDisabilityTypeChange("Learning", e.target.checked)
-                  }
+                  checked={formData.disability.disabilityTypes.includes("Learning")}
+                  onChange={(e) => handleDisabilityTypeChange("Learning", e.target.checked)}
                   className="mr-2"
                 />
                 <label htmlFor="disability-learning">Learning</label>
@@ -3006,15 +2261,8 @@ const DisabilitySection = ({ formData, handleInputChange }) => {
                 <input
                   type="checkbox"
                   id="disability-mental"
-                  checked={formData.disability.disabilityTypes.includes(
-                    "Mental illness"
-                  )}
-                  onChange={(e) =>
-                    handleDisabilityTypeChange(
-                      "Mental illness",
-                      e.target.checked
-                    )
-                  }
+                  checked={formData.disability.disabilityTypes.includes("Mental illness")}
+                  onChange={(e) => handleDisabilityTypeChange("Mental illness", e.target.checked)}
                   className="mr-2"
                 />
                 <label htmlFor="disability-mental">Mental illness</label>
@@ -3023,15 +2271,8 @@ const DisabilitySection = ({ formData, handleInputChange }) => {
                 <input
                   type="checkbox"
                   id="disability-medical"
-                  checked={formData.disability.disabilityTypes.includes(
-                    "Medical condition"
-                  )}
-                  onChange={(e) =>
-                    handleDisabilityTypeChange(
-                      "Medical condition",
-                      e.target.checked
-                    )
-                  }
+                  checked={formData.disability.disabilityTypes.includes("Medical condition")}
+                  onChange={(e) => handleDisabilityTypeChange("Medical condition", e.target.checked)}
                   className="mr-2"
                 />
                 <label htmlFor="disability-medical">Medical condition</label>
@@ -3040,12 +2281,8 @@ const DisabilitySection = ({ formData, handleInputChange }) => {
                 <input
                   type="checkbox"
                   id="disability-vision"
-                  checked={formData.disability.disabilityTypes.includes(
-                    "Vision"
-                  )}
-                  onChange={(e) =>
-                    handleDisabilityTypeChange("Vision", e.target.checked)
-                  }
+                  checked={formData.disability.disabilityTypes.includes("Vision")}
+                  onChange={(e) => handleDisabilityTypeChange("Vision", e.target.checked)}
                   className="mr-2"
                 />
                 <label htmlFor="disability-vision">Vision</label>
@@ -3054,31 +2291,18 @@ const DisabilitySection = ({ formData, handleInputChange }) => {
                 <input
                   type="checkbox"
                   id="disability-brain"
-                  checked={formData.disability.disabilityTypes.includes(
-                    "Acquired brain impairment"
-                  )}
-                  onChange={(e) =>
-                    handleDisabilityTypeChange(
-                      "Acquired brain impairment",
-                      e.target.checked
-                    )
-                  }
+                  checked={formData.disability.disabilityTypes.includes("Acquired brain impairment")}
+                  onChange={(e) => handleDisabilityTypeChange("Acquired brain impairment", e.target.checked)}
                   className="mr-2"
                 />
-                <label htmlFor="disability-brain">
-                  Acquired brain impairment
-                </label>
+                <label htmlFor="disability-brain">Acquired brain impairment</label>
               </div>
               <div className="flex items-center">
                 <input
                   type="checkbox"
                   id="disability-other"
-                  checked={formData.disability.disabilityTypes.includes(
-                    "Other"
-                  )}
-                  onChange={(e) =>
-                    handleDisabilityTypeChange("Other", e.target.checked)
-                  }
+                  checked={formData.disability.disabilityTypes.includes("Other")}
+                  onChange={(e) => handleDisabilityTypeChange("Other", e.target.checked)}
                   className="mr-2"
                 />
                 <label htmlFor="disability-other">Other</label>
@@ -3087,23 +2311,14 @@ const DisabilitySection = ({ formData, handleInputChange }) => {
 
             {formData.disability.disabilityTypes.includes("Other") && (
               <div className="mt-4">
-                <label
-                  htmlFor="otherDisability"
-                  className="block text-gray-700 font-medium mb-2"
-                >
+                <label htmlFor="otherDisability" className="block text-gray-700 font-medium mb-2">
                   Please specify other disability:
                 </label>
                 <input
                   type="text"
                   id="otherDisability"
                   value={formData.disability.otherDisability}
-                  onChange={(e) =>
-                    handleInputChange(
-                      "disability",
-                      "otherDisability",
-                      e.target.value
-                    )
-                  }
+                  onChange={(e) => handleInputChange("disability", "otherDisability", e.target.value)}
                   className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
                 />
               </div>
@@ -3112,42 +2327,42 @@ const DisabilitySection = ({ formData, handleInputChange }) => {
         )}
       </div>
     </div>
-  );
-};
+  )
+}
+
 // Previous Qualifications Section
 const PreviousQualificationsSection = ({ formData, handleInputChange }) => {
   const handleQualificationChange = (type, isAustralian) => {
-    const qualifications = [...formData.previousQualifications.qualifications];
-    const index = qualifications.findIndex((q) => q.type === type);
+    const qualifications = [...formData.previousQualifications.qualifications]
+    const index = qualifications.findIndex((q) => q.type === type)
 
     if (index !== -1) {
       qualifications[index] = {
         ...qualifications[index],
         origin: isAustralian ? "A" : isAustralian === false ? "I" : "E",
-      };
+      }
     } else {
       qualifications.push({
         type,
         origin: isAustralian ? "A" : isAustralian === false ? "I" : "E",
-      });
+      })
     }
 
     handleInputChange("previousQualifications", null, {
       ...formData.previousQualifications,
       qualifications,
-    });
-  };
+    })
+  }
+
+  // Check if "Other" qualification is selected
+  const hasOtherQualification = formData.previousQualifications.qualifications.some((q) => q.type === "Other")
 
   return (
     <div>
-      <h3 className="text-xl font-medium text-emerald-700 mb-6">
-        Previous Qualifications
-      </h3>
+      <h3 className="text-xl font-medium text-emerald-700 mb-6 mt-8">Previous Qualifications</h3>
 
       <div className="mb-6">
-        <p className="mb-2 font-medium">
-          Have you successfully COMPLETED any of the following qualifications?
-        </p>
+        <p className="mb-2 font-medium">Have you successfully COMPLETED any of the following qualifications?</p>
         <div className="flex flex-wrap gap-4">
           <label className="flex items-center">
             <input
@@ -3155,13 +2370,7 @@ const PreviousQualificationsSection = ({ formData, handleInputChange }) => {
               name="hasCompleted"
               value="true"
               checked={formData.previousQualifications.hasCompleted === true}
-              onChange={() =>
-                handleInputChange(
-                  "previousQualifications",
-                  "hasCompleted",
-                  true
-                )
-              }
+              onChange={() => handleInputChange("previousQualifications", "hasCompleted", true)}
               className="mr-2"
             />
             Yes
@@ -3172,13 +2381,7 @@ const PreviousQualificationsSection = ({ formData, handleInputChange }) => {
               name="hasCompleted"
               value="false"
               checked={formData.previousQualifications.hasCompleted === false}
-              onChange={() =>
-                handleInputChange(
-                  "previousQualifications",
-                  "hasCompleted",
-                  false
-                )
-              }
+              onChange={() => handleInputChange("previousQualifications", "hasCompleted", false)}
               className="mr-2"
             />
             No
@@ -3187,85 +2390,84 @@ const PreviousQualificationsSection = ({ formData, handleInputChange }) => {
       </div>
 
       {formData.previousQualifications.hasCompleted && (
-        <div className="overflow-x-auto">
-          <table className="min-w-full bg-white border border-gray-200">
-            <thead>
-              <tr>
-                <th className="py-2 px-3 bg-gray-50 border-b text-left">
-                  Qualification
-                </th>
-                <th className="py-2 px-3 bg-gray-50 border-b text-center">
-                  Australian (A)
-                </th>
-                <th className="py-2 px-3 bg-gray-50 border-b text-center">
-                  Australian Equivalent (E)
-                </th>
-                <th className="py-2 px-3 bg-gray-50 border-b text-center">
-                  International (I)
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {[
-                "Bachelor Degree or Higher Degree",
-                "Advanced Diploma or Associate Degree",
-                "Diploma or Associate Diploma",
-                "Certificate IV or Advanced Cert/Technician",
-                "Certificate III or Trade Certificate",
-                "Certificate II",
-                "Certificate I",
-                "Other",
-              ].map((qualification, index) => {
-                const qual =
-                  formData.previousQualifications.qualifications.find(
-                    (q) => q.type === qualification
-                  );
-                return (
-                  <tr
-                    key={index}
-                    className={index % 2 === 0 ? "bg-gray-50" : ""}
-                  >
-                    <td className="py-2 px-3 border-b">{qualification}</td>
-                    <td className="py-2 px-3 border-b text-center">
-                      <input
-                        type="radio"
-                        name={`qual_${index}`}
-                        checked={qual?.origin === "A"}
-                        onChange={() =>
-                          handleQualificationChange(qualification, true)
-                        }
-                      />
-                    </td>
-                    <td className="py-2 px-3 border-b text-center">
-                      <input
-                        type="radio"
-                        name={`qual_${index}`}
-                        checked={qual?.origin === "E"}
-                        onChange={() =>
-                          handleQualificationChange(qualification, null)
-                        }
-                      />
-                    </td>
-                    <td className="py-2 px-3 border-b text-center">
-                      <input
-                        type="radio"
-                        name={`qual_${index}`}
-                        checked={qual?.origin === "I"}
-                        onChange={() =>
-                          handleQualificationChange(qualification, false)
-                        }
-                      />
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+        <>
+          <div className="overflow-x-auto">
+            <table className="min-w-full bg-white border border-gray-200">
+              <thead>
+                <tr>
+                  <th className="py-2 px-3 bg-gray-50 border-b text-left">Qualification</th>
+                  <th className="py-2 px-3 bg-gray-50 border-b text-center">Australian (A)</th>
+                  <th className="py-2 px-3 bg-gray-50 border-b text-center">Australian Equivalent (E)</th>
+                  <th className="py-2 px-3 bg-gray-50 border-b text-center">International (I)</th>
+                </tr>
+              </thead>
+              <tbody>
+                {[
+                  "Bachelor Degree or Higher Degree",
+                  "Advanced Diploma or Associate Degree",
+                  "Diploma or Associate Diploma",
+                  "Certificate IV or Advanced Cert/Technician",
+                  "Certificate III or Trade Certificate",
+                  "Certificate II",
+                  "Certificate I",
+                  "Other",
+                ].map((qualification, index) => {
+                  const qual = formData.previousQualifications.qualifications.find((q) => q.type === qualification)
+                  return (
+                    <tr key={index} className={index % 2 === 0 ? "bg-gray-50" : ""}>
+                      <td className="py-2 px-3 border-b">{qualification}</td>
+                      <td className="py-2 px-3 border-b text-center">
+                        <input
+                          type="radio"
+                          name={`qual_${index}`}
+                          checked={qual?.origin === "A"}
+                          onChange={() => handleQualificationChange(qualification, true)}
+                        />
+                      </td>
+                      <td className="py-2 px-3 border-b text-center">
+                        <input
+                          type="radio"
+                          name={`qual_${index}`}
+                          checked={qual?.origin === "E"}
+                          onChange={() => handleQualificationChange(qualification, null)}
+                        />
+                      </td>
+                      <td className="py-2 px-3 border-b text-center">
+                        <input
+                          type="radio"
+                          name={`qual_${index}`}
+                          checked={qual?.origin === "I"}
+                          onChange={() => handleQualificationChange(qualification, false)}
+                        />
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Add text field for "Other" qualification */}
+          {hasOtherQualification && (
+            <div className="mt-4">
+              <label htmlFor="otherQualification" className="block text-gray-700 font-medium mb-2">
+                Please specify other qualification:
+              </label>
+              <input
+                type="text"
+                id="otherQualification"
+                value={formData.previousQualifications.otherQualification || ""}
+                onChange={(e) => handleInputChange("previousQualifications", "otherQualification", e.target.value)}
+                className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                placeholder="Please specify your other qualification"
+              />
+            </div>
+          )}
+        </>
       )}
     </div>
-  );
-};
+  )
+}
 
 // Study Reason Section
 const StudyReasonSection = ({ formData, handleInputChange }) => {
@@ -3280,18 +2482,15 @@ const StudyReasonSection = ({ formData, handleInputChange }) => {
     "To get into another course of study",
     "For personal interest or self-development",
     "Other Reasons",
-  ];
+  ]
 
   return (
     <div>
-      <h3 className="text-xl font-medium text-emerald-700 mb-6">
-        Study Reason
-      </h3>
+      <h3 className="text-xl font-medium text-emerald-700 mb-6 mt-8">Study Reason</h3>
 
       <div className="mb-6">
         <p className="mb-2 font-medium">
-          Which BEST describes your main reason for undertaking this
-          course/traineeship/apprenticeship?
+          Which BEST describes your main reason for undertaking this course/traineeship/apprenticeship?
         </p>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {reasons.map((reason, index) => (
@@ -3308,10 +2507,26 @@ const StudyReasonSection = ({ formData, handleInputChange }) => {
             </label>
           ))}
         </div>
+
+        {formData.studyReason === "Other Reasons" && (
+          <div className="mt-4">
+            <label htmlFor="otherStudyReason" className="block text-gray-700 font-medium mb-2">
+              Please specify other reason:
+            </label>
+            <input
+              type="text"
+              id="otherStudyReason"
+              value={formData.otherStudyReason || ""}
+              onChange={(e) => handleInputChange("otherStudyReason", null, e.target.value)}
+              className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              placeholder="Please specify your reason for study"
+            />
+          </div>
+        )}
       </div>
     </div>
-  );
-};
+  )
+}
 
 // Contact Source Section
 const ContactSourceSection = ({ formData, handleInputChange }) => {
@@ -3328,18 +2543,14 @@ const ContactSourceSection = ({ formData, handleInputChange }) => {
     "Newspapers",
     "Workplace",
     "Other",
-  ];
+  ]
 
   return (
     <div>
-      <h3 className="text-xl font-medium text-emerald-700 mb-6">
-        Student Contact
-      </h3>
+      <h3 className="text-xl font-medium text-emerald-700 mb-6 mt-8">Student Contact</h3>
 
       <div className="mb-6">
-        <p className="mb-2 font-medium">
-          How did you find out about the course you are enrolling in?
-        </p>
+        <p className="mb-2 font-medium">How did you find out about the course you are enrolling in?</p>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {sources.map((source, index) => (
             <label key={index} className="flex items-center">
@@ -3348,55 +2559,77 @@ const ContactSourceSection = ({ formData, handleInputChange }) => {
                 name="contactSource"
                 value={source}
                 checked={formData.contactSource === source}
-                onChange={() =>
-                  handleInputChange("contactSource", null, source)
-                }
+                onChange={() => handleInputChange("contactSource", null, source)}
                 className="mr-2"
               />
               {source}
             </label>
           ))}
         </div>
+
+        {formData.contactSource === "Other" && (
+          <div className="mt-4">
+            <label htmlFor="otherContactSource" className="block text-gray-700 font-medium mb-2">
+              Please specify other source:
+            </label>
+            <input
+              type="text"
+              id="otherContactSource"
+              value={formData.otherContactSource || ""}
+              onChange={(e) => handleInputChange("otherContactSource", null, e.target.value)}
+              className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              placeholder="Please specify how you found out about this course"
+            />
+          </div>
+        )}
       </div>
     </div>
-  );
-};
+  )
+}
 
-// Student Handbook Section
 const StudentHandbookSection = ({ formData, handleInputChange }) => {
+  const handbookItems = [
+    "Student fee information",
+    "Refund Policy",
+    "Code of conduct",
+    "Complaints procedure",
+    "Appeals procedure",
+    "Assessment guidelines",
+    "Student welfare and support services",
+    "Recognition of prior learning",
+  ]
+
+  const [checkedItems, setCheckedItems] = useState(formData.studentHandbook?.checkedItems || {})
+
+  const handleCheckboxChange = (item) => {
+    const updatedItems = {
+      ...checkedItems,
+      [item]: !checkedItems[item],
+    }
+    setCheckedItems(updatedItems)
+
+    // Update formData
+    handleInputChange("studentHandbook", "checkedItems", updatedItems)
+  }
+
   return (
     <div>
-      <h3 className="text-xl font-medium text-emerald-700 mb-6">
-        Student Handbook
-      </h3>
+      <h3 className="text-xl font-medium text-emerald-700 mb-6 mt-8">Student Handbook</h3>
 
       <div className="p-4 bg-gray-50 border border-gray-200 rounded-md mb-6">
         <p className="mb-4">The student handbook outlines the following:</p>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="p-2 bg-white border border-gray-200 rounded text-center">
-            Student fee information
-          </div>
-          <div className="p-2 bg-white border border-gray-200 rounded text-center">
-            Refund Policy
-          </div>
-          <div className="p-2 bg-white border border-gray-200 rounded text-center">
-            Code of conduct
-          </div>
-          <div className="p-2 bg-white border border-gray-200 rounded text-center">
-            Complaints procedure
-          </div>
-          <div className="p-2 bg-white border border-gray-200 rounded text-center">
-            Appeals procedure
-          </div>
-          <div className="p-2 bg-white border border-gray-200 rounded text-center">
-            Assessment guidelines
-          </div>
-          <div className="p-2 bg-white border border-gray-200 rounded text-center">
-            Student welfare and support services
-          </div>
-          <div className="p-2 bg-white border border-gray-200 rounded text-center">
-            Recognition of prior learning
-          </div>
+        <div className="grid grid-cols-1 gap-4">
+          {handbookItems.map((item, index) => (
+            <label key={index} className="flex items-start">
+              <input
+                type="checkbox"
+                checked={checkedItems[item] || false}
+                onChange={() => handleCheckboxChange(item)}
+                className="mt-1 mr-2"
+              />
+              <span>{item}</span>
+            </label>
+          ))}
         </div>
       </div>
 
@@ -3405,41 +2638,36 @@ const StudentHandbookSection = ({ formData, handleInputChange }) => {
           <input
             type="checkbox"
             checked={formData.preTraining.readStudentHandbook}
-            onChange={(e) =>
-              handleInputChange(
-                "preTraining",
-                "readStudentHandbook",
-                e.target.checked
-              )
-            }
+            onChange={(e) => handleInputChange("preTraining", "readStudentHandbook", e.target.checked)}
             className="mr-2"
           />
-          I declare that I have read and understood RTO student handbook and
-          their policies & procedures regarding the above.
+          I declare that I have read and understood RTO student handbook and their policies & procedures regarding the
+          above.
         </label>
       </div>
 
       <p className="text-sm text-gray-600 mb-6">
-        The Student Handbook can be found on RTO website. www.RTO.edu.au
+        The Student Handbook can be found on RTO website.{" "}
+        <a
+          href="https://www.RTO.edu.au"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-emerald-600 hover:underline"
+        >
+          www.RTO.edu.au
+        </a>
       </p>
     </div>
-  );
-};
+  )
+}
 
 // Citizenship Status Section
 const CitizenshipStatusSection = ({ formData, handleInputChange }) => {
-  const statuses = [
-    "Australian Citizen",
-    "New Zealand Citizen",
-    "Permanent Resident",
-    "Other",
-  ];
+  const statuses = ["Australian Citizen", "New Zealand Citizen", "Permanent Resident", "Other"]
 
   return (
     <div>
-      <h3 className="text-xl font-medium text-emerald-700 mb-6">
-        Australian Citizenship Status
-      </h3>
+      <h3 className="text-xl font-medium text-emerald-700 mb-6 mt-8">Australian Citizenship Status</h3>
 
       <div className="mb-6">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -3450,9 +2678,7 @@ const CitizenshipStatusSection = ({ formData, handleInputChange }) => {
                 name="citizenshipStatus"
                 value={status}
                 checked={formData.citizenshipStatus === status}
-                onChange={() =>
-                  handleInputChange("citizenshipStatus", null, status)
-                }
+                onChange={() => handleInputChange("citizenshipStatus", null, status)}
                 className="mr-2"
               />
               {status}
@@ -3463,10 +2689,7 @@ const CitizenshipStatusSection = ({ formData, handleInputChange }) => {
 
       {formData.citizenshipStatus === "Other" && (
         <div className="mb-6">
-          <label
-            htmlFor="otherCitizenshipDetails"
-            className="block text-gray-700 mb-2"
-          >
+          <label htmlFor="otherCitizenshipDetails" className="block text-gray-700 mb-2">
             Please provide details:
           </label>
           <input
@@ -3478,33 +2701,8 @@ const CitizenshipStatusSection = ({ formData, handleInputChange }) => {
         </div>
       )}
     </div>
-  );
-};
-
-// Program Selection Section
-const ProgramSelectionSection = ({ formData, handleInputChange }) => {
-  return (
-    <div>
-      <h3 className="text-xl font-medium text-emerald-700 mb-6">
-        Program / Qualification to be enrolled in
-      </h3>
-
-      <div className="mb-6">
-        <label htmlFor="program" className="block text-gray-700 mb-2">
-          Select one of the following courses:
-        </label>
-        <input
-          type="text"
-          id="program"
-          value={formData.program}
-          onChange={(e) => handleInputChange("program", null, e.target.value)}
-          className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
-          placeholder="CPC40920 Certificate IV in Plumbing and Services (Operations)"
-        />
-      </div>
-    </div>
-  );
-};
+  )
+}
 
 // Pre-Training Checklist Section
 const PreTrainingChecklistSection = ({ formData, handleInputChange }) => {
@@ -3513,8 +2711,7 @@ const PreTrainingChecklistSection = ({ formData, handleInputChange }) => {
     { id: "entryRequirementsDiscussed", label: "Entry Requirements discussed" },
     {
       id: "lLNAssessmentCompleted",
-      label:
-        "Language, Literacy and Numeracy(LLN) assessment completed by student and attached",
+      label: "Language, Literacy and Numeracy(LLN) assessment completed by student and attached",
     },
     { id: "creditTransferDiscussed", label: "Credit Transfer discussed" },
     { id: "deliveryModeDiscussed", label: "Delivery Mode discussed" },
@@ -3533,13 +2730,11 @@ const PreTrainingChecklistSection = ({ formData, handleInputChange }) => {
       id: "readStudentHandbook",
       label: "I have read and understand the student handbook",
     },
-  ];
+  ]
 
   return (
     <div>
-      <h3 className="text-xl font-medium text-emerald-700 mb-6">
-        Pre Training Checklist
-      </h3>
+      <h3 className="text-xl font-medium text-emerald-700 mb-6 mt-8">Pre Training Checklist</h3>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
         {checklistItems.map((item) => (
@@ -3547,9 +2742,7 @@ const PreTrainingChecklistSection = ({ formData, handleInputChange }) => {
             <input
               type="checkbox"
               checked={formData.preTraining[item.id]}
-              onChange={(e) =>
-                handleInputChange("preTraining", item.id, e.target.checked)
-              }
+              onChange={(e) => handleInputChange("preTraining", item.id, e.target.checked)}
               className="mt-1 mr-2"
             />
             <span>{item.label}</span>
@@ -3559,51 +2752,39 @@ const PreTrainingChecklistSection = ({ formData, handleInputChange }) => {
 
       <div className="mb-6">
         <label htmlFor="specialNeeds" className="block text-gray-700 mb-2">
-          Please indicate any special needs, assistance you may require during
-          the course:
+          Please indicate any special needs, assistance you may require during the course:
         </label>
         <textarea
           id="specialNeeds"
           value={formData.preTraining.specialNeeds}
-          onChange={(e) =>
-            handleInputChange("preTraining", "specialNeeds", e.target.value)
-          }
+          onChange={(e) => handleInputChange("preTraining", "specialNeeds", e.target.value)}
           className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
           rows="4"
           placeholder="e.g., Writing assistance"
         ></textarea>
       </div>
     </div>
-  );
-};
+  )
+}
 
 // Consent Section
 const ConsentSection = ({ formData, handleInputChange }) => {
   return (
     <div>
-      <h3 className="text-xl font-medium text-emerald-700 mb-6">
-        Consent and Declaration
-      </h3>
+      <h3 className="text-xl font-medium text-emerald-700 mb-6 mt-8">Consent and Declaration</h3>
 
       <div className="p-4 bg-gray-50 border border-gray-200 rounded-md mb-6">
-        <h4 className="font-medium mb-2">
-          Consent for publication of photographs and student work
-        </h4>
+        <h4 className="font-medium mb-2">Consent for publication of photographs and student work</h4>
         <p className="mb-4">
-          RTO occasionally takes photos of students participating in classes for
-          publicity purposes. These photos may be displayed on our website. The
-          names and details of the people in the photos are not released or
-          published. Staff will always identify when they are taking photos so
-          students who don't wish to have their photo taken can be excluded from
-          the photo. If at any time your photo is published on the website and
-          you would like it removed, we will do so within 24 hours of receiving
-          a written request to remove it.
+          RTO occasionally takes photos of students participating in classes for publicity purposes. These photos may be
+          displayed on our website. The names and details of the people in the photos are not released or published.
+          Staff will always identify when they are taking photos so students who don't wish to have their photo taken
+          can be excluded from the photo. If at any time your photo is published on the website and you would like it
+          removed, we will do so within 24 hours of receiving a written request to remove it.
         </p>
 
         <div className="mb-4">
-          <p className="mb-2">
-            Do you consent to the use of your photo under these conditions?
-          </p>
+          <p className="mb-2">Do you consent to the use of your photo under these conditions?</p>
           <div className="flex gap-4">
             <label className="flex items-center">
               <input
@@ -3611,9 +2792,7 @@ const ConsentSection = ({ formData, handleInputChange }) => {
                 name="photoConsent"
                 value="true"
                 checked={formData.consent.photoConsent === true}
-                onChange={() =>
-                  handleInputChange("consent", "photoConsent", true)
-                }
+                onChange={() => handleInputChange("consent", "photoConsent", true)}
                 className="mr-2"
               />
               Yes
@@ -3624,9 +2803,7 @@ const ConsentSection = ({ formData, handleInputChange }) => {
                 name="photoConsent"
                 value="false"
                 checked={formData.consent.photoConsent === false}
-                onChange={() =>
-                  handleInputChange("consent", "photoConsent", false)
-                }
+                onChange={() => handleInputChange("consent", "photoConsent", false)}
                 className="mr-2"
               />
               No
@@ -3635,83 +2812,64 @@ const ConsentSection = ({ formData, handleInputChange }) => {
         </div>
 
         <p className="text-sm text-gray-600">
-          If you indicated NO please ensure you advise the staff member at the
-          time the photo is being taken to ensure you are excluded from the
-          photo.
+          If you indicated NO please ensure you advise the staff member at the time the photo is being taken to ensure
+          you are excluded from the photo.
         </p>
       </div>
 
       <div className="mb-6">
-        <h4 className="font-medium mb-2">
-          Declaration of Information Accuracy
-        </h4>
+        <h4 className="font-medium mb-2">Declaration of Information Accuracy</h4>
         <p className="mb-4">
-          I declare that the information I have provided on this enrolment form
-          is true and accurate, and understand that providing false information
-          may affect my eligibility to obtain government funding.
+          I declare that the information I have provided on this enrolment form is true and accurate, and understand
+          that providing false information may affect my eligibility to obtain government funding.
         </p>
 
         <div className="space-y-2">
-          <p>
-            In signing or emailing this form I acknowledge and declare that:
-          </p>
+          <p>In signing or emailing this form I acknowledge and declare that:</p>
           <ol className="list-decimal pl-6 space-y-1">
             <li>
-              I have read and understood and consent to the privacy notice and
-              have completed all questions and details on the enrolment.
+              I have read and understood and consent to the privacy notice and have completed all questions and details
+              on the enrolment.
             </li>
             <li>
-              The information herein provided is to the best of my knowledge
-              true, correct and complete at the time of my enrolment.
+              The information herein provided is to the best of my knowledge true, correct and complete at the time of
+              my enrolment.
+            </li>
+            <li>Arrangements have been made to pay all fees and charges applicable to this enrolment.</li>
+            <li>I have read and understand the RTO Information for Learners Handbook.</li>
+            <li>
+              I agree to be bound by the RTO's Student Code of Conduct, regulations, policies and disciplinary
+              procedures whilst I remain an enrolled student.
             </li>
             <li>
-              Arrangements have been made to pay all fees and charges applicable
-              to this enrolment.
+              My participation in this course is subject to the right of RTO to cancel or amalgamate courses or classes.
+              I agree to abide by all rules and regulations of RTO.
             </li>
             <li>
-              I have read and understand the RTO Information for Learners
-              Handbook.
+              I understand and have been provided with information by RTO in relation to Credit Transfer and Recognition
+              of Prior Learning (RPL).
             </li>
             <li>
-              I agree to be bound by the RTO's Student Code of Conduct,
-              regulations, policies and disciplinary procedures whilst I remain
-              an enrolled student.
+              I confirm that I have been informed about the training, assessment and support services to be provided,
+              and about my rights and obligations as a student at RTO.
             </li>
             <li>
-              My participation in this course is subject to the right of RTO to
-              cancel or amalgamate courses or classes. I agree to abide by all
-              rules and regulations of RTO.
+              I have also visited RTO website to review Training and Assessment options available to me including but
+              not limited to duration, location, mode of delivery and work placement (if any), fees, refunds, complaints
+              and withdrawals.
             </li>
             <li>
-              I understand and have been provided with information by RTO in
-              relation to Credit Transfer and Recognition of Prior Learning
-              (RPL).
+              I authorise RTO or its agent, in the event of illness or accident during any RTO organised activity, and
+              where emergency contact next of kin cannot be contacted within reasonable time, to seek ambulance, medical
+              or surgical treatment at my cost.
             </li>
             <li>
-              I confirm that I have been informed about the training, assessment
-              and support services to be provided, and about my rights and
-              obligations as a student at RTO.
+              My academic results will be withheld until my debit is fully paid and any property belonging to RTO has
+              been returned.
             </li>
             <li>
-              I have also visited RTO website to review Training and Assessment
-              options available to me including but not limited to duration,
-              location, mode of delivery and work placement (if any), fees,
-              refunds, complaints and withdrawals.
-            </li>
-            <li>
-              I authorise RTO or its agent, in the event of illness or accident
-              during any RTO organised activity, and where emergency contact
-              next of kin cannot be contacted within reasonable time, to seek
-              ambulance, medical or surgical treatment at my cost.
-            </li>
-            <li>
-              My academic results will be withheld until my debit is fully paid
-              and any property belonging to RTO has been returned.
-            </li>
-            <li>
-              I acknowledge that from time to time RTO may send me information
-              regarding course opportunities and other promotional offers and
-              that I have the ability to opt out.
+              I acknowledge that from time to time RTO may send me information regarding course opportunities and other
+              promotional offers and that I have the ability to opt out.
             </li>
           </ol>
         </div>
@@ -3720,9 +2878,7 @@ const ConsentSection = ({ formData, handleInputChange }) => {
       <div className="mb-6">
         <div className="flex items-center">
           <input type="checkbox" id="agreeToTerms" className="mr-2" />
-          <label htmlFor="agreeToTerms">
-            I agree to all terms and conditions stated above
-          </label>
+          <label htmlFor="agreeToTerms">I agree to all terms and conditions stated above</label>
         </div>
       </div>
 
@@ -3750,5 +2906,8 @@ const ConsentSection = ({ formData, handleInputChange }) => {
         </div>
       </div>
     </div>
-  );
-};
+  )
+}
+const FormSubmitted = () => {
+  return <h1>Form Submitted Successfully</h1>
+}

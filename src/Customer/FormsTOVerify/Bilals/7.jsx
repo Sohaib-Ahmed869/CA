@@ -1,32 +1,16 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { ChevronLeft, ChevronRight, Check, Menu, X } from "lucide-react";
-import RPLEvidenceAssessmentForm from "./RPLEvidenceAssessmentForm";
-import toast, { Toaster } from "react-hot-toast";
-import SpinnerLoader from "../../components/spinnerLoader";
-import Navbar from "../../components/navbar";
-import { useNavigate } from "react-router-dom";
-import axios from "axios";
-const URL = import.meta.env.VITE_REACT_BACKEND_URL;
 
-const RPL2 = () => {
-  const [currentPage, setCurrentPage] = useState(29);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const navigate = useNavigate();
-  const [applicationId, setApplicationId] = useState("");
-  useEffect(() => {
-    const idFromUrl = window.location.pathname.split("/")[2];
-    setApplicationId(idFromUrl);
-    console.log("id passed", idFromUrl);
-  }, []);
+const RPLSelfAssessmentFormCPC30220k = () => {
+  const [currentPage, setCurrentPage] = useState(1);
   const [menuOpen, setMenuOpen] = useState(false);
   const [formData, setFormData] = useState({
     candidateName: "",
     candidateSignature: "",
     date: "",
     declaration: false,
-
     units: {
       CPCCCA2002: Array(9).fill(""),
       CPCCCA2011: Array(12).fill(""),
@@ -86,7 +70,7 @@ const RPL2 = () => {
     assessorDate: "",
   });
 
-  const totalPages = 59; // Introduction + 2 Evidence Matrix pages + 27 units
+  const totalPages = 32; // Introduction + 2 Evidence Matrix pages + 27 units
 
   const handleInputChange = (field, value) => {
     setFormData((prev) => ({
@@ -94,13 +78,7 @@ const RPL2 = () => {
       [field]: value,
     }));
   };
-  const updateEvidenceAssessmentDetails = (evidenceAssessmentDetails) => {
-    console.log(evidenceAssessmentDetails);
-    setFormData((prev) => ({
-      ...prev,
-      evidenceAssessmentDetails,
-    }));
-  };
+
   const handleUnitChange = (unit, index, value) => {
     setFormData((prev) => {
       const updatedUnit = [...prev.units[unit]];
@@ -132,7 +110,6 @@ const RPL2 = () => {
   const handleNext = () => {
     if (currentPage < totalPages) {
       setCurrentPage(currentPage + 1);
-
       window.scrollTo(0, 0);
     }
   };
@@ -148,40 +125,8 @@ const RPL2 = () => {
     e.preventDefault();
     // Submit logic would go here
     alert("Form submitted successfully!");
-    console.log(formData);
   };
-  // const handleSubmit = async (e) => {
-  //   e.preventDefault();
-  //   setIsSubmitting(true);
 
-  //   try {
-  //     // Send request to mark application as submitted
-  //     const response = await axios.post(
-  //       `${URL}/api/form/mark-assessment-submitted`,
-  //       {
-  //         applicationId,
-  //       }
-  //     );
-
-  //     // Handle successful response
-  //     if (response.status === 200) {
-  //       toast.success("Form Submitted Successfully");
-  //       navigate("/");
-  //       console.log("Application marked as submitted");
-  //       // You might want to redirect or update UI here
-  //     } else {
-  //       throw new Error("Submission failed");
-  //     }
-  //   } catch (error) {
-  //     console.error("Error marking application as submitted:", error);
-  //     toast.error(
-  //       error.response?.data?.error ||
-  //         "Failed to submit form. Please try again."
-  //     );
-  //   } finally {
-  //     setIsSubmitting(false);
-  //   }
-  // };
   const goToPage = (page) => {
     setCurrentPage(page);
     setMenuOpen(false);
@@ -189,7 +134,7 @@ const RPL2 = () => {
   };
 
   // Unit data for self-assessment
-  const unitData555 = {
+  const unitData = {
     CPCCCA2002: {
       title: "Use carpentry tools and equipment",
       tasks: [
@@ -670,7 +615,7 @@ const RPL2 = () => {
       ],
     },
     CPCCOM1014: {
-      title: "Conduct workplace communication .",
+      title: "Conduct workplace communication",
       tasks: [
         "Received information and instructions from others using effective listening, questioning and speaking skills to confirm understanding.",
         "Conveyed information and instructions to others using effective listening, questioning and speaking skills to confirm understanding.",
@@ -682,16 +627,6 @@ const RPL2 = () => {
         "Provided constructive contributions to meeting discussions.",
       ],
     },
-    // CPCCOM1114: {
-    //   title: "Conduct workplace communication",
-    //   tasks: [
-    //     "Select most appropriate equipment and method for obtaining the measurement",
-    //     "Use a ruler or tape to obtain linear measurements accurate to 1 mm.",
-    //     "Take basic measurements and calculate quantities of materials in a construction environment, using basic formulae for each of: weight, area, volume, perimeter, circumference, ratio and percentage.",
-    //     "Convert measurements in metres to millimetres and measurements in millimetres to metres.",
-    //     "Check calculations for accuracy and record calculation workings and results. ",
-    //   ],
-    // },
     CPCCOM1015: {
       title: "Carry out measurements and calculations",
       tasks: [
@@ -912,9 +847,9 @@ const RPL2 = () => {
   ];
 
   // Units for the evidence matrix
-  const unitCodes1 = Object.keys(unitData555).slice(0, 10);
-  const unitCodes2 = Object.keys(unitData555).slice(10, 20);
-  const unitCodes3 = Object.keys(unitData555).slice(20);
+  const unitCodes1 = Object.keys(unitData).slice(0, 10);
+  const unitCodes2 = Object.keys(unitData).slice(10, 20);
+  const unitCodes3 = Object.keys(unitData).slice(20);
 
   // Render the introduction page
   const renderIntroductionPage = () => {
@@ -1099,7 +1034,7 @@ const RPL2 = () => {
 
   // Render a unit assessment page
   const renderUnitAssessmentPage = (unitCode, unitIndex) => {
-    const unit = unitData555[unitCode];
+    const unit = unitData[unitCode];
     if (!unit) return null;
 
     return (
@@ -1200,7 +1135,7 @@ const RPL2 = () => {
                   </tr>
                 ))}
               </tbody>
-              {/* <tfoot>
+              <tfoot>
                 <tr className="bg-gray-100 font-semibold">
                   <td colSpan="2" className="px-3 py-2 sm:px-4 sm:py-3 border">
                     TOTALS:
@@ -1215,7 +1150,7 @@ const RPL2 = () => {
                     REGULARLY /{unit.tasks.length}
                   </td>
                 </tr>
-              </tfoot> */}
+              </tfoot>
             </table>
           </div>
         </div>
@@ -1299,201 +1234,181 @@ const RPL2 = () => {
 
   // Determine which page content to render based on currentPage
   const renderPageContent = () => {
-    //   return renderIntroductionPage()
-    if (currentPage === 29) {
-      return (
-        <RPLEvidenceAssessmentForm
-          updatepage={setCurrentPage}
-          setEvidenceAssessmentDetails={updateEvidenceAssessmentDetails}
-        />
-      );
-    } else if (currentPage === 30) {
-      return renderEvidenceMatrixPage(unitCodes2, 2);
-    } else if (currentPage === 31) {
-      return renderEvidenceMatrixPage(unitCodes3, 3);
-    } else if (currentPage === 32) {
+    if (currentPage === 1) {
+      return renderIntroductionPage();
+    } else if (currentPage === 2) {
       return renderEvidenceMatrixPage(unitCodes1, 1);
-    } else if (currentPage >= 32 && currentPage <= 61) {
-      // For unit assessment pages (5 to 28)
-      const unitIndex = currentPage - 33;
-      const unitCodes = Object.keys(unitData555);
+    } else if (currentPage === 3) {
+      return renderEvidenceMatrixPage(unitCodes2, 2);
+    } else if (currentPage === 4) {
+      return renderEvidenceMatrixPage(unitCodes3, 3);
+    } else if (currentPage === totalPages) {
+      return renderSubmissionPage();
+    } else {
+      // For unit assessment pages (5 to totalPages-1)
+      const unitIndex = currentPage - 5;
+      const unitCodes = Object.keys(unitData);
       if (unitIndex >= 0 && unitIndex < unitCodes.length) {
         return renderUnitAssessmentPage(unitCodes[unitIndex], unitIndex);
       }
-      return null;
-    } else {
       return null;
     }
   };
 
   return (
-    <>
-      <Navbar />
+    <div className="min-h-screen bg-gray-50 py-4 sm:py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Mobile Navigation Menu */}
+        <div className="md:hidden flex justify-between items-center mb-4">
+          <button
+            onClick={() => setMenuOpen(!menuOpen)}
+            className="p-2 rounded-md bg-green-600 text-white"
+          >
+            {menuOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
+          <span className="text-sm font-medium">
+            Page {currentPage} of {totalPages}
+          </span>
+        </div>
 
-      {isSubmitting && <SpinnerLoader />}
-
-      <Toaster position="top-right" />
-      {currentPage === 29 ? (
-        <RPLEvidenceAssessmentForm
-          updatepage={setCurrentPage}
-          setEvidenceAssessmentDetails={updateEvidenceAssessmentDetails}
-        />
-      ) : (
-        <div className="min-h-screen bg-gray-50 mt-16 py-4 sm:py-8">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            {/* Mobile Navigation Menu */}
-            <div className="md:hidden flex justify-between items-center mb-4">
-              <button
-                onClick={() => setMenuOpen(!menuOpen)}
-                className="p-2 rounded-md bg-green-600 text-white"
-              >
-                {menuOpen ? <X size={24} /> : <Menu size={24} />}
-              </button>
-              <span className="text-sm font-medium">
-                Page {currentPage} of {totalPages}
-              </span>
-            </div>
-
-            {menuOpen && (
-              <div className="md:hidden fixed inset-0 z-50 bg-white overflow-y-auto">
-                <div className="p-4">
-                  <div className="flex justify-between items-center mb-6">
-                    <h2 className="text-xl font-bold">Navigation</h2>
-                    <button
-                      onClick={() => setMenuOpen(false)}
-                      className="p-2 rounded-md bg-gray-200"
-                    >
-                      <X size={24} />
-                    </button>
-                  </div>
-                  <div className="space-y-2">
-                    <button
-                      onClick={() => goToPage(1)}
-                      className={`w-full text-left p-3 rounded-md ${
-                        currentPage === 1
-                          ? "bg-green-100 text-green-800"
-                          : "bg-gray-100"
-                      }`}
-                    >
-                      Introduction
-                    </button>
-                    <button
-                      onClick={() => goToPage(2)}
-                      className={`w-full text-left p-3 rounded-md ${
-                        currentPage === 2
-                          ? "bg-green-100 text-green-800"
-                          : "bg-gray-100"
-                      }`}
-                    >
-                      Evidence Matrix (Section 1)
-                    </button>
-                    <button
-                      onClick={() => goToPage(3)}
-                      className={`w-full text-left p-3 rounded-md ${
-                        currentPage === 3
-                          ? "bg-green-100 text-green-800"
-                          : "bg-gray-100"
-                      }`}
-                    >
-                      Evidence Matrix (Section 2)
-                    </button>
-                    <button
-                      onClick={() => goToPage(4)}
-                      className={`w-full text-left p-3 rounded-md ${
-                        currentPage === 4
-                          ? "bg-green-100 text-green-800"
-                          : "bg-gray-100"
-                      }`}
-                    >
-                      Evidence Matrix (Section 3)
-                    </button>
-                    {Object.keys(unitData555).map((unitCode, index) => (
-                      <button
-                        key={unitCode}
-                        onClick={() => goToPage(index + 5)}
-                        className={`w-full text-left p-3 rounded-md ${
-                          currentPage === index + 5
-                            ? "bg-green-100 text-green-800"
-                            : "bg-gray-100"
-                        }`}
-                      >
-                        {unitCode} -{" "}
-                        {unitData555[unitCode].title.length > 40
-                          ? unitData555[unitCode].title.substring(0, 40) + "..."
-                          : unitData555[unitCode].title}
-                      </button>
-                    ))}
-                    <button
-                      onClick={() => goToPage(totalPages)}
-                      className={`w-full text-left p-3 rounded-md ${
-                        currentPage === totalPages
-                          ? "bg-green-100 text-green-800"
-                          : "bg-gray-100"
-                      }`}
-                    >
-                      Submission
-                    </button>
-                  </div>
-                </div>
+        {menuOpen && (
+          <div className="md:hidden fixed inset-0 z-50 bg-white overflow-y-auto">
+            <div className="p-4">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-xl font-bold">Navigation</h2>
+                <button
+                  onClick={() => setMenuOpen(false)}
+                  className="p-2 rounded-md bg-gray-200"
+                >
+                  <X size={24} />
+                </button>
               </div>
-            )}
-
-            <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-              <div className="px-4 py-6 sm:px-6 sm:py-8">
-                <h1 className="text-2xl sm:text-3xl font-medium text-center text-emerald-600 mb-2">
-                  RPL Self-Assessment Information Kit
-                </h1>
-                <h2 className="text-lg sm:text-xl font-semibold text-center text-emerald-600 mb-6 sm:mb-8">
-                  Certificate III in Carpentry
-                </h2>
-
-                {/* Progress Bar */}
-                <div className="w-full bg-gray-200 rounded-full h-2.5 mb-4 sm:mb-6">
-                  <div
-                    className="bg-green-600 h-2.5 rounded-full transition-all duration-300"
-                    style={{ width: `${(currentPage / totalPages) * 100}%` }}
-                  ></div>
-                </div>
-                <p className="text-sm text-gray-500 mb-6 sm:mb-8 hidden sm:block">
-                  Page {currentPage} of {totalPages}
-                </p>
-
-                {/* Page Content */}
-                {renderPageContent()}
-
-                {/* Navigation Buttons */}
-                <div className="mt-8 flex flex-col sm:flex-row justify-between gap-4 sm:gap-0">
+              <div className="space-y-2">
+                <button
+                  onClick={() => goToPage(1)}
+                  className={`w-full text-left p-3 rounded-md ${
+                    currentPage === 1
+                      ? "bg-green-100 text-green-800"
+                      : "bg-gray-100"
+                  }`}
+                >
+                  Introduction
+                </button>
+                <button
+                  onClick={() => goToPage(2)}
+                  className={`w-full text-left p-3 rounded-md ${
+                    currentPage === 2
+                      ? "bg-green-100 text-green-800"
+                      : "bg-gray-100"
+                  }`}
+                >
+                  Evidence Matrix (Section 1)
+                </button>
+                <button
+                  onClick={() => goToPage(3)}
+                  className={`w-full text-left p-3 rounded-md ${
+                    currentPage === 3
+                      ? "bg-green-100 text-green-800"
+                      : "bg-gray-100"
+                  }`}
+                >
+                  Evidence Matrix (Section 2)
+                </button>
+                <button
+                  onClick={() => goToPage(4)}
+                  className={`w-full text-left p-3 rounded-md ${
+                    currentPage === 4
+                      ? "bg-green-100 text-green-800"
+                      : "bg-gray-100"
+                  }`}
+                >
+                  Evidence Matrix (Section 3)
+                </button>
+                {Object.keys(unitData).map((unitCode, index) => (
                   <button
-                    onClick={handlePrevious}
-                    disabled={currentPage === 1}
-                    className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 disabled:opacity-50 flex items-center justify-center sm:justify-start"
+                    key={unitCode}
+                    onClick={() => goToPage(index + 5)}
+                    className={`w-full text-left p-3 rounded-md ${
+                      currentPage === index + 5
+                        ? "bg-green-100 text-green-800"
+                        : "bg-gray-100"
+                    }`}
                   >
-                    <ChevronLeft className="w-5 h-5 mr-1" /> Previous
+                    {unitCode} -{" "}
+                    {unitData[unitCode].title.length > 40
+                      ? unitData[unitCode].title.substring(0, 40) + "..."
+                      : unitData[unitCode].title}
                   </button>
-
-                  {currentPage === totalPages ? (
-                    <button
-                      onClick={handleSubmit}
-                      className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 flex items-center justify-center sm:justify-start"
-                    >
-                      Submit <Check className="w-5 h-5 ml-1" />
-                    </button>
-                  ) : (
-                    <button
-                      onClick={handleNext}
-                      className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 flex items-center justify-center sm:justify-start"
-                    >
-                      Next <ChevronRight className="w-5 h-5 ml-1" />
-                    </button>
-                  )}
-                </div>
+                ))}
+                <button
+                  onClick={() => goToPage(totalPages)}
+                  className={`w-full text-left p-3 rounded-md ${
+                    currentPage === totalPages
+                      ? "bg-green-100 text-green-800"
+                      : "bg-gray-100"
+                  }`}
+                >
+                  Submission
+                </button>
               </div>
             </div>
           </div>
+        )}
+
+        <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+          <div className="px-4 py-6 sm:px-6 sm:py-8">
+            <h1 className="text-2xl sm:text-3xl font-bold text-center text-gray-800 mb-2">
+              RPL Self-Assessment Information Kit
+            </h1>
+            <h2 className="text-lg sm:text-xl font-semibold text-center text-gray-600 mb-6 sm:mb-8">
+              Certificate III in Carpentry
+            </h2>
+
+            {/* Progress Bar */}
+            <div className="w-full bg-gray-200 rounded-full h-2.5 mb-4 sm:mb-6">
+              <div
+                className="bg-green-600 h-2.5 rounded-full transition-all duration-300"
+                style={{ width: `${(currentPage / totalPages) * 100}%` }}
+              ></div>
+            </div>
+            <p className="text-sm text-gray-500 mb-6 sm:mb-8 hidden sm:block">
+              Page {currentPage} of {totalPages}
+            </p>
+
+            {/* Page Content */}
+            {renderPageContent()}
+
+            {/* Navigation Buttons */}
+            <div className="mt-8 flex flex-col sm:flex-row justify-between gap-4 sm:gap-0">
+              <button
+                onClick={handlePrevious}
+                disabled={currentPage === 1}
+                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 disabled:opacity-50 flex items-center justify-center sm:justify-start"
+              >
+                <ChevronLeft className="w-5 h-5 mr-1" /> Previous
+              </button>
+
+              {currentPage === totalPages ? (
+                <button
+                  onClick={handleSubmit}
+                  className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 flex items-center justify-center sm:justify-start"
+                >
+                  Submit <Check className="w-5 h-5 ml-1" />
+                </button>
+              ) : (
+                <button
+                  onClick={handleNext}
+                  className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 flex items-center justify-center sm:justify-start"
+                >
+                  Next <ChevronRight className="w-5 h-5 ml-1" />
+                </button>
+              )}
+            </div>
+          </div>
         </div>
-      )}
-    </>
+      </div>
+    </div>
   );
 };
 
-export default RPL2;
+export default RPLSelfAssessmentFormCPC30220k;

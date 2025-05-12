@@ -34,10 +34,12 @@ import RPLIntakeDetails from "./rplIntakeDetails";
 import {
   getEnrollmentKitData,
   getRplIntakeData,
+  getRplApplicationFormData,
 } from "../Services/rtoFormsServices";
 import EnrollmentDetails from "./RplEnrollmentKitDetails";
 import RPLApplicationFormViewer from "./viewApplicationDetails";
 import assessmentDoc from "../../../public/4.pdf";
+import { Application } from "twilio/lib/twiml/VoiceResponse";
 
 const ViewApplications = () => {
   const [selectedForm, setSelectedForm] = useState("initial"); // Default form
@@ -60,6 +62,7 @@ const ViewApplications = () => {
   const [currentDoc, setCurrentDoc] = useState("");
   const [rplIntakeData, setRplIntakeData] = useState([]);
   const [EnrollmentData, setEnrollmentData] = useState([]);
+  const [ApplicationFormData, setApplicationFormData] = useState([]);
   // Function to open modal with selected document
   const openModal = (doc) => {
     setCurrentDoc(doc); // Directly set the file URL
@@ -142,22 +145,27 @@ const ViewApplications = () => {
     }
   };
   useEffect(() => {
-    const getRplData = async () => {
+    const fetchAllData = async () => {
       console.log(application);
-      const response = await getRplIntakeData(application.id);
-      setRplIntakeData(response.data);
-      // console.log(response.data);
+
+      // Fetch RPL Intake Data
+      const rplIntakeResponse = await getRplIntakeData(application.id);
+      setRplIntakeData(rplIntakeResponse.data);
+
+      // Fetch Enrollment Kit Data
+      const enrollmentResponse = await getEnrollmentKitData(application.id);
+      setEnrollmentData(enrollmentResponse.data);
+
+      // Fetch RPL Application Form Data
+      const applicationFormResponse = await getRplApplicationFormData(
+        application.id
+      );
+      setApplicationFormData(applicationFormResponse.data);
+
+      // console.log statements removed as they were commented out in original code
     };
-    getRplData();
-  }, [application]);
-  useEffect(() => {
-    const getRplData = async () => {
-      console.log(application);
-      const response = await getEnrollmentKitData(application.id);
-      setEnrollmentData(response.data);
-      // console.log(response.data);
-    };
-    getRplData();
+
+    fetchAllData();
   }, [application]);
   const handleViewDocument = (documentUrl) => {
     if (documentUrl) {
@@ -963,7 +971,9 @@ const ViewApplications = () => {
                 <EnrollmentDetails enrollmentData={EnrollmentData} />
               )}
               {selectedForm === "applicationform" && (
-                <RPLApplicationFormViewer />
+                <RPLApplicationFormViewer
+                  rplApplicationFormData={ApplicationFormData}
+                />
               )}
               {selectedForm === "assessmentForm" && (
                 <AgreementDocumentModal

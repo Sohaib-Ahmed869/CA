@@ -86,6 +86,22 @@ export const getRplIntakeData = async (applicationId) => {
     );
   }
 };
+export const getRplApplicationFormData = async (applicationId) => {
+  try {
+    const response = await axios.get(
+      `${URL}/api/form/rpl-application-form/${applicationId}`
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching RPL application form data:", error);
+    return (
+      error.response?.data || {
+        error: true,
+        message: "Failed to fetch RPL application form data",
+      }
+    );
+  }
+};
 export const getEnrollmentKitData = async (applicationId) => {
   try {
     const response = await axios.get(

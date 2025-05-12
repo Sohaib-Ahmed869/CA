@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ChevronLeft,
   ChevronRight,
@@ -9,7 +9,10 @@ import {
   ChevronUp,
 } from "lucide-react";
 
-const RPLEvidenceAssessmentForm = ({ updatepage }) => {
+const RPLEvidenceAssessmentForm = ({
+  updatepage,
+  setEvidenceAssessmentDetails,
+}) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [menuOpen, setMenuOpen] = useState(false);
   const [expandedSections, setExpandedSections] = useState({});
@@ -1899,11 +1902,14 @@ const RPLEvidenceAssessmentForm = ({ updatepage }) => {
         return renderUnitAssessmentPage(unitCodes[unitIndex]);
       }
     } else {
+      setEvidenceAssessmentDetails(formData);
       updatepage(30);
     }
     return null;
   };
-
+  useEffect(() => {
+    console.log(formData);
+  }, [formData]);
   const totalPages = Object.keys(unitData).length + 2;
 
   return (

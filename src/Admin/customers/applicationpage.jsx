@@ -58,6 +58,7 @@ import {
   generateRPLIntakeForm,
   getEnrollmentKitData,
   getRplIntakeData,
+  getRplApplicationFormData,
 } from "../../Customer/Services/rtoFormsServices";
 import RPLIntakeDetails from "../../Customer/ViewApplication/rplIntakeDetails";
 import EnrollmentDetails from "../../Customer/ViewApplication/RplEnrollmentKitDetails";
@@ -80,12 +81,20 @@ const Application = ({
 
   const [rplIntakeData, setRplIntakeData] = useState([]);
   const [EnrollmentData, setEnrollmentData] = useState([]);
+  const [ApplicationFormData, setApplicationFormData] = useState([]);
+
   const [activeRtoDoc, setActiveRtoDoc] = useState("");
   useEffect(() => {
     const getRplData = async () => {
       console.log(application);
       const response = await getRplIntakeData(application.id);
       const response2 = await getEnrollmentKitData(application.id);
+      // Fetch RPL Application Form Data
+      const applicationFormResponse = await getRplApplicationFormData(
+        application.id
+      );
+      setApplicationFormData(applicationFormResponse.data);
+      console.log(applicationFormResponse.data);
       setRplIntakeData(response.data);
       setEnrollmentData(response2.data);
       // console.log(response.data);
@@ -1189,7 +1198,9 @@ const Application = ({
                   )}
                   {activeRtoDoc === "applicationform" && (
                     <div>
-                      <RPLApplicationFormViewer />
+                      <RPLApplicationFormViewer
+                        rplApplicationFormData={ApplicationFormData}
+                      />
                     </div>
                   )}
                   {activeRtoDoc === "assessmentForm" && (
