@@ -806,57 +806,21 @@ const fadeInAnimation = `
 
 // Map of RTO document form names to their respective routes
 const RTO_FORM_ROUTES = {
+  // RPL ENROLLMENT KIT
+  "RPL Enrolment Kit": "/rpl-enrollment-kit",
+  // Carpentry
+  "RPL Intake CPC30220 Certificate III in Carpentry":
+    "/rpl-intake-cpc-30220-certificate-3-carpentry",
+  "RPL Self Assessment kit carpentry":
+    "/rpl-self-assessment-cpc-30220-certificate-3-carpentry",
+  "RPL Application Form carpentry":
+    "/rpl-applicationform-CPC30220-certificate-3-carpentry",
+  // Waterproofing
   "RPL Intake CPC31420 Certificate III in Construction Waterproofing":
     "/rpl-intake-cpc-31420-certificate-3-waterProofing",
-  "RPL Intake CPC30220 Certificate III in Carpentry":
-    "/rpl-intake-cpc-30220-certificate-3-carpentry",
-  "RPL Enrolment Kit": "/rpl-enrollment-kit",
-  "RPL Self Assessment kit":
-    "/rpl-self-assessment-cpc-30220-certificate-3-carpentry",
-  "RPL Application Form":
-    "/rpl-applicationform-cpc-30220-certificate-3-carpentry",
-  // Add more mappings as needed for other forms
-  "RPL Intake CPC31320 Certificate III in Wall and Floor Tiling":
-    "/rpl-intake-cpc-31320-certificate-3-wall-and-floor-tiling",
-  "RPL Intake CPC30220 Certificate III in Carpentry":
-    "/rpl-intake-cpc-30220-certificate-3-carpentry",
-  "RPL Application Form CPC30220":
-    "/rpl-applicationform-cpc-30220-certificate-3-carpentry",
-  "RPL Assessment CPC30220":
-    "/rpl-assessment-cpc-30220-certificate-3-carpentry",
-  "RPL Evidence Kit Carpentry": "/rpl-evidence-kit-carpentry",
+  // Concreting
   "RPL Intake CPC30320 Certificate III in Concreting":
-    "/rpl-intake-cpc-30320-certificate-3-concreting",
-  "CIBT Enrollment Form": "/cibt-enrollment-form",
-  "CIBT Entry Interview Form": "/cibt-entry-interview-form",
-  "LLN Assessment": "/lln-assessment",
-  // Plumbing forms
-  "RPL Application Form CPC32420":
-    "/rpl-application-form-cpc-32420-certificate-3-plumbing",
-  "RPL Self Assessment Form CPC32420":
-    "/rpl-self-assessment-form-cpc-32420-certificate-3-plumbing",
-  // Roof Plumbing
-  "RPL Intake CPC32620": "/rpl-intake-cpc-32620-certificate-3-roofPlumbing",
-  // Solid Plastering
-  "RPL Application Form CPC31020":
-    "/rpl-application-form-cpc-31020-certificate-3-solidPlastering",
-  "RPL Intake CPC31020": "/rpl-intake-cpc-31020-certificate-3-solidPlastering",
-  // Building and Construction
-  "RPL Intake CPC40120":
-    "/rpl-intake-cpc-40120-certificate-IV-building-and-construction",
-  "RPL Application Form CPC40120":
-    "/rpl-application-form-cpc-41020-certificate-IV-building-and-construction",
-  // Plumbing and Services
-  "RPL Intake CPC40920":
-    "/rpl-intake-cpc-40920-certificate-IV-Plumbing-and-Services",
-  // Painting and Decorating
-  "RPL Intake CPC30620":
-    "/rpl-intake-cpc-30620-certificate-III-Painting-and-Decorating",
-  // Diploma Building and Construction
-  "RPL Intake CPC50220":
-    "/rpl-intake-cpc-50220-Diploma-of-Building-and-Construction-(Building)",
-  // Frontier RTO
-  "Frontier RPL Enrollment Form": "/frontier-rpl-enrollment-form",
+    "/rpl-intake-CPC30320-certificate-3-concreting",
 };
 
 const ImprovedTimeline = ({

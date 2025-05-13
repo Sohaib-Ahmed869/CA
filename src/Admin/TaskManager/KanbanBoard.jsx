@@ -173,7 +173,7 @@ const KanbanBoard = ({
           <div className="flex gap-4 mt-4">
             <Column
               ApplicationIds={ApplicationIds}
-              title="Todo"
+              title="To do"
               tasks={getTasksByStatus("todo")}
               status="todo"
               onSave={handleTaskUpdate}

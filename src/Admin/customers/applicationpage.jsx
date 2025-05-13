@@ -930,13 +930,13 @@ const Application = ({
                 <FaArchive className="mr-1.5" />
                 <span className="hidden sm:inline">Archive</span>
               </button>
-              <button
+              {/* <button
                 className="flex items-center px-3 py-1.5 bg-white bg-opacity-20 rounded-md text-white hover:bg-opacity-30 transition-all"
                 onClick={handleRequestRtoDocuments}
               >
                 <FaFile className="mr-1.5" />
                 <span className="hidden sm:inline">Request Rto Documents</span>
-              </button>
+              </button> */}
               {/* <button
                 className="flex items-center px-3 py-1.5 bg-white bg-opacity-20 rounded-md text-white hover:bg-opacity-30 transition-all"
                 onClick={handleGenerateForm}
@@ -2457,7 +2457,7 @@ const Application = ({
                       !application.certificateGenerated && (
                         <div className="border rounded-lg p-4">
                           <h3 className="text-lg font-medium text-gray-700 mb-3">
-                            Send to Rto
+                            Send to RTO
                           </h3>
 
                           <select
@@ -2466,7 +2466,7 @@ const Application = ({
                             onChange={(e) => setSelectedRto(e.target.value)}
                             className="w-1/2 px-4 py-2 my-4  rounded-md flex items-center justify-center gap-2"
                           >
-                            <option value="">Select Rto</option>
+                            <option value="">Select RTO</option>
                             {Rtos.map((rto) => (
                               <option value={rto.email} key={rto.id}>
                                 {rto.email}
@@ -2477,7 +2477,7 @@ const Application = ({
                             <label className="font-medium text-gray-700">
                               Selected RTO:
                             </label>
-                            <label>{selectedRto || "No Rto Selected"}</label>
+                            <label>{selectedRto || "No RTO Selected"}</label>
                           </div>
                           <button
                             onClick={handleSendToRto}

@@ -44,7 +44,10 @@ import RPLIntakeCPC31020 from "./Customer/AdditionalForms/solidPlastering/RPLInt
 import RPLIntakeCPC40120 from "./Customer/AdditionalForms/BuildingAndConstruction/RPLIntakeCPC40120";
 import RPLApplicationFormCPC40120 from "./Customer/AdditionalForms/BuildingAndConstruction/RPLApplicationFormCPC40120";
 import RPLIntakeForm from "./Customer/AdditionalForms/RPLIntakeTemplate/RPLIntakeForm";
-import { RPLIntakeData } from "./Customer/AdditionalForms/CompetenciesData";
+import {
+  RPLApplicationFormData,
+  RPLIntakeData,
+} from "./Customer/AdditionalForms/CompetenciesData";
 import ThirdPartyEvidenceKit from "./Customer/AdditionalForms/Carpentry/thirdPartyEvidenceKit";
 import RPLApplicationFormCPC30620 from "./Customer/AdditionalForms/BilalForms/RPLApplicationFormCPC30620";
 import RPLApplicationFormCPC40920 from "./Customer/AdditionalForms/MaryamForms/form2";
@@ -109,9 +112,10 @@ function App() {
         />
 
         {/* Additional form routes */}
+
         {/* RPL INTAKE */}
         <Route
-          path="/rpl-intake-cpc-31420-certificate-3-waterProofing/:applicationId"
+          path="/rpl-intake-CPC31420-certificate-3-waterProofing/:applicationId"
           element={
             <RPLIntakeForm
               qualificationName={RPLIntakeData.CPC31420.qualification}
@@ -120,7 +124,16 @@ function App() {
           }
         />
         <Route
-          path="/rpl-intake-cpc-30220-certificate-3-carpentry/:applicationId"
+          path="/rpl-intake-CPC30320-certificate-3-concreting/:applicationId"
+          element={
+            <RPLIntakeForm
+              qualificationName={RPLIntakeData.CPC30320.qualification}
+              competencies={RPLIntakeData.CPC30320.competencies}
+            />
+          }
+        />
+        <Route
+          path="/rpl-intake-CPC30220-certificate-3-carpentry/:applicationId"
           element={
             <RPLIntakeForm
               qualificationName={RPLIntakeData.CPC30220.qualification}
@@ -128,41 +141,187 @@ function App() {
             />
           }
         />
-        {/* Application Forms */}
+        <Route
+          path="/rpl-intake-CPC40920-certificate-IV-Plumbing-and-Services/:applicationId"
+          element={
+            <RPLIntakeForm
+              qualificationName={RPLIntakeData.CPC40920.qualification}
+              competencies={RPLIntakeData.CPC40920.competencies}
+            />
+          }
+        />
+        <Route
+          path="/rpl-intake-CPC50220-Diploma-of-Building-and-Construction-(Building)/:applicationId"
+          element={
+            <RPLIntakeForm
+              qualificationName={RPLIntakeData.CPC50220.qualification}
+              competencies={RPLIntakeData.CPC50220.competencies}
+            />
+          }
+        />
+        <Route
+          path="/rpl-intake-CPC30620-certificate-III-Painting-and-Decorating/:applicationId"
+          element={
+            <RPLIntakeForm
+              qualificationName={RPLIntakeData.CPC30620.qualification}
+              competencies={RPLIntakeData.CPC30620.competencies}
+            />
+          }
+        />
+        <Route
+          path="/rpl-intake-CPC40120-certificate-IV-building-and-construction/:applicationId"
+          element={
+            <RPLIntakeForm
+              qualificationName={RPLIntakeData.CPC40120.qualification}
+              competencies={RPLIntakeData.CPC40120.competencies}
+            />
+          }
+        />
+        <Route
+          path="/rpl-intake-CPC31020-certificate-III-solid-plastering/:applicationId"
+          element={
+            <RPLIntakeForm
+              qualificationName={RPLIntakeData.CPC31020.qualification}
+              competencies={RPLIntakeData.CPC31020.competencies}
+            />
+          }
+        />
+        <Route
+          path="/rpl-intake-CPC32620-certificate-III-roof-plumbing/:applicationId"
+          element={
+            <RPLIntakeForm
+              qualificationName={RPLIntakeData.CPC32620.qualification}
+              competencies={RPLIntakeData.CPC32620.competencies}
+            />
+          }
+        />
+        <Route
+          path="/rpl-intake-CPC32420-certificate-III-plumbing/:applicationId"
+          element={
+            <RPLIntakeForm
+              qualificationName={RPLIntakeData.CPC32420.qualification}
+              competencies={RPLIntakeData.CPC32420.competencies}
+            />
+          }
+        />
+        {/* RPL APPLICATION FORMS */}
+        <Route
+          path="/rpl-applicationform-CPC30820-certificate-3-Roof-Tiling/:applicationId"
+          element={
+            <RPLApplicationFormCPC30220
+              programQualification={
+                RPLApplicationFormData.CPC30820.programQualification
+              }
+              title={RPLApplicationFormData.CPC30820.title}
+            />
+          }
+        />
+        <Route
+          path="/rpl-applicationform-CPC30620-certificate-3-painting-decorating/:applicationId"
+          element={
+            <RPLApplicationFormCPC30220
+              programQualification={
+                RPLApplicationFormData.CPC30620.programQualification
+              }
+              title={RPLApplicationFormData.CPC30620.title}
+            />
+          }
+        />
+
+        <Route
+          path="/rpl-applicationform-CPC40920-certificate-IV-plumbing-services-hydraulicServiceDesign/:applicationId"
+          element={
+            <RPLApplicationFormCPC30220
+              programQualification={
+                RPLApplicationFormData.CPC40920Hydraulic.programQualification
+              }
+              title={RPLApplicationFormData.CPC40920Hydraulic.title}
+            />
+          }
+        />
+        <Route
+          path="/rpl-applicationform-CPC40920-certificate-IV-plumbing-services-hydraulicServiceDesign/:applicationId"
+          element={
+            <RPLApplicationFormCPC30220
+              programQualification={
+                RPLApplicationFormData.CPC40920Operations.programQualification
+              }
+              title={RPLApplicationFormData.CPC40920Operations.title}
+            />
+          }
+        />
+        <Route
+          path="/rpl-applicationform-CPC40120-certificate-IV-building-and-construction/:applicationId"
+          element={
+            <RPLApplicationFormCPC30220
+              programQualification={
+                RPLApplicationFormData.CPC40120.programQualification
+              }
+              title={RPLApplicationFormData.CPC40120.title}
+            />
+          }
+        />
+        <Route
+          path="/rpl-applicationform-CPC31020-certificate-3-solid-plastering/:applicationId"
+          element={
+            <RPLApplicationFormCPC30220
+              programQualification={
+                RPLApplicationFormData.CPC31020.programQualification
+              }
+              title={RPLApplicationFormData.CPC31020.title}
+            />
+          }
+        />
+        <Route
+          path="/rpl-applicationform-CPC32420-certificate-3-plumbing/:applicationId"
+          element={
+            <RPLApplicationFormCPC30220
+              programQualification={
+                RPLApplicationFormData.CPC32420.programQualification
+              }
+              title={RPLApplicationFormData.CPC32420.title}
+            />
+          }
+        />
+        <Route
+          path="/rpl-applicationform-CPC30220-certificate-3-carpentry/:applicationId"
+          element={
+            <RPLApplicationFormCPC30220
+              programQualification={
+                RPLApplicationFormData.CPC30220.programQualification
+              }
+              title={RPLApplicationFormData.CPC30220.title}
+            />
+          }
+        />
+
+        {/* RPL Enrollment kit */}
+        <Route
+          path="/rpl-enrollment-kit/:applicationId"
+          element={<RPLEnrolment />}
+        />
+
+        {/* CIBT */}
         <Route path="/cibt-enrollment-form" element={<EnrollmentForm />} />
         <Route
           path="/cibt-entry-interview-form"
           element={<EntryInterviewForm />}
         />
         <Route path="/lln-assessment" element={<LLNAssessment />} />
-        <Route
-          path="/rpl-enrollment-kit/:applicationId"
-          element={<RPLEnrolment />}
-        />
+
+        {/* Application Forms */}
+
         <Route
           path="/rpl-intake-cpc-31320-certificate-3-wall-and-floor-tiling"
           element={<RPLIntakeCPC31320WallFloorTiling />}
         />
         {/* Carpentry Alpha RTO*/}
-        {/* <Route
-          path="/rpl-intake-cpc-30220-certificate-3-carpentry"
-          element={<RPLIntakeCPC30220Carpentry />}
-        /> */}
-
-        <Route
-          path="/rpl-applicationform-cpc-30220-certificate-3-carpentry/:applicationId"
-          element={<RPLApplicationFormCPC30220 />}
-        />
 
         <Route
           path="/rpl-self-assessment-cpc-30220-certificate-3-carpentry/:applicationId"
           element={<RPL2 />}
         />
-        {/* 
-        <Route
-          path="/rpl-assessment-cpc-30220-certificate-3-carpentry/:applicationId"
-          element={<RPLAssessmentCPC30220 />}
-        /> */}
+
         <Route
           path="/rpl-evidence-kit-carpentry"
           element={<ThirdPartyEvidenceKit />}
@@ -172,7 +331,6 @@ function App() {
           path="/rpl-intake-cpc-30320-certificate-3-concreting"
           element={<RPLIntakeCPC30320Concreting />}
         />
-        {/* Construction WaterProofing */}
 
         {/* Plumbing */}
         <Route
@@ -206,36 +364,11 @@ function App() {
           path="/rpl-application-form-cpc-41020-certificate-IV-building-and-construction"
           element={<RPLApplicationFormCPC40120 />}
         />
-        {/*  Plumbing and Services */}
-        <Route
-          path="/rpl-intake-cpc-40920-certificate-IV-Plumbing-and-Services"
-          element={
-            <RPLIntakeForm
-              qualificationName={RPLIntakeData.CPC40920.qualification}
-              competencies={RPLIntakeData.CPC40920.competencies}
-            />
-          }
-        />
+
         {/* Painting and Decorating */}
-        <Route
-          path="/rpl-intake-cpc-30620-certificate-III-Painting-and-Decorating"
-          element={
-            <RPLIntakeForm
-              qualificationName={RPLIntakeData.CPC30620.qualification}
-              competencies={RPLIntakeData.CPC30620.competencies}
-            />
-          }
-        />
+
         {/* "CPC50220-Diploma of Building and Construction (Building) */}
-        <Route
-          path="/rpl-intake-cpc-50220-Diploma-of-Building-and-Construction-(Building)"
-          element={
-            <RPLIntakeForm
-              qualificationName={RPLIntakeData.CPC50220.qualification}
-              competencies={RPLIntakeData.CPC50220.competencies}
-            />
-          }
-        />
+
         {/* Frontier RTO */}
         <Route
           path="/frontier-rpl-enrollment-form"

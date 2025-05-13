@@ -7,9 +7,9 @@ import axios from "axios";
 const URL = import.meta.env.VITE_REACT_BACKEND_URL;
 import SpinnerLoader from "../../../components/spinnerLoader";
 
-const RPLApplicationFormCPC30220 = () => {
+const RPLApplicationFormCPC30220 = ({ programQualification, title }) => {
   const [activeSection, setActiveSection] = useState(1);
-  const totalSections = 22; // Total number of sections
+  const totalSections = 23; // Total number of sections
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [formData, setFormData] = useState({
@@ -106,7 +106,7 @@ const RPLApplicationFormCPC30220 = () => {
     studyReason: "",
     contactSource: "",
     citizenshipStatus: "",
-    program: "CPC30220 Certificate III in Carpentry",
+    program: "",
     preTraining: {
       preTrainingFormCompleted: false,
       entryRequirementsDiscussed: false,
@@ -128,7 +128,7 @@ const RPLApplicationFormCPC30220 = () => {
       signatureDate: "", // Added this field
     },
     rplArea: {
-      courseApplying: "CPC30220 Certificate III in Carpentry",
+      courseApplying: "",
     },
     referees: [
       {
@@ -316,9 +316,7 @@ const RPLApplicationFormCPC30220 = () => {
       <div className="max-w-7xl mx-auto pt-28 p-6">
         <div className="bg-white rounded-lg shadow-lg p-8 mb-8">
           <div className="text-center mb-6">
-            <h2 className="text-2xl font-medium text-emerald-700">
-              RPL Application - CPC30220 Certificate III in Carpentry
-            </h2>
+            <h2 className="text-2xl font-medium text-emerald-700">{title}</h2>
             <p className="text-sm text-gray-500">RTO NO: 45665</p>
           </div>
 
@@ -473,19 +471,19 @@ const RPLApplicationFormCPC30220 = () => {
                 handleInputChange={handleInputChange}
               />
             )}
-            {/* {activeSection === 16 && (
-              <ProgramSelectionSection
-                formData={formData}
-                handleInputChange={handleInputChange}
-              />
-            )} */}
             {activeSection === 21 && (
-              <PreTrainingChecklistSection
+              <ProgramSelectionSection
                 formData={formData}
                 handleInputChange={handleInputChange}
               />
             )}
             {activeSection === 22 && (
+              <PreTrainingChecklistSection
+                formData={formData}
+                handleInputChange={handleInputChange}
+              />
+            )}
+            {activeSection === 23 && (
               <ConsentSection
                 formData={formData}
                 handleInputChange={handleInputChange}
@@ -584,7 +582,6 @@ const RPLAreaSection = ({ formData, handleInputChange }) => {
             Course applying for recognition:
           </label>
           <input
-            readOnly
             type="text"
             id="courseApplying"
             value={formData.rplArea.courseApplying}
@@ -593,7 +590,7 @@ const RPLAreaSection = ({ formData, handleInputChange }) => {
             // }
             className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
             required
-            placeholder="CPC30220 Certificate III in Carpentry"
+            placeholder="Enter course name"
           />
         </div>
       </div>
@@ -3803,7 +3800,7 @@ const ProgramSelectionSection = ({ formData, handleInputChange }) => {
 
       <div className="mb-6">
         <label htmlFor="program" className="block text-gray-700 mb-2">
-          Select one of the following courses:
+          Enter the name of the course you want to enroll in:
         </label>
         <input
           type="text"
@@ -3811,7 +3808,7 @@ const ProgramSelectionSection = ({ formData, handleInputChange }) => {
           value={formData.program}
           onChange={(e) => handleInputChange("program", null, e.target.value)}
           className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
-          placeholder="CPC30220 Certificate III in Carpentry"
+          placeholder="enter course or program name"
         />
       </div>
     </div>
