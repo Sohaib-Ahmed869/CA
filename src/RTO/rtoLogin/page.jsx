@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import certifcation from "../../assets/certification.jpg";
 import login from "../../assets/login.png";
 import toast, { Toaster } from "react-hot-toast";
-import { doc, getDoc } from "firebase/firestore"; // Firestore imports
+import { doc, getDoc } from "firebase/firestore"; // Firestore imports 
 import SpinnerLoader from "../../Customer/components/spinnerLoader";
  
 const RtoLogin = () => {
