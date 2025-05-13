@@ -64,7 +64,7 @@ import RPLAssessmentCPC30220cccc from "./Customer/FormsTOVerify/Maryams/3";
 import RPLSelfAssessmentCPC40920e from "./Customer/FormsTOVerify/Bilals/5";
 import RPLSelfAssessmentForm40120ff from "./Customer/FormsTOVerify/Bilals/6";
 import RPLSelfAssessmentFormCPC30220k from "./Customer/FormsTOVerify/Bilals/7";
-import FormNavigation from "./Customer/FormsTOVerify/verify";
+import FormNavigation from "./Customer/FormsTOVerify/VERIFY";
 function App() {
   return (
     <Router>
