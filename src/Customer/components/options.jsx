@@ -46,6 +46,7 @@ const CustomerDashboard = () => {
   const AdminUserId = import.meta.env.VITE_ADMIN_USER_ID;
   useEffect(() => {
     const role = localStorage.getItem("role");
+    console.log("Role", role);
     console.log("AdminUserId", AdminUserId);
     if (role !== "customer") {
       navigate("/login");

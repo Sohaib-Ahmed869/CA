@@ -225,6 +225,8 @@ const ScreeningForm = () => {
       if (response) {
         // Login the user automatically after successful registration
         try {
+
+          console.log("Logging in user with email:", email);
           // Sign in with Firebase Auth
           const userCredential = await signInWithEmailAndPassword(
             auth,
@@ -246,11 +248,13 @@ const ScreeningForm = () => {
 
           setSubmissionLoading(false);
           // Redirect to confirmation page after successful login
+          localStorage.setItem("role", "customer");
           navigate("/confirmation");
         } catch (err) {
           console.error("Login error:", err);
           setSubmissionLoading(false);
           // Even if login fails, still redirect to confirmation
+          //set local role to customer
           navigate("/confirmation");
         }
       }

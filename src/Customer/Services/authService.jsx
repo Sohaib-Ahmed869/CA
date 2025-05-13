@@ -19,7 +19,6 @@ export const login = async (email, password) => {
 export const register = async (
   industry,
   qualification,
-  expense,
   yearsOfExperience,
   locationOfExperience,
   state,

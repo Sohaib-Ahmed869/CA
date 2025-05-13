@@ -34,6 +34,7 @@ const LeadsTable = ({ data }) => (
           </tr>
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
+          
           {data.map((row) => (
             <tr key={row.agent}>
               <td className="px-6 py-6 whitespace-nowrap  text-md text-gray-900">

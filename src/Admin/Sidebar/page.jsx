@@ -178,11 +178,11 @@ const AdminSidebar = () => {
               isActive={activeFinance === "Expenses"}
               onClick={() => handleFinanceClick("Expenses")}
             />
-            <FinanceDropdownItem
+            {/* <FinanceDropdownItem
               label="View Analytics"
               isActive={activeFinance === "Analytics"}
               onClick={() => handleFinanceClick("Analytics")}
-            />
+            /> */}
           </div>
         </motion.div>
       )}

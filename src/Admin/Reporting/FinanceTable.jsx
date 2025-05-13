@@ -34,16 +34,16 @@ const FinanceTable = ({ data }) => (
                 {row.total}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                ${row.totalPrice.toLocaleString()}
+                ${row.totalPrice?.toLocaleString()}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                ${row.received.toLocaleString()}
+                ${row.received?.toLocaleString()}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                ${row.pending.toLocaleString()}
+                ${row.pending?.toLocaleString()}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                ${row.paymentPlan.toLocaleString()}
+                ${row.paymentPlan?.toLocaleString()}
               </td>
             </tr>
           ))}

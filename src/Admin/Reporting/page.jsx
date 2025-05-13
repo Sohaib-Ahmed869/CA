@@ -54,7 +54,12 @@ const Reporting = () => {
           axios.get(`${URL}/api/admin/finance-stats`, { params }),
         ]);
 
-        setLeadsData(leadsRes.data);
+        //remove the data with 0 as value
+        const filteredLeadsData = leadsRes.data.filter(
+          (item) => item.total > 0
+        );
+
+        setLeadsData(filteredLeadsData);
         setFinanceData(financeRes.data);
         setLoading(false);
       } catch (error) {
@@ -96,7 +101,7 @@ const Reporting = () => {
           >
             Leads Overview
           </button>
-          <button
+          {/* <button
             onClick={() => setActiveTable("finance")}
             className={`px-4 py-2 rounded-lg ${
               activeTable === "finance"
@@ -105,7 +110,7 @@ const Reporting = () => {
             }`}
           >
             Finance Overview
-          </button>
+          </button> */}
         </div>
 
         {activeTable === "leads" ? (

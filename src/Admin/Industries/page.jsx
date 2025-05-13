@@ -33,7 +33,6 @@ const Industries = () => {
   const [qualification, setQualification] = useState("");
   const [price, setPrice] = useState("");
   const [type, setType] = useState("");
-  const [expense, setExpense] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [showCertificateModal, setShowCertificateModal] = useState(false);
   const [viewAllCertificates, setViewAllCertificates] = useState(false);
@@ -105,7 +104,6 @@ const Industries = () => {
         qualification,
         price,
         type,
-        expense,
       });
       if (response) {
         fetchIndustries();
@@ -131,19 +129,20 @@ const Industries = () => {
     setSubmissionLoading(true);
     try {
       await updatePrice(selectedCertificateId, updatedPrice);
-      setEditPriceModal(false);
-      fetchIndustries();
-      toast.success("Price updated successfully");
 
-      // Update the displayed certificates if the certificates modal is open
-      if (viewAllCertificates) {
-        const updatedIndustry = industries.find(
-          (ind) => ind._id === selectedIndustry
-        );
-        if (updatedIndustry) {
-          setSelectedCertificates(updatedIndustry.certifications);
-        }
-      }
+      // Update the local state immediately
+      setSelectedCertificates(
+        selectedCertificates.map((cert) => {
+          if (cert.qualification === selectedCertificateId) {
+            return { ...cert, price: updatedPrice };
+          }
+          return cert;
+        })
+      );
+
+      setEditPriceModal(false);
+      fetchIndustries(); // Keep this to update the background data
+      toast.success("Price updated successfully");
     } catch (error) {
       toast.error("Failed to update price");
     } finally {
@@ -553,27 +552,6 @@ const Industries = () => {
                       </div>
                       <div>
                         <label
-                          htmlFor="price"
-                          className="block text-sm font-medium text-gray-700"
-                        >
-                          Expense *
-                        </label>
-                        <div className="mt-1 relative rounded-md shadow-sm">
-                          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <HiOutlineCurrencyDollar className="h-5 w-5 text-gray-400" />
-                          </div>
-                          <input
-                            type="number"
-                            id="price"
-                            className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500"
-                            placeholder="e.g. $400"
-                            value={expense}
-                            onChange={(e) => setExpense(e.target.value)}
-                          />
-                        </div>
-                      </div>
-                      <div>
-                        <label
                           htmlFor="type"
                           className="block text-sm font-medium text-gray-700"
                         >
@@ -737,7 +715,9 @@ const Industries = () => {
                             <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                               <button
                                 onClick={() => {
-                                  setSelectedCertificateId(certificate._id);
+                                  setSelectedCertificateId(
+                                    certificate.qualification
+                                  );
                                   setUpdatedPrice(certificate.price);
                                   setEditPriceModal(true);
                                 }}
