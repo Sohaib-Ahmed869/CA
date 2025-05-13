@@ -109,6 +109,26 @@ function App() {
         />
 
         {/* Additional form routes */}
+        {/* RPL INTAKE */}
+        <Route
+          path="/rpl-intake-cpc-31420-certificate-3-waterProofing/:applicationId"
+          element={
+            <RPLIntakeForm
+              qualificationName={RPLIntakeData.CPC31420.qualification}
+              competencies={RPLIntakeData.CPC31420.competencies}
+            />
+          }
+        />
+        <Route
+          path="/rpl-intake-cpc-30220-certificate-3-carpentry/:applicationId"
+          element={
+            <RPLIntakeForm
+              qualificationName={RPLIntakeData.CPC30220.qualification}
+              competencies={RPLIntakeData.CPC30220.competencies}
+            />
+          }
+        />
+        {/* Application Forms */}
         <Route path="/cibt-enrollment-form" element={<EnrollmentForm />} />
         <Route
           path="/cibt-entry-interview-form"
@@ -154,24 +174,6 @@ function App() {
         />
         {/* Construction WaterProofing */}
 
-        <Route
-          path="/rpl-intake-cpc-31420-certificate-3-waterProofing/:applicationId"
-          element={
-            <RPLIntakeForm
-              qualificationName={RPLIntakeData.CPC31420.qualification}
-              competencies={RPLIntakeData.CPC31420.competencies}
-            />
-          }
-        />
-        <Route
-          path="/rpl-intake-cpc-30220-certificate-3-carpentry/:applicationId"
-          element={
-            <RPLIntakeForm
-              qualificationName={RPLIntakeData.CPC30220.qualification}
-              competencies={RPLIntakeData.CPC30220.competencies}
-            />
-          }
-        />
         {/* Plumbing */}
         <Route
           path="/rpl-application-form-cpc-32420-certificate-3-plumbing"
