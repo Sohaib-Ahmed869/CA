@@ -16,12 +16,9 @@ import { db } from "../firebase";
 import { auth } from "../firebase";
 import SpinnerLoader from "./components/spinnerLoader";
 import { signInWithEmailAndPassword } from "firebase/auth";
-const URL = import.meta.env.VITE_REACT_BACKEND_URL;
-import { Loader2 } from "lucide-react";
+
 
 import "./stepper.css";
-import { fetchDashboardData } from "../store/Admin/statsActions";
-import { useDispatch, useSelector } from "react-redux";
 
 const Stepper = ({ steps, currentStep }) => {
   return (
@@ -74,12 +71,8 @@ const ScreeningForm = () => {
   const [toc, setToc] = useState(false);
   const [type, setType] = useState("");
   const [price, setPrice] = useState(0);
-  const [expense, setexpense] = useState(0);
   const [submissionLoading, setSubmissionLoading] = useState(false);
-  const dispatch = useDispatch();
-  const [isLoading, setIsLoading] = useState(false);
 
-  const navigate = useNavigate();
   useEffect(() => {
     //send data to server
     console.log(
@@ -99,8 +92,7 @@ const ScreeningForm = () => {
       toc,
       password,
       type,
-      price,
-      expense
+      price
     );
   }, [
     industry,
@@ -118,7 +110,6 @@ const ScreeningForm = () => {
     questions,
     toc,
     password,
-    expense,
   ]);
 
   const [step, setStep] = useState(0);
@@ -129,7 +120,7 @@ const ScreeningForm = () => {
 
   const notifyError = (message) => toast.error(message);
 
-  // const navigate = useNavigate();
+  const navigate = useNavigate();
   const handleNext = () => {
     if ((step === 0 && industry === "") || qualification === "") {
       toast.error("Please fill in the required fields");
@@ -164,29 +155,18 @@ const ScreeningForm = () => {
     setStep((prevStep) => Math.min(prevStep + 1, 4));
   };
 
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-
   const handleBack = () => {
     setStep((prevStep) => Math.max(prevStep - 1, 0));
   };
-  const passwordRegex = /^(?=.*[A-Z])(?=.*[a-zA-Z0-9])(?!.*\s).+$/;
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
   const onClickSubmit = async (e) => {
     e.preventDefault();
-    if (password.length < 6) {
-      return notifyError("Password must be at least 6 characters long");
-    }
 
     //send data to server
     setSubmissionLoading(true);
     if (!email || !password) {
       setSubmissionLoading(false);
       return notifyError("Please fill in all fields");
-    }
-    if (!emailRegex.test(email)) {
-      setSubmissionLoading(false);
-      return notifyError("Invalid email address");
     }
 
     if (!email.includes("@" || ".")) {
@@ -204,12 +184,17 @@ const ScreeningForm = () => {
       return notifyError("Please fill in all fields");
     }
 
+    //if password is less than 6 characters
+    if (password.length < 6) {
+      setSubmissionLoading(false);
+      return notifyError("Password must be at least 6 characters");
+    }
+
     try {
       console.log("Country value before submission:", country);
       const response = await register(
         industry,
         qualification,
-        expense,
         yearsOfExperience,
         locationOfExperience,
         state,
@@ -227,15 +212,47 @@ const ScreeningForm = () => {
         price
       );
       console.log(response);
-      setSubmissionLoading(false);
+
       if (response.message === "User already exists") {
+        setSubmissionLoading(false);
         return notifyError("User already exists");
       }
       if (response.message === "Email already exists") {
+        setSubmissionLoading(false);
         return notifyError("Email already exists");
       }
+
       if (response) {
-        setIsDialogOpen(true);
+        // Login the user automatically after successful registration
+        try {
+          // Sign in with Firebase Auth
+          const userCredential = await signInWithEmailAndPassword(
+            auth,
+            email,
+            password
+          );
+
+          // Fetch the user's role from Firestore
+          const user = userCredential.user;
+          const userDocRef = doc(db, "users", user.uid);
+          const userDoc = await getDoc(userDocRef);
+
+          if (userDoc.data().role !== "customer") {
+            console.log(userDoc.data().role);
+            setSubmissionLoading(false);
+            alert("Invalid email or password");
+            return;
+          }
+
+          setSubmissionLoading(false);
+          // Redirect to confirmation page after successful login
+          navigate("/confirmation");
+        } catch (err) {
+          console.error("Login error:", err);
+          setSubmissionLoading(false);
+          // Even if login fails, still redirect to confirmation
+          navigate("/confirmation");
+        }
       }
     } catch (err) {
       setSubmissionLoading(false);
@@ -243,6 +260,7 @@ const ScreeningForm = () => {
       console.error(err);
     }
   };
+
   const [loading, setLoading] = React.useState(false);
 
   const steps = [
@@ -253,138 +271,6 @@ const ScreeningForm = () => {
     "Final Details",
   ];
 
-  // const onClickDashboard = async (e) => {
-  //   //login user
-  //   e.preventDefault();
-  //   setSubmissionLoading(true);
-  //   try {
-  //     // Sign in with Firebase Auth
-  //     const userCredential = await signInWithEmailAndPassword(
-  //       auth,
-  //       email,
-  //       password
-  //     );
-  //     //check what is user role must be customer
-  //     const user = userCredential.user;
-
-  //     // Fetch the user's role from Firestore
-  //     const userDocRef = doc(db, "users", user.uid); // Assuming you store user roles in Firestore under 'users' collection
-  //     const userDoc = await getDoc(userDocRef);
-  //     const idToken = await user.getIdToken();
-
-  //     if (userDoc.data().role !== "customer") {
-  //       console.log(userDoc.data().role);
-  //       setSubmissionLoading(false);
-  //       alert("Invalid email or password");
-  //       return;
-  //     }
-  //     const response = await fetch(`${URL}/api/auth/login`, {
-  //       method: "POST",
-  //       headers: { "Content-Type": "application/json" },
-  //       body: JSON.stringify({ idToken }),
-  //     });
-
-  //     if (!response.ok) {
-  //       const errorData = await response.json();
-  //       throw new Error(errorData.message || "Login failed");
-  //     }
-  //     const userData = userDoc.data();
-  //     const data = await response.json();
-  //     localStorage.setItem("usertoken", data.token);
-  //     localStorage.setItem("jwtToken", data.token);
-  //     localStorage.removeItem("2faPending");
-  //     localStorage.setItem("role", userData.role);
-
-  //     setSubmissionLoading(false);
-
-  //     // Redirect to dashboard
-  //     navigate("/");
-  //   } catch (err) {
-  //     alert("Invalid email or password");
-  //     console.error("Login error:", err);
-
-  //     setSubmissionLoading(false);
-  //   }
-  // };
-  const onClickDashboard = async (e) => {
-    e.preventDefault();
-    setIsLoading(true);
-
-    // Validate password length before submission
-
-    setSubmissionLoading(true);
-
-    try {
-      // Firebase authentication
-      const userCredential = await signInWithEmailAndPassword(
-        auth,
-        email,
-        password
-      );
-      const user = userCredential.user;
-
-      // Firestore user data retrieval
-      const userDocRef = doc(db, "users", user.uid);
-      const userDoc = await getDoc(userDocRef);
-
-      if (!userDoc.exists()) {
-        throw new Error("User account not found");
-      }
-
-      const userData = userDoc.data();
-
-      // API authentication
-      const idToken = await user.getIdToken();
-      const response = await fetch(`${URL}/api/auth/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ idToken }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Authentication failed");
-      }
-
-      // Handle successful login
-      const data = await response.json();
-      localStorage.setItem("usertoken", data.token);
-      localStorage.setItem("jwtToken", data.token);
-      localStorage.removeItem("2faPending");
-      localStorage.setItem("role", userData.role);
-
-      toast.success("Login successful! Redirecting...");
-      navigate("/");
-    } catch (err) {
-      // Handle specific error cases
-      let errorMessage = "Login failed. Please try again.";
-
-      switch (err.code) {
-        case "auth/invalid-email":
-          errorMessage = "Invalid email address";
-          break;
-        case "auth/user-disabled":
-          errorMessage = "Account disabled";
-          break;
-        case "auth/user-not-found":
-        case "auth/wrong-password":
-          errorMessage = "Invalid email or password";
-          break;
-        default:
-          if (err.message.includes("valid email")) {
-            errorMessage = "Please enter a valid email address";
-          } else if (err.message) {
-            errorMessage = err.message;
-          }
-      }
-
-      toast.error(errorMessage);
-      console.error("Login error:", err);
-    } finally {
-      setSubmissionLoading(false);
-      setIsLoading(false);
-    }
-  };
   return (
     <div className="min-h-screen">
       {loading && <Loader />}
@@ -416,7 +302,6 @@ const ScreeningForm = () => {
               setType={setType}
               price={price}
               setPrice={setPrice}
-              setexpense={setexpense}
             />
           )}
           {step === 1 && (
@@ -485,49 +370,9 @@ const ScreeningForm = () => {
           </div>
         </div>
       </div>
-      {
-        //overlay
-        isDialogOpen && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 z-50"></div>
-        )
-      }
-      {isDialogOpen && (
-        <dialog className="modal" open>
-          <div className="modal-box">
-            <h3 className="font-bold text-lg">
-              Assessment Submitted Successfully!
-            </h3>
-            <p className="py-4">
-              Your fast skills assessment has been submitted successfully.
-              Please visit the dashboard to view your application.
-            </p>
-            <div className="modal-action">
-              {/* <button
-                className="btn btn-primary text-white"
-                onClick={onClickDashboard}
-              >
-                Go to Dashboard
-              </button> */}
-              <button
-                className="btn btn-primary text-white"
-                onClick={onClickDashboard}
-                // disabled={isLoading}
-              >
-                {isLoading ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Loading...
-                  </>
-                ) : (
-                  "Go to Dashboard"
-                )}
-              </button>
-            </div>
-          </div>
-        </dialog>
-      )}
     </div>
   );
 };
 
 export default ScreeningForm;
+ 

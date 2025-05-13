@@ -24,6 +24,8 @@ import AssessorSidebar from "./Assessor/Sidebar/page";
 import ViewApplication from "./Customer/ViewApplication/page";
 import TwoFactorAuth from "./TwoFactorAuth/TwoFactorAuth";
 import ProtectedRoute from "./utils/RouteProtection";
+import ConfirmationPage from "./Customer/ConfirmationPage";
+
 import EnrollmentForm from "./Customer/AdditionalForms/cibtEnrollmentForm/EnrollmentForm";
 import EntryInterviewForm from "./Customer/AdditionalForms/cibtEntryInterviewForm/EntryInterviewForm";
 import LLNAssessment from "./Customer/AdditionalForms/LLNAssessment/LLNAssessment";
@@ -67,7 +69,7 @@ import RPLAssessmentCPC30220cccc from "./Customer/FormsTOVerify/Maryams/3";
 import RPLSelfAssessmentCPC40920e from "./Customer/FormsTOVerify/Bilals/5";
 import RPLSelfAssessmentForm40120ff from "./Customer/FormsTOVerify/Bilals/6";
 import RPLSelfAssessmentFormCPC30220k from "./Customer/FormsTOVerify/Bilals/7";
-import FormNavigation from "./Customer/FormsTOVerify/verify";
+import FormNavigation from "./Customer/FormsTOVerify/VERIFY";
 function App() {
   return (
     <Router>
@@ -92,7 +94,7 @@ function App() {
         <Route path="/" element={<CustomerDashboard />} />
         <Route path="/signup" element={<CustomerDashboardSignup />} />
         <Route path="/screening" element={<ScreeningForm />} />
-
+        <Route path="/confirmation" element={<ConfirmationPage />} />
         <Route path="/new-application" element={<ScreeningForm2 />} />
         <Route
           path="/existing-applications"
