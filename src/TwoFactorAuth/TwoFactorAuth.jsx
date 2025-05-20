@@ -12,7 +12,7 @@ const TwoFactorAuth = () => {
   useEffect(() => {
     const fapending = false;
     const role = localStorage.getItem("authrole");
-    if (!fapending) {
+  
       if (role === "admin") {
         navigate("/admin");
       }
@@ -28,7 +28,7 @@ const TwoFactorAuth = () => {
       if (role === "agent") {
         navigate("/agent");
       }
-    }
+    
   }, []);
   const [code, setCode] = useState(["", "", "", "", "", ""]);
   const [loading, setLoading] = useState(false);

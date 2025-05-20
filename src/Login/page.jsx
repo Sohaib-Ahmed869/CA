@@ -37,22 +37,21 @@ const Login = () => {
   useEffect(() => {
     const fapending = localStorage.getItem("fapending");
     const role = localStorage.getItem("authrole");
-    if (!fapending) {
-      if (role === "admin") {
-        navigate("/admin");
-      }
-      if (role === "rto") {
-        navigate("/rto");
-      }
-      if (role === "assessor") {
-        navigate("/assessor");
-      }
-      if (role === "customer") {
-        navigate("/");
-      }
-      if (role === "agent") {
-        navigate("/agent");
-      }
+
+    if (role === "admin") {
+      navigate("/admin");
+    }
+    if (role === "rto") {
+      navigate("/rto");
+    }
+    if (role === "assessor") {
+      navigate("/assessor");
+    }
+    if (role === "customer") {
+      navigate("/");
+    }
+    if (role === "agent") {
+      navigate("/agent");
     }
   }, []);
   // Check if user is already logged in
