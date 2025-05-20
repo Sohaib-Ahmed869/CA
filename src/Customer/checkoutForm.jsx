@@ -236,8 +236,8 @@ const useSquareSDK = () => {
         // Create and load the script
         const scriptPromise = new Promise((resolve, reject) => {
           const script = document.createElement("script");
-          script.src = "https://web.squarecdn.com/v1/square.js";
-          // script.src = "https://sandbox.web.squarecdn.com/v1/square.js";
+          //script.src = "https://web.squarecdn.com/v1/square.js";
+          script.src = "https://sandbox.web.squarecdn.com/v1/square.js";
           script.async = true;
           script.onload = () => resolve(window.Square);
           script.onerror = () => reject(new Error("Failed to load Square SDK"));
