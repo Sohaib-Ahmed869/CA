@@ -10,7 +10,7 @@ const URL = import.meta.env.VITE_REACT_BACKEND_URL;
 const TwoFactorAuth = () => {
   const navigate = useNavigate();
   useEffect(() => {
-    const fapending = localStorage.getItem("fapending");
+    const fapending = false;
     const role = localStorage.getItem("authrole");
     if (!fapending) {
       if (role === "admin") {
