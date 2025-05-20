@@ -65,19 +65,18 @@ const Login = () => {
           const userDoc = await getDoc(userDocRef);
 
           if (userDoc.exists()) {
-            const userData = userDoc.data();
-            const role = userData.role;
+            const role = userDoc.data().role;
             localStorage.setItem("role", role);
 
-            // Navigate based on role
+            // Redirect based on role
             if (role === "admin") {
-              if (userData.type === "ceo") {
+              if (userDoc.data().type === "ceo") {
                 localStorage.setItem("type", "ceo");
                 localStorage.setItem("agentName", "");
-              } else if (userData.type === "agent") {
+              } else if (userDoc.data().type === "agent") {
                 localStorage.setItem("type", "agent");
-                localStorage.setItem("agentName", userData.name);
-              } else if (userData.type === "manager") {
+                localStorage.setItem("agentName", userDoc.data().name);
+              } else if (userDoc.data().type === "manager") {
                 localStorage.setItem("type", "manager");
                 localStorage.setItem("agentName", "");
               }
@@ -87,7 +86,7 @@ const Login = () => {
               localStorage.setItem("agentName", "");
               navigate("/");
             } else if (role === "rto") {
-              localStorage.setItem("rtoType", userData.type);
+              localStorage.setItem("rtoType", userDoc.data().type);
               navigate("/rto");
             } else if (role === "agent") navigate("/agent");
             else if (role === "assessor") navigate("/assessor");
@@ -112,6 +111,7 @@ const Login = () => {
   const notify = (message) => toast.success(message);
   const notifyError = (message) => toast.error(message);
 
+  // Modified login handler without 2FA
   const handleLogin = async (e) => {
     e.preventDefault();
     setSubmissionLoading(true);
@@ -134,18 +134,6 @@ const Login = () => {
       const user = userCredential.user;
       const idToken = await user.getIdToken();
 
-      // Store user data
-      sessionStorage.setItem("userId", user.uid);
-      localStorage.setItem("usertoken", idToken);
-      localStorage.setItem("jwtToken", idToken);
-
-      // Save email if Remember Me is checked
-      if (rememberMe) {
-        localStorage.setItem("rememberedEmail", email);
-      } else {
-        localStorage.removeItem("rememberedEmail");
-      }
-
       // Get user data from Firestore
       const userDocRef = doc(db, "users", user.uid);
       const userDoc = await getDoc(userDocRef);
@@ -153,15 +141,28 @@ const Login = () => {
       if (!userDoc.exists()) {
         await auth.signOut();
         notifyError("Account not found");
+        setSubmissionLoading(false);
         return;
       }
 
-      // Handle role-based navigation
+      // Save user session data
+      sessionStorage.setItem("userId", user.uid);
+      localStorage.setItem("usertoken", idToken);
+      localStorage.setItem("jwtToken", idToken);
+
+      // Store user data
       const userData = userDoc.data();
       localStorage.setItem("role", userData.role);
       localStorage.setItem("email", userData.email || email);
       localStorage.setItem("agentuser", userData.name || "");
       localStorage.setItem("RoleForTitle", userData.role);
+
+      // Handle "Remember Me" option
+      if (rememberMe) {
+        localStorage.setItem("rememberedEmail", email);
+      } else {
+        localStorage.removeItem("rememberedEmail");
+      }
 
       notify("Login Successful");
 
@@ -190,7 +191,7 @@ const Login = () => {
     } catch (err) {
       console.error("Login error:", err);
 
-      const errorCode = err.code || err.message; // Extract main error code
+      const errorCode = err.code || err.message;
 
       if (
         errorCode === "auth/user-not-found" ||
