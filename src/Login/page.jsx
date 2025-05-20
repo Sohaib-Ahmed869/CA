@@ -32,6 +32,7 @@ const Login = () => {
   const [resetLoading, setResetLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
+
   useEffect(() => {
     const fapending = localStorage.getItem("fapending");
     const role = localStorage.getItem("authrole");
@@ -53,43 +54,44 @@ const Login = () => {
       }
     }
   }, []);
+
   // Check if user is already logged in
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      // if (user && !localStorage.getItem("2faPending")) {
-      if (user && !localStorage.getItem("2faPending")) {
+      if (user) {
         // User is signed in, check role and redirect
         try {
           const userDocRef = doc(db, "users", user.uid);
           const userDoc = await getDoc(userDocRef);
 
           if (userDoc.exists()) {
-            const role = userDoc.data().role;
+            const userData = userDoc.data();
+            const role = userData.role;
             localStorage.setItem("role", role);
-          }
 
-          //   if (role === "admin") {
-          //     if (userDoc.data().type === "ceo") {
-          //       localStorage.setItem("type", "ceo");
-          //       localStorage.setItem("agentName", "");
-          //     } else if (userDoc.data().type === "agent") {
-          //       localStorage.setItem("type", "agent");
-          //       localStorage.setItem("agentName", userDoc.data().name);
-          //     } else if (userDoc.data().type === "manager") {
-          //       localStorage.setItem("type", "manager");
-          //       localStorage.setItem("agentName", "");
-          //     }
-          //     navigate("/admin");
-          //   } else if (role === "customer") {
-          //     localStorage.setItem("type", "customer");
-          //     localStorage.setItem("agentName", "");
-          //     navigate("/");
-          //   } else if (role === "rto") {
-          //     localStorage.setItem("rtoType", userDoc.data().type);
-          //     navigate("/rto");
-          //   } else if (role === "agent") navigate("/agent");
-          //   else if (role === "assessor") navigate("/assessor");
-          // }
+            // Navigate based on role
+            if (role === "admin") {
+              if (userData.type === "ceo") {
+                localStorage.setItem("type", "ceo");
+                localStorage.setItem("agentName", "");
+              } else if (userData.type === "agent") {
+                localStorage.setItem("type", "agent");
+                localStorage.setItem("agentName", userData.name);
+              } else if (userData.type === "manager") {
+                localStorage.setItem("type", "manager");
+                localStorage.setItem("agentName", "");
+              }
+              navigate("/admin");
+            } else if (role === "customer") {
+              localStorage.setItem("type", "customer");
+              localStorage.setItem("agentName", "");
+              navigate("/");
+            } else if (role === "rto") {
+              localStorage.setItem("rtoType", userData.type);
+              navigate("/rto");
+            } else if (role === "agent") navigate("/agent");
+            else if (role === "assessor") navigate("/assessor");
+          }
         } catch (error) {
           console.error("Error checking user role:", error);
         }
@@ -110,19 +112,20 @@ const Login = () => {
   const notify = (message) => toast.success(message);
   const notifyError = (message) => toast.error(message);
 
-  // 2FA HANDLER LOGIN
   const handleLogin = async (e) => {
     e.preventDefault();
     setSubmissionLoading(true);
     setError("");
+
     if (!email.trim() || !password.trim()) {
       setError("Email and password are required");
       notifyError("Email and password are required");
       setSubmissionLoading(false);
       return;
     }
+
     try {
-      // 1. Firebase Authentication
+      // Firebase Authentication
       const userCredential = await signInWithEmailAndPassword(
         auth,
         email,
@@ -131,50 +134,19 @@ const Login = () => {
       const user = userCredential.user;
       const idToken = await user.getIdToken();
 
-      // 2. Check 2FA requirement with backend
-      const response = await fetch(`${URL}/api/auth/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ idToken }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Login failed");
-      }
-
-      const data = await response.json();
-      console.log(data);
-      localStorage.setItem("RoleForTitle", data.role);
-      localStorage.setItem("email", data.email);
-      localStorage.setItem("agentuser", data.name);
-
-      // 3. Handle 2FA redirection
-      if (data.requires2FA) {
-        localStorage.setItem("2faPending", "true");
-        navigate("/verify-2fa", {
-          state: {
-            email: user.email,
-            uid: user.uid,
-          },
-        });
-        return;
-      }
-
-      // 4. Handle immediate login (no 2FA required)
+      // Store user data
       sessionStorage.setItem("userId", user.uid);
-      localStorage.setItem("usertoken", data.token);
-      localStorage.setItem("jwtToken", data.token);
-      localStorage.removeItem("2faPending");
+      localStorage.setItem("usertoken", idToken);
+      localStorage.setItem("jwtToken", idToken);
 
-      // 5. Save email if Remember Me is checked
+      // Save email if Remember Me is checked
       if (rememberMe) {
         localStorage.setItem("rememberedEmail", email);
       } else {
         localStorage.removeItem("rememberedEmail");
       }
 
-      // 6. Get user data from Firestore
+      // Get user data from Firestore
       const userDocRef = doc(db, "users", user.uid);
       const userDoc = await getDoc(userDocRef);
 
@@ -184,20 +156,37 @@ const Login = () => {
         return;
       }
 
-      // 7. Handle role-based navigation
+      // Handle role-based navigation
       const userData = userDoc.data();
       localStorage.setItem("role", userData.role);
-
-      // Store additional user data based on role
+      localStorage.setItem("email", userData.email || email);
+      localStorage.setItem("agentuser", userData.name || "");
+      localStorage.setItem("RoleForTitle", userData.role);
 
       notify("Login Successful");
 
-      // 8. Navigate based on role
-      const navigationMap = {
-        customer: "/",
-      };
-      const path = navigationMap[userData.role] || "/";
-      navigate(path);
+      // Navigate based on role
+      if (userData.role === "admin") {
+        if (userData.type === "ceo") {
+          localStorage.setItem("type", "ceo");
+          localStorage.setItem("agentName", "");
+        } else if (userData.type === "agent") {
+          localStorage.setItem("type", "agent");
+          localStorage.setItem("agentName", userData.name);
+        } else if (userData.type === "manager") {
+          localStorage.setItem("type", "manager");
+          localStorage.setItem("agentName", "");
+        }
+        navigate("/admin");
+      } else if (userData.role === "customer") {
+        localStorage.setItem("type", "customer");
+        localStorage.setItem("agentName", "");
+        navigate("/");
+      } else if (userData.role === "rto") {
+        localStorage.setItem("rtoType", userData.type);
+        navigate("/rto");
+      } else if (userData.role === "agent") navigate("/agent");
+      else if (userData.role === "assessor") navigate("/assessor");
     } catch (err) {
       console.error("Login error:", err);
 
@@ -206,7 +195,7 @@ const Login = () => {
       if (
         errorCode === "auth/user-not-found" ||
         errorCode === "auth/wrong-password" ||
-        errorCode === "auth/invalid-credential" // Added auth/invalid-credential
+        errorCode === "auth/invalid-credential"
       ) {
         setError("Invalid email or password");
         notifyError("Invalid email or password");
@@ -232,7 +221,6 @@ const Login = () => {
       try {
         await auth.signOut();
         localStorage.removeItem("token");
-        localStorage.removeItem("2faPending");
       } catch (signOutError) {
         console.error("Sign out error:", signOutError);
       }
