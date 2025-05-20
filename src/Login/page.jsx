@@ -30,28 +30,27 @@ const Login = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [resetEmail, setResetEmail] = useState("");
   const [resetLoading, setResetLoading] = useState(false);
-  const [otpForTesting, setOtpForTesting] = useState("");
-
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   useEffect(() => {
-    const fapending = localStorage.getItem("fapending");
+
     const role = localStorage.getItem("authrole");
 
-    if (role === "admin") {
-      navigate("/admin");
-    }
-    if (role === "rto") {
-      navigate("/rto");
-    }
-    if (role === "assessor") {
-      navigate("/assessor");
-    }
-    if (role === "customer") {
-      navigate("/");
-    }
-    if (role === "agent") {
-      navigate("/agent");
+      if (role === "admin") {
+        navigate("/admin");
+      }
+      if (role === "rto") {
+        navigate("/rto");
+      }
+      if (role === "assessor") {
+        navigate("/assessor");
+      }
+      if (role === "customer") {
+        navigate("/");
+      }
+      if (role === "agent") {
+        navigate("/agent");
+      
     }
   }, []);
   // Check if user is already logged in
@@ -152,27 +151,6 @@ const Login = () => {
 
       // 3. Handle 2FA redirection
       if (data.requires2FA) {
-        // Add this code to show OTP
-        try {
-          // Make request to get OTP for testing
-          const otpResponse = await fetch(`${URL}/api/auth/get-test-otp`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email: user.email }),
-          });
-
-          if (otpResponse.ok) {
-            const otpData = await otpResponse.json();
-            setOtpForTesting(otpData.otp || "Could not retrieve OTP");
-          } else {
-            setOtpForTesting("OTP unavailable for testing");
-          }
-        } catch (error) {
-          console.error("Error getting test OTP:", error);
-          setOtpForTesting("Error retrieving OTP");
-        }
-
-        // Continue with normal 2FA flow
         localStorage.setItem("2faPending", "true");
         navigate("/verify-2fa", {
           state: {
@@ -182,11 +160,13 @@ const Login = () => {
         });
         return;
       }
+
       // 4. Handle immediate login (no 2FA required)
       sessionStorage.setItem("userId", user.uid);
       localStorage.setItem("usertoken", data.token);
       localStorage.setItem("jwtToken", data.token);
-      localStorage.removeItem("2faPending");
+      localStorage.setItem("2faPending", "false");
+
 
       // 5. Save email if Remember Me is checked
       if (rememberMe) {
@@ -208,16 +188,21 @@ const Login = () => {
       // 7. Handle role-based navigation
       const userData = userDoc.data();
       localStorage.setItem("role", userData.role);
+      //set authrole as userData.role
+      localStorage.setItem("authrole", userData.role);
 
       // Store additional user data based on role
 
       notify("Login Successful");
+      console.log("User data:", userData);
 
       // 8. Navigate based on role
       const navigationMap = {
         customer: "/",
       };
-      const path = navigationMap[userData.role] || "/";
+      console.log('data',userData);
+      const path = userData.role === "customer" ? "/" : userData.role === "admin" ? "/admin" : userData.role === "rto" ? "/rto" : userData.role === "assessor" ? "/assessor" : userData.role === "agent" ? "/agent" : "/";
+      console.log("Navigating to:", path);
       navigate(path);
     } catch (err) {
       console.error("Login error:", err);
@@ -415,18 +400,6 @@ const Login = () => {
               {error && (
                 <div className="mb-5 bg-red-50 border-l-4 border-red-500 p-4 rounded shadow-sm">
                   <p className="text-red-700 text-sm font-medium">{error}</p>
-                </div>
-              )}
-
-              {/* Add this block to display test OTP */}
-              {otpForTesting && (
-                <div className="mb-5 bg-yellow-50 border-l-4 border-yellow-500 p-4 rounded shadow-sm">
-                  <p className="text-yellow-700 text-sm font-medium">
-                    <span className="font-bold">Test OTP:</span> {otpForTesting}
-                  </p>
-                  <p className="text-xs text-yellow-600 mt-1">
-                    This is shown for testing purposes only
-                  </p>
                 </div>
               )}
 
